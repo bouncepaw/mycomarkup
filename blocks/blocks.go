@@ -2,7 +2,6 @@ package blocks
 
 type BlockKind int
 
-// From least complex to more complex:
 const (
 	KindNone BlockKind = iota
 	KindHorizontalLine
@@ -10,10 +9,24 @@ const (
 	KindFormatted
 	KindHeading
 	KindParagraph
+
 	KindRocketLink
-	KindLaunchpad
-	KindList
+	KindLaunchPad
+
+	KindMessage
+
+	KindImage
+	KindImageGallery
+
+	KindTableCell
+	KindTableRow
 	KindTable
+
+	KindListElement
+	KindListIndent
+	KindList
+
+	KindBlockQuote
 )
 
 type Block interface {
