@@ -61,7 +61,7 @@ func From(srcAddress, srcDisplay, srcHypha string) Link {
 	case strings.ContainsRune(link.address, ':'):
 		pos := strings.IndexRune(link.address, ':')
 		link.kind = LinkExternal
-		link.protocol = link.address[:pos]
+		link.protocol = link.address[:pos+1]
 		link.address = link.address[pos+1:]
 		if strings.HasPrefix(link.address, "//") && len(link.address) > 2 {
 			link.protocol += "//"
@@ -138,4 +138,8 @@ func (link *Link) ImgSrc() string {
 	default:
 		return "/binary/" + link.address
 	}
+}
+
+func (link *Link) Display() string {
+	return link.display
 }
