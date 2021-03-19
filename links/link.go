@@ -40,7 +40,7 @@ type Link struct {
 	destinationUnknown bool
 }
 
-func From(srcAddress, srcDisplay, srcHypha string) Link {
+func From(srcAddress, srcDisplay, srcHypha string) *Link {
 	link := Link{
 		srcAddress: strings.TrimSpace(srcAddress),
 		srcDisplay: strings.TrimSpace(srcDisplay),
@@ -94,7 +94,7 @@ func From(srcAddress, srcDisplay, srcHypha string) Link {
 		link.display = link.srcDisplay
 	}
 
-	return link
+	return &link
 }
 
 // ItExists notes that the destination makes sense, exists.
