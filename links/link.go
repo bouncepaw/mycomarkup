@@ -140,6 +140,17 @@ func (link *Link) ImgSrc() string {
 	}
 }
 
+// Display returns the display text of the given link.
 func (link *Link) Display() string {
 	return link.display
+}
+
+// Address returns the address of the given link. Why would you need that?
+func (link *Link) Address() string {
+	return link.address
+}
+
+// OfKind returns if the given link is of the given kind.
+func (link *Link) OfKind(kind LinkType) bool {
+	return link.kind == kind
 }
