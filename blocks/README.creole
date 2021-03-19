@@ -1,0 +1,6 @@
+# Blocks
+This module holds all datatype representations of blocks available in Mycomarkup. There are two types of blocks:
+
+1. Nesting
+2. Non-nesting
+

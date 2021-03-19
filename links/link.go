@@ -140,6 +140,11 @@ func (link *Link) ImgSrc() string {
 	}
 }
 
+// String returns a debugging string representation of the given link.
+func (link *Link) String() string {
+	return fmt.Sprintf(`Link("%s", "%s", "%s")`, link.Href(), link.Display(), link.srcHypha)
+}
+
 // Display returns the display text of the given link.
 func (link *Link) Display() string {
 	return link.display
