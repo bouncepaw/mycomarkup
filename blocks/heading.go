@@ -6,18 +6,17 @@ import (
 
 type Heading struct {
 	level   uint
-	id      string
 	content *Formatted
 }
 
-func MakeHeading(level uint, id string, content *Formatted) *Heading {
-	return &Heading{level, id, content}
+func MakeHeading(level uint, content *Formatted) *Heading {
+	return &Heading{level, content}
 }
 
 func (h *Heading) String() string {
-	return fmt.Sprintf(`Heading(%d, "%s") {
+	return fmt.Sprintf(`Heading(%d) {
 %s
-};`, h.level, h.id, h.content)
+};`, h.level, h.content)
 }
 
 func (h *Heading) IsNesting() bool {
