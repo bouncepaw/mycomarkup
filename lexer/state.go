@@ -16,12 +16,12 @@ type State struct {
 	// Stuff:
 
 	gottaGoFurtherNextTime bool
-	inHeading              bool
+	inHeading              Ternary
 	inRocket               bool
 }
 
 func (s *State) onNewLine() Ternary {
-	if s.lastElement.kind == TokenNewLine || s.lastElement == nil {
+	if s.lastElement == nil || s.lastElement.kind == TokenNewLine {
 		return True
 	}
 	return False

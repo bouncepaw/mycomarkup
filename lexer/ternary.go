@@ -20,6 +20,7 @@ type Condition struct {
 	onNewLine           Ternary
 	okForHorizontalLine Ternary
 	inGeneralText       Ternary
+	inHeading           Ternary
 }
 
 func (c *Condition) fullfilledBy(s *State) Ternary {
@@ -29,6 +30,8 @@ func (c *Condition) fullfilledBy(s *State) Ternary {
 	case c.okForHorizontalLine.notUnknown() && c.okForHorizontalLine != s.okForHorizontalLine():
 		return False
 	case c.inGeneralText.notUnknown() && c.inGeneralText != s.inGeneralText():
+		return False
+	case c.inHeading.notUnknown() && c.inHeading != s.inHeading:
 		return False
 	}
 	return True

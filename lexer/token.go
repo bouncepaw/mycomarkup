@@ -15,8 +15,11 @@ const (
 	TokenHorizontalLine
 	TokenPreformattedFence
 	TokenPreformattedAltText
-	TokenHeading
 
+	TokenHeadingOpen
+	TokenHeadingClose
+
+	TokenSpanNewLine
 	TokenSpanText
 	TokenSpanItalic
 	TokenSpanBold
@@ -44,12 +47,10 @@ const (
 )
 
 type Token struct {
-	startLine   uint
-	startColumn uint
-	kind        TokenKind
-	value       string
+	kind  TokenKind
+	value string
 }
 
 func (t *Token) String() string {
-	return fmt.Sprintf(`%d:%d→%v:"%s"`, t.startLine, t.startColumn, t.kind, t.value)
+	return fmt.Sprintf(`[%v→%s]`, t.kind, t.value)
 }

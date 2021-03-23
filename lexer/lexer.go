@@ -3,60 +3,48 @@ package lexer
 import (
 	"bytes"
 	"strings"
-	//	"github.com/bouncepaw/mycomarkup/blocks"
 )
 
 // For debug purposes, ig
 func callbackNop(s *State, b *bytes.Buffer) {
 }
 
-func λcallbackConsumeHeading(level uint) func(*State) {
+func λcallbackHeading(level uint) func(*State) {
 	return func(s *State) {
-		heading := Token{
-			startLine:   s.line,
-			startColumn: s.column,
-			kind:        TokenHeading,
-		}
+		heading := Token{kind: TokenHeadingOpen}
 		// We know that there is no EOF and there is a space, so we drop error.
 		value, _ := s.b.ReadString(' ')
 		heading.value = value
 
-		s.column += level + 1
-		s.inHeading = true
+		s.inHeading = True
 		s.appendToken(heading)
 	}
 }
 
-func callbackConsumeRocket(s *State) {
-	rocket := Token{
-		startLine:   s.line,
-		startColumn: s.column,
-		kind:        TokenRocketLink,
-	}
+func callbackHeadingNewLine(s *State) {
+	_, _ = s.b.ReadByte()
+	s.inHeading = False
+	s.appendToken(Token{kind: TokenHeadingClose})
+}
+
+func callbackRocket(s *State) {
+	rocket := Token{kind: TokenRocketLink}
 	_, _ = s.b.ReadString('>')
 	s.column += 2
 	s.inRocket = true
 	s.appendToken(rocket)
 }
 
-func callbackConsumeHorizontalLine(s *State) {
-	hr := Token{
-		startLine:   s.line,
-		startColumn: s.column,
-		kind:        TokenHorizontalLine,
-	}
+func callbackHorizontalLine(s *State) {
+	hr := Token{kind: TokenHorizontalLine}
 	value, _ := s.b.ReadString('\n')
 	s.column += uint(len(value))
 	hr.value = value
 	s.appendToken(hr)
 }
 
-func callbackConsumeBlockquote(s *State) {
-	s.appendToken(Token{
-		startLine:   s.line,
-		startColumn: s.column,
-		kind:        TokenBraceOpen,
-	})
+func callbackBlockquote(s *State) {
+	s.appendToken(Token{kind: TokenBraceOpen})
 
 	var (
 		buf = bytes.Buffer{}
@@ -96,50 +84,90 @@ func callbackConsumeBlockquote(s *State) {
 	}
 
 	// Zoom in what we've collected...
-	s.elements = append(s.elements, Lex(buf)...)
+	s.elements = append(s.elements, Lex(&buf)...)
 
 	// End quote
-	s.appendToken(Token{
-		startLine:   s.line,
-		startColumn: s.column,
-		kind:        TokenBraceClose,
-	})
+	s.appendToken(Token{kind: TokenBraceClose})
 }
 
-var table = []struct {
+type tableEntry struct {
 	prefix    string
 	callback  func(*State)
 	condition Condition
-}{
-	{"# ", λcallbackConsumeHeading(1),
-		Condition{onNewLine: True, inGeneralText: True}},
-	{"## ", λcallbackConsumeHeading(2),
-		Condition{onNewLine: True, inGeneralText: True}},
-	{"### ", λcallbackConsumeHeading(3),
-		Condition{onNewLine: True, inGeneralText: True}},
-	{"#### ", λcallbackConsumeHeading(4),
-		Condition{onNewLine: True, inGeneralText: True}},
-	{"##### ", λcallbackConsumeHeading(5),
-		Condition{onNewLine: True, inGeneralText: True}},
-	{"###### ", λcallbackConsumeHeading(6),
-		Condition{onNewLine: True, inGeneralText: True}},
-	{"=>", callbackConsumeRocket,
-		Condition{onNewLine: True, inGeneralText: True}},
-	{"----", callbackConsumeHorizontalLine,
-		Condition{onNewLine: True, inGeneralText: True, okForHorizontalLine: True}},
-	{">", callbackConsumeBlockquote,
-		Condition{onNewLine: True, inGeneralText: True}},
+}
+
+var table []tableEntry
+
+func init() {
+	table = []tableEntry{
+		{"# ", λcallbackHeading(1),
+			Condition{onNewLine: True, inGeneralText: True}},
+		{"## ", λcallbackHeading(2),
+			Condition{onNewLine: True, inGeneralText: True}},
+		{"### ", λcallbackHeading(3),
+			Condition{onNewLine: True, inGeneralText: True}},
+		{"#### ", λcallbackHeading(4),
+			Condition{onNewLine: True, inGeneralText: True}},
+		{"##### ", λcallbackHeading(5),
+			Condition{onNewLine: True, inGeneralText: True}},
+		{"###### ", λcallbackHeading(6),
+			Condition{onNewLine: True, inGeneralText: True}},
+		{"\n", callbackHeadingNewLine,
+			Condition{inHeading: True}},
+		{"=>", callbackRocket,
+			Condition{onNewLine: True, inGeneralText: True}},
+		{"----", callbackHorizontalLine,
+			Condition{onNewLine: True, inGeneralText: True, okForHorizontalLine: True}},
+		{">", callbackBlockquote,
+			Condition{onNewLine: True, inGeneralText: True}},
+	}
 }
 
 func startsWithStr(b *bytes.Buffer, s string) bool {
 	return strings.HasPrefix(b.String(), s)
 }
 
-func Lex(b bytes.Buffer) []Token {
+func Lex(b *bytes.Buffer) []Token {
 	var (
-		state = &State{}
-		_     = state
+		state = &State{
+			b:           b,
+			line:        0,
+			column:      0,
+			elements:    make([]Token, 0),
+			lastElement: nil,
+
+			gottaGoFurtherNextTime: false,
+			inHeading:              False,
+			inRocket:               false,
+		}
+		textbuf bytes.Buffer
+		r       byte
+		err     error
 	)
-	// TODO:
+	for {
+		// Rules are rules
+		for _, rule := range table {
+			if startsWithStr(state.b, rule.prefix) && rule.condition.fullfilledBy(state).isTrue() {
+				// temporary block:
+				if textbuf.Len() > 0 {
+					state.appendToken(
+						Token{kind: TokenSpanText, value: textbuf.String()})
+				}
+				textbuf.Reset()
+				rule.callback(state)
+				goto next // I'm sorry
+			}
+		}
+		r, err = state.b.ReadByte()
+		if err != nil {
+			if textbuf.Len() > 0 {
+				state.appendToken(
+					Token{kind: TokenSpanText, value: textbuf.String()})
+			}
+			break
+		}
+		textbuf.WriteByte(r)
+	next:
+	}
 	return state.elements
 }
