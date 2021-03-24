@@ -77,16 +77,18 @@ func callbackRocket(s *State) {
 			// If found the separator:
 		case hasBrackets && r == '|', !hasBrackets && (r == ' ' || r == '\t'):
 			inDisplay = true
-			s.appendToken(Token{kind: TokenLinkAddress, value: buf.String()})
+			if buf.Len() != 0 {
+				s.appendToken(Token{kind: TokenLinkAddress, value: buf.String()})
+			}
 			buf.Reset()
 		default:
 			buf.WriteRune(r)
 		}
 	}
 
-	if inDisplay {
+	if buf.Len() != 0 && inDisplay {
 		s.appendToken(Token{kind: TokenLinkDisplay, value: buf.String()})
-	} else {
+	} else if buf.Len() != 0 {
 		s.appendToken(Token{kind: TokenLinkAddress, value: buf.String()})
 	}
 	s.appendToken(Token{kind: TokenRocketLinkClose})
