@@ -24,7 +24,13 @@ func demoBlocks() {
 
 func main() {
 	doc := `# I am an internet
-Why the life is so rough with me?, I wonder.`
+Why the life is so rough with me?, I wonder.
+=> link
+=> link display
+=> link_link display
+=> link\ link display
+=> https://superlink
+`
 	tokens := lexer.Lex(bytes.NewBufferString(doc))
 	fmt.Printf("↓ Source text:\n%s\n↓ Tokens got:\n", doc)
 	for _, token := range tokens {

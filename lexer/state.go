@@ -17,11 +17,16 @@ type State struct {
 
 	gottaGoFurtherNextTime bool
 	inHeading              Ternary
-	inRocket               bool
+	inSpan                 bool
+	inInlineLink           bool
 }
 
 func (s *State) onNewLine() Ternary {
-	if s.lastElement == nil || s.lastElement.kind == TokenNewLine {
+	if s.lastElement == nil {
+		return True
+	}
+	switch s.lastElement.kind {
+	case TokenNewLine, TokenHeadingClose, TokenRocketLinkClose:
 		return True
 	}
 	return False

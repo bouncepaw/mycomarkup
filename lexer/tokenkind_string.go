@@ -27,23 +27,25 @@ func _() {
 	_ = x[TokenSpanSub-16]
 	_ = x[TokenSpanStrike-17]
 	_ = x[TokenSpanLinkOpen-18]
-	_ = x[TokenSpanLinkSeparator-19]
-	_ = x[TokenSpanLinkClose-20]
-	_ = x[TokenAutoLink-21]
-	_ = x[TokenRocketLink-22]
-	_ = x[TokenBlockQuoteOpen-23]
-	_ = x[TokenBlockQuoteClose-24]
-	_ = x[TokenBulletUnnumbered-25]
-	_ = x[TokenBulletIndent-26]
-	_ = x[TokenBulletNumberedImplicit-27]
-	_ = x[TokenBulletNumberedExplicit-28]
-	_ = x[TokenTagImg-29]
-	_ = x[TokenTagTable-30]
+	_ = x[TokenSpanLinkClose-19]
+	_ = x[TokenLinkAddress-20]
+	_ = x[TokenLinkDisplay-21]
+	_ = x[TokenAutoLink-22]
+	_ = x[TokenRocketLinkOpen-23]
+	_ = x[TokenRocketLinkClose-24]
+	_ = x[TokenBlockQuoteOpen-25]
+	_ = x[TokenBlockQuoteClose-26]
+	_ = x[TokenBulletUnnumbered-27]
+	_ = x[TokenBulletIndent-28]
+	_ = x[TokenBulletNumberedImplicit-29]
+	_ = x[TokenBulletNumberedExplicit-30]
+	_ = x[TokenTagImg-31]
+	_ = x[TokenTagTable-32]
 }
 
-const _TokenKind_name = "ErrBraceOpenBraceCloseNewLineHorizontalLinePreformattedFencePreformattedAltTextHeadingOpenHeadingCloseSpanNewLineSpanTextSpanItalicSpanBoldSpanMonospaceSpanMarkerSpanSuperSpanSubSpanStrikeSpanLinkOpenSpanLinkSeparatorSpanLinkCloseAutoLinkRocketLinkBlockQuoteOpenBlockQuoteCloseBulletUnnumberedBulletIndentBulletNumberedImplicitBulletNumberedExplicitTagImgTagTable"
+const _TokenKind_name = "ErrBraceOpenBraceCloseNewLineHorizontalLinePreformattedFencePreformattedAltTextHeadingOpenHeadingCloseSpanNewLineSpanTextSpanItalicSpanBoldSpanMonospaceSpanMarkerSpanSuperSpanSubSpanStrikeSpanLinkOpenSpanLinkCloseLinkAddressLinkDisplayAutoLinkRocketLinkOpenRocketLinkCloseBlockQuoteOpenBlockQuoteCloseBulletUnnumberedBulletIndentBulletNumberedImplicitBulletNumberedExplicitTagImgTagTable"
 
-var _TokenKind_index = [...]uint16{0, 3, 12, 22, 29, 43, 60, 79, 90, 102, 113, 121, 131, 139, 152, 162, 171, 178, 188, 200, 217, 230, 238, 248, 262, 277, 293, 305, 327, 349, 355, 363}
+var _TokenKind_index = [...]uint16{0, 3, 12, 22, 29, 43, 60, 79, 90, 102, 113, 121, 131, 139, 152, 162, 171, 178, 188, 200, 213, 224, 235, 243, 257, 272, 286, 301, 317, 329, 351, 373, 379, 387}
 
 func (i TokenKind) String() string {
 	if i < 0 || i >= TokenKind(len(_TokenKind_index)-1) {

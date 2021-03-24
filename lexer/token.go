@@ -28,12 +28,16 @@ const (
 	TokenSpanSuper
 	TokenSpanSub
 	TokenSpanStrike
+
 	TokenSpanLinkOpen
-	TokenSpanLinkSeparator
 	TokenSpanLinkClose
+	TokenLinkAddress
+	TokenLinkDisplay
 	TokenAutoLink
 
-	TokenRocketLink
+	TokenRocketLinkOpen
+	TokenRocketLinkClose
+
 	TokenBlockQuoteOpen
 	TokenBlockQuoteClose
 
@@ -52,5 +56,5 @@ type Token struct {
 }
 
 func (t *Token) String() string {
-	return fmt.Sprintf(`[%v→%s]`, t.kind, t.value)
+	return fmt.Sprintf(`[%v →%s]`, t.kind, t.value)
 }

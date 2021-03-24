@@ -21,18 +21,36 @@ type Condition struct {
 	okForHorizontalLine Ternary
 	inGeneralText       Ternary
 	inHeading           Ternary
+	inSpan              Ternary
 }
 
 func (c *Condition) fullfilledBy(s *State) Ternary {
-	switch {
-	case c.onNewLine.notUnknown() && c.onNewLine != s.onNewLine():
-		return False
-	case c.okForHorizontalLine.notUnknown() && c.okForHorizontalLine != s.okForHorizontalLine():
-		return False
-	case c.inGeneralText.notUnknown() && c.inGeneralText != s.inGeneralText():
-		return False
-	case c.inHeading.notUnknown() && c.inHeading != s.inHeading:
-		return False
+	// Test if any of the ternary variables are not ok
+	cs := []struct {
+		requirement Ternary
+		stateState  Ternary
+	}{
+		{c.inHeading, s.inHeading},
+	}
+	for _, cp := range cs {
+		if cp.requirement.notUnknown() && cp.requirement != cp.stateState {
+			return False
+		}
+	}
+
+	// Then test the same for those that need a function invocation
+	cf := []struct {
+		requirement Ternary
+		stateTest   func() Ternary
+	}{
+		{c.onNewLine, s.onNewLine},
+		{c.inGeneralText, s.inGeneralText},
+		{c.okForHorizontalLine, s.okForHorizontalLine},
+	}
+	for _, cp := range cf {
+		if cp.requirement.notUnknown() && cp.requirement != cp.stateTest() {
+			return False
+		}
 	}
 	return True
 }
