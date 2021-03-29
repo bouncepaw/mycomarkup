@@ -1,0 +1,156 @@
+package lexer
+
+import (
+	"bytes"
+)
+
+type LexerState int
+
+const (
+	StateErr LexerState = iota
+	StateNil
+
+	StateParagraph
+	StateEscape
+	StateNowiki
+	StateAutolink
+	StateLinkAddress
+	StateLinkDisplay
+)
+
+type ParagraphState struct {
+	stackState *stateStack
+	buf        *bytes.Buffer
+}
+
+func (ps *ParagraphState) hasOnTop(ls LexerState) bool {
+	return ps.stackState.topElem == &ls
+}
+
+type paragraphLexEntry struct {
+	prefices []string
+	λ        func(s *State, ps *ParagraphState)
+}
+
+func closeTextSpan(s *State, ps *ParagraphState) {
+	panic("unimplemented")
+}
+
+func λcloseEatAppend(n int, tk TokenKind) func(*State, *ParagraphState) {
+	return func(s *State, ps *ParagraphState) {
+		closeTextSpan(s, ps)
+		if n > 0 {
+			eatChar(s)
+			if n > 1 {
+				eatChar(s)
+			}
+		}
+		s.appendToken(Token{tk, ""})
+	}
+}
+
+var (
+	paragraphParagraphTable []paragraphLexEntry
+	paragraphAutolinkTable  []paragraphLexEntry
+)
+
+func init() {
+	// TODO: replace nil with actual functions
+	paragraphParagraphTable = []paragraphLexEntry{
+		{[]string{"\\"}, nil},
+		{[]string{"[["}, nil},
+		{[]string{"//"}, λcloseEatAppend(2, TokenSpanItalic)},
+		{[]string{"**"}, λcloseEatAppend(2, TokenSpanItalic)},
+		{[]string{"`"}, λcloseEatAppend(2, TokenSpanMonospace)},
+
+		{[]string{"^^"}, λcloseEatAppend(2, TokenSpanSuper)},
+		{[]string{",,"}, λcloseEatAppend(2, TokenSpanSub)},
+		{[]string{"~~"}, λcloseEatAppend(2, TokenSpanStrike)},
+		{[]string{"__"}, λcloseEatAppend(2, TokenSpanUnderline)},
+		{[]string{"%%"}, nil},
+		{[]string{"https://", "http://", "gemini://", "gopher://", "ftp://", "sftp://", "ssh://", "file://", "mailto:"},
+			func(s *State, ps *ParagraphState) {
+				λcloseEatAppend(0, TokenSpanLinkOpen)
+				ps.stackState.push(StateAutolink)
+			}},
+	}
+	paragraphAutolinkTable = []paragraphLexEntry{
+		{[]string{"(", ")", "[", "]", "{", "}", ". ", ", ", " ", "\t"},
+			func(s *State, ps *ParagraphState) {
+				ps.stackState.pop()
+				s.appendToken(Token{TokenLinkAddress, s.b.String()})
+				s.b.Reset()
+			}},
+	}
+}
+
+func looksLikeParagraph(b *bytes.Buffer) bool {
+	// TODO: implement
+	return true
+}
+
+func lexParagraph(s *State, careAboutNewLine bool) []Token {
+	var (
+		paragraphState = ParagraphState{
+			stackState: newStateStack(),
+			buf:        &bytes.Buffer{},
+		}
+	)
+	paragraphState.stackState.push(StateParagraph)
+	for {
+		switch {
+		case startsWithStr(s.b, "\n"):
+			eatChar(s)
+			if looksLikeParagraph(s.b) && careAboutNewLine {
+				paragraphState.buf.WriteByte('\n')
+			} else {
+				break
+			}
+		case startsWithStr(s.b, "\\") && !paragraphState.hasOnTop(StateEscape):
+			paragraphState.stackState.push(StateEscape)
+			eatChar(s)
+			continue
+		}
+		switch *(paragraphState.stackState.topElem) {
+		case StateEscape:
+			ch, err := s.b.ReadByte()
+			if err != nil {
+				break
+			}
+			paragraphState.stackState.pop()
+		case StateNowiki:
+			if startsWithStr(s.b, "%%") {
+				eatChar(s)
+				eatChar(s)
+				paragraphState.stackState.pop()
+			}
+			continue
+		case StateParagraph:
+			for _, rule := range paragraphParagraphTable {
+				for _, prefix := range rule.prefices {
+					if startsWithStr(s.b, prefix) {
+						rule.λ(s, &paragraphState)
+						continue
+					}
+				}
+			}
+		case StateAutolink:
+			for _, rule := range paragraphAutolinkTable {
+				for _, prefix := range rule.prefices {
+					if startsWithStr(s.b, prefix) {
+						rule.λ(s, &paragraphState)
+						continue
+					}
+				}
+			}
+		case StateLinkAddress:
+		case StateLinkDisplay:
+		}
+		ch, err := s.b.ReadByte()
+		if err != nil {
+			break
+		}
+		paragraphState.buf.WriteByte(ch)
+	}
+	return nil
+}

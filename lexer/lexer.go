@@ -53,7 +53,7 @@ func Lex(b *bytes.Buffer) []Token {
 		if state.onImg().isTrue() {
 			tableToUse = imgTable
 		} else {
-			tableTeUse = table
+			tableToUse = table
 		}
 	}
 	return state.elements

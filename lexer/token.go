@@ -28,6 +28,7 @@ const (
 	TokenSpanSuper
 	TokenSpanSub
 	TokenSpanStrike
+	TokenSpanUnderline
 
 	TokenSpanLinkOpen
 	TokenSpanLinkClose
@@ -48,6 +49,9 @@ const (
 
 	TokenTagImg
 	TokenTagTable
+
+	TokenParagraphOpen
+	TokenParagraphClose
 )
 
 type Token struct {
