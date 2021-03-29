@@ -21,13 +21,14 @@ func Lex(b *bytes.Buffer) []Token {
 			gottaGoFurtherNextTime: false,
 			inHeading:              False,
 		}
-		textbuf bytes.Buffer
-		r       byte
-		err     error
+		textbuf    bytes.Buffer
+		r          byte
+		err        error
+		tableToUse = table
 	)
 	for {
 		// Rules are rules
-		for _, rule := range table {
+		for _, rule := range tableToUse {
 			if startsWithStr(state.b, rule.prefix) && rule.condition.fullfilledBy(state).isTrue() {
 				// temporary block:
 				if textbuf.Len() > 0 {
@@ -49,6 +50,11 @@ func Lex(b *bytes.Buffer) []Token {
 		}
 		textbuf.WriteByte(r)
 	next:
+		if state.onImg().isTrue() {
+			tableToUse = imgTable
+		} else {
+			tableTeUse = table
+		}
 	}
 	return state.elements
 }

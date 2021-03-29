@@ -22,6 +22,10 @@ func eatLWS(s *State) {
 	return
 }
 
+func eatChar(s *State) {
+	_, _ = s.b.ReadByte()
+}
+
 // For debug purposes, ig
 func callbackNop(s *State, b *bytes.Buffer) {
 }

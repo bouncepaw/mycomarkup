@@ -19,6 +19,8 @@ type State struct {
 	inHeading              Ternary
 	inSpan                 bool
 	inInlineLink           bool
+
+	stateImg *imgState
 }
 
 func (s *State) onNewLine() Ternary {
@@ -30,6 +32,10 @@ func (s *State) onNewLine() Ternary {
 		return True
 	}
 	return False
+}
+
+func (s *State) onImg() Ternary {
+	return s.stateImg != nil
 }
 
 // TODO:
