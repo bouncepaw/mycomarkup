@@ -33,7 +33,8 @@ type paragraphLexEntry struct {
 }
 
 func closeTextSpan(s *State, ps *ParagraphState) {
-	panic("unimplemented")
+	s.appendToken(Token{TokenSpanText, ps.buf.String()})
+	ps.buf.Reset()
 }
 
 func λcloseEatAppend(n int, tk TokenKind) func(*State, *ParagraphState) {
@@ -154,6 +155,9 @@ func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token 
 			break
 		}
 		paragraphState.buf.WriteByte(ch)
+	}
+	if paragraphState.buf.Len() != 0 {
+		closeTextSpan(s, &paragraphState)
 	}
 	return nil
 }
