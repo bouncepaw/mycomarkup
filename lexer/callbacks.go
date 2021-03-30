@@ -37,14 +37,12 @@ func λcallbackHeading(level uint) func(*State) {
 		value, _ := s.b.ReadString(' ')
 		heading.value = value
 
-		s.inHeading = True
 		s.appendToken(heading)
 	}
 }
 
 func callbackHeadingNewLine(s *State) {
 	_, _ = s.b.ReadByte()
-	s.inHeading = False
 	s.appendToken(Token{kind: TokenHeadingClose})
 }
 

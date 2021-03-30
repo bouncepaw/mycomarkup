@@ -27,6 +27,5 @@ func (is *imgState) transition(isp imgStatePosition) {
 }
 
 func imgStartToLineBegin(s *State) {
-	s.stateImg.transition(imgLineBegin)
 	eatChar(s)
 }

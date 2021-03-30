@@ -19,53 +19,56 @@ var (
 )
 
 func init() {
-	table = []tableEntry{
-		{"# ", λcallbackHeading(1),
-			Condition{onNewLine: True, inGeneralText: True}},
-		{"## ", λcallbackHeading(2),
-			Condition{onNewLine: True, inGeneralText: True}},
-		{"### ", λcallbackHeading(3),
-			Condition{onNewLine: True, inGeneralText: True}},
-		{"#### ", λcallbackHeading(4),
-			Condition{onNewLine: True, inGeneralText: True}},
-		{"##### ", λcallbackHeading(5),
-			Condition{onNewLine: True, inGeneralText: True}},
-		{"###### ", λcallbackHeading(6),
-			Condition{onNewLine: True, inGeneralText: True}},
-		{"\n", callbackHeadingNewLine,
-			Condition{inHeading: True}},
-		{"=>", callbackRocket,
-			Condition{onNewLine: True, inGeneralText: True}},
-		{"----", callbackHorizontalLine,
-			Condition{onNewLine: True, inGeneralText: True, okForHorizontalLine: True}},
-		{">", callbackBlockquote,
-			Condition{onNewLine: True, inGeneralText: True}},
-		{"img", callbackImg,
-			Condition{onNewLine: True, inGeneralText: True}},
-	}
-	imgTable = []tableEntry{
-		{"{", imgStartToLineBegin,
-			Condition{onImgStart: True}},
-		{"", eatChar,
-			Condition{onImgStart: True}},
+	/*
+		table = []tableEntry{
+			{"# ", λcallbackHeading(1),
+				Condition{onNewLine: True, inGeneralText: True}},
+			{"## ", λcallbackHeading(2),
+				Condition{onNewLine: True, inGeneralText: True}},
+			{"### ", λcallbackHeading(3),
+				Condition{onNewLine: True, inGeneralText: True}},
+			{"#### ", λcallbackHeading(4),
+				Condition{onNewLine: True, inGeneralText: True}},
+			{"##### ", λcallbackHeading(5),
+				Condition{onNewLine: True, inGeneralText: True}},
+			{"###### ", λcallbackHeading(6),
+				Condition{onNewLine: True, inGeneralText: True}},
+			{"\n", callbackHeadingNewLine,
+				Condition{inHeading: True}},
+			{"=>", callbackRocket,
+				Condition{onNewLine: True, inGeneralText: True}},
+			{"----", callbackHorizontalLine,
+				Condition{onNewLine: True, inGeneralText: True, okForHorizontalLine: True}},
+			{">", callbackBlockquote,
+				Condition{onNewLine: True, inGeneralText: True}},
+			{"img", callbackImg,
+				Condition{onNewLine: True, inGeneralText: True}},
+		}
 
-		{"}", imgToPreEnd,
-			Condition{onImgLineBegin: True}},
-		{" \t\n", eatChar,
-			Condition{onImgLineBegin: True}},
-		{"", imgAddAddrCh,
-			Condition{onImgLineBegin: True}},
+		imgTable = []tableEntry{
+			{"{", imgStartToLineBegin,
+				Condition{onImgStart: True}},
+			{"", eatChar,
+				Condition{onImgStart: True}},
 
-		{"{", imgToPara,
-			Condition{onImgAddress: True}},
-		{"|", imgToDimension,
-			Condition{onImgAddress: True}},
-		{"\n", imgNewLineToLineBegin,
-			Condition{onImgAddress: True}},
-		{"", imgAddAddrCh,
-			Condition{onImgAddress: True}},
+			{"}", imgToPreEnd,
+				Condition{onImgLineBegin: True}},
+			{" \t\n", eatChar,
+				Condition{onImgLineBegin: True}},
+			{"", imgAddAddrCh,
+				Condition{onImgLineBegin: True}},
 
-		//x/142
-		{},
-	}
+			{"{", imgToPara,
+				Condition{onImgAddress: True}},
+			{"|", imgToDimension,
+				Condition{onImgAddress: True}},
+			{"\n", imgNewLineToLineBegin,
+				Condition{onImgAddress: True}},
+			{"", imgAddAddrCh,
+				Condition{onImgAddress: True}},
+
+			//x/142
+			{},
+		}
+	*/
 }

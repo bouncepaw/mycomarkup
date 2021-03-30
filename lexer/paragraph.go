@@ -89,7 +89,7 @@ func looksLikeParagraph(b *bytes.Buffer) bool {
 	return true
 }
 
-func lexParagraph(s *State, careAboutNewLine bool) []Token {
+func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token {
 	var (
 		paragraphState = ParagraphState{
 			stackState: newStateStack(),
@@ -101,7 +101,7 @@ func lexParagraph(s *State, careAboutNewLine bool) []Token {
 		switch {
 		case startsWithStr(s.b, "\n"):
 			eatChar(s)
-			if looksLikeParagraph(s.b) && careAboutNewLine {
+			if looksLikeParagraph(s.b) && allowMultiline {
 				paragraphState.buf.WriteByte('\n')
 			} else {
 				break
@@ -110,6 +110,8 @@ func lexParagraph(s *State, careAboutNewLine bool) []Token {
 			paragraphState.stackState.push(StateEscape)
 			eatChar(s)
 			continue
+		case startsWithStr(s.b, "}"):
+			break
 		}
 		switch *(paragraphState.stackState.topElem) {
 		case StateEscape:
@@ -118,6 +120,7 @@ func lexParagraph(s *State, careAboutNewLine bool) []Token {
 				break
 			}
 			paragraphState.stackState.pop()
+			paragraphState.buf.WriteByte(ch)
 		case StateNowiki:
 			if startsWithStr(s.b, "%%") {
 				eatChar(s)

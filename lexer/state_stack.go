@@ -7,9 +7,9 @@ type stateStack struct {
 
 func newStateStack() *stateStack {
 	ss := stateStack{
-		stack:   make([]LexerState, 1),
-		topElem: &StateNil,
+		stack: []LexerState{StateNil},
 	}
+	ss.topElem = &ss.stack[0]
 	return &ss
 }
 
@@ -23,10 +23,10 @@ func (ss *stateStack) push(ls LexerState) {
 }
 
 func (ss *stateStack) pop() LexerState {
-	lastElem := ss[ss.lastElemPos()]
+	lastElem := ss.stack[ss.lastElemPos()]
 	ss.stack = ss.stack[:ss.lastElemPos()]
 	if len(ss.stack) == 0 {
-		ss.topElem = &StateNil
+		ss.topElem = &ss.stack[0]
 	} else {
 		ss.topElem = &ss.stack[ss.lastElemPos()]
 	}

@@ -17,9 +17,6 @@ func Lex(b *bytes.Buffer) []Token {
 			column:      0,
 			elements:    make([]Token, 0),
 			lastElement: nil,
-
-			gottaGoFurtherNextTime: false,
-			inHeading:              False,
 		}
 		textbuf    bytes.Buffer
 		r          byte
@@ -50,11 +47,6 @@ func Lex(b *bytes.Buffer) []Token {
 		}
 		textbuf.WriteByte(r)
 	next:
-		if state.onImg().isTrue() {
-			tableToUse = imgTable
-		} else {
-			tableToUse = table
-		}
 	}
 	return state.elements
 }
