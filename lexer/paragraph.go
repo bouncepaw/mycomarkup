@@ -54,15 +54,20 @@ func λcloseEatAppend(n int, tk TokenKind) func(*State, *ParagraphState) {
 }
 
 var (
-	paragraphParagraphTable []paragraphLexEntry
-	paragraphAutolinkTable  []paragraphLexEntry
+	paragraphParagraphTable         []paragraphLexEntry
+	paragraphInlineLinkAddressTable []paragraphLexEntry
+	paragraphInlineLinkDisplayTable []paragraphLexEntry
+	paragraphAutolinkTable          []paragraphLexEntry
 )
 
 func init() {
 	// TODO: replace nil with actual functions
 	paragraphParagraphTable = []paragraphLexEntry{
 		{[]string{"\\"}, nil},
-		{[]string{"[["}, nil},
+		{[]string{"[["}, func(s *State, ps *ParagraphState) {
+			λcloseEatAppend(2, TokenSpanLinkOpen)(s, ps)
+			ps.stackState.push(StateLinkAddress)
+		}},
 		{[]string{"//"}, λcloseEatAppend(2, TokenSpanItalic)},
 		{[]string{"**"}, λcloseEatAppend(2, TokenSpanBold)},
 		{[]string{"`"}, λcloseEatAppend(2, TokenSpanMonospace)},
@@ -74,9 +79,48 @@ func init() {
 		{[]string{"%%"}, nil},
 		{[]string{"https://", "http://", "gemini://", "gopher://", "ftp://", "sftp://", "ssh://", "file://", "mailto:"},
 			func(s *State, ps *ParagraphState) {
-				λcloseEatAppend(0, TokenSpanLinkOpen)
+				λcloseEatAppend(0, TokenSpanLinkOpen)(s, ps)
 				ps.stackState.push(StateAutolink)
 			}},
+	}
+	paragraphInlineLinkAddressTable = []paragraphLexEntry{
+		{[]string{"\\"}, nil},
+		{[]string{"]]"}, func(s *State, ps *ParagraphState) {
+			eatChar(s)
+			eatChar(s)
+			s.appendToken(Token{TokenLinkAddress, ps.buf.String()})
+			s.appendToken(Token{TokenSpanLinkClose, ""})
+			ps.buf.Reset()
+
+			ps.stackState.pop()
+		}},
+		{[]string{"|"}, func(s *State, ps *ParagraphState) {
+			eatChar(s)
+			s.appendToken(Token{TokenLinkAddress, ps.buf.String()})
+			s.appendToken(Token{TokenLinkDisplayOpen, ""})
+			ps.buf.Reset()
+
+			ps.stackState.pop()
+			ps.stackState.push(StateLinkDisplay)
+		}},
+	}
+	paragraphInlineLinkDisplayTable = []paragraphLexEntry{
+		{[]string{"\\"}, nil},
+		{[]string{"]]"}, func(s *State, ps *ParagraphState) {
+			λcloseEatAppend(2, TokenLinkDisplayClose)(s, ps)
+			s.appendToken(Token{TokenSpanLinkClose, ""})
+			ps.stackState.pop()
+		}},
+		// those below may need further modifications
+		{[]string{"//"}, λcloseEatAppend(2, TokenSpanItalic)},
+		{[]string{"**"}, λcloseEatAppend(2, TokenSpanBold)},
+		{[]string{"`"}, λcloseEatAppend(2, TokenSpanMonospace)},
+
+		{[]string{"^^"}, λcloseEatAppend(2, TokenSpanSuper)},
+		{[]string{",,"}, λcloseEatAppend(2, TokenSpanSub)},
+		{[]string{"~~"}, λcloseEatAppend(2, TokenSpanStrike)},
+		{[]string{"__"}, λcloseEatAppend(2, TokenSpanUnderline)},
+		{[]string{"%%"}, nil},
 	}
 	paragraphAutolinkTable = []paragraphLexEntry{
 		{[]string{"(", ")", "[", "]", "{", "}", ". ", ", ", " ", "\t"},
@@ -153,7 +197,23 @@ func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token 
 				}
 			}
 		case StateLinkAddress:
+			for _, rule := range paragraphInlineLinkAddressTable {
+				for _, prefix := range rule.prefices {
+					if startsWithStr(s.b, prefix) {
+						rule.λ(s, &paragraphState)
+						continue
+					}
+				}
+			}
 		case StateLinkDisplay:
+			for _, rule := range paragraphInlineLinkDisplayTable {
+				for _, prefix := range rule.prefices {
+					if startsWithStr(s.b, prefix) {
+						rule.λ(s, &paragraphState)
+						continue
+					}
+				}
+			}
 		}
 		ch, err = s.b.ReadByte()
 		if err != nil {

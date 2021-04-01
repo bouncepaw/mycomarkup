@@ -57,17 +57,19 @@ func TestParagraphWithMultipleStyles(t *testing.T) {
 
 }
 
-// func TestParagraphWithLink(t *testing.T) {
-// 	paraTestHelper(
-// 		t,
-// 		"see these resources: [[hypha|ὑφή]]",
-// 		true, false,
-// 		[]Token{
-// 			Token{TokenSpanText, "see these resources: "},
-// 			Token{TokenSpanLinkOpen, ""},
-// 			Token{TokenLinkAddress, "hypha"},
-// 			Token{TokenLinkDisplay, "ὑφή"},
-// 			Token{TokenSpanLinkClose, ""},
-// 		})
+func TestParagraphWithLink(t *testing.T) {
+	paraTestHelper(
+		t,
+		"see these resources: [[hypha|ὑφή]]",
+		true, false,
+		[]Token{
+			Token{TokenSpanText, "see these resources: "},
+			Token{TokenSpanLinkOpen, ""},
+			Token{TokenLinkAddress, "hypha"},
+			Token{TokenLinkDisplayOpen, ""},
+			Token{TokenSpanText, "ὑφή"},
+			Token{TokenLinkDisplayClose, ""},
+			Token{TokenSpanLinkClose, ""},
+		})
 
-// }
+}

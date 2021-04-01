@@ -30,25 +30,26 @@ func _() {
 	_ = x[TokenSpanLinkOpen-19]
 	_ = x[TokenSpanLinkClose-20]
 	_ = x[TokenLinkAddress-21]
-	_ = x[TokenLinkDisplay-22]
-	_ = x[TokenAutoLink-23]
-	_ = x[TokenRocketLinkOpen-24]
-	_ = x[TokenRocketLinkClose-25]
-	_ = x[TokenBlockQuoteOpen-26]
-	_ = x[TokenBlockQuoteClose-27]
-	_ = x[TokenBulletUnnumbered-28]
-	_ = x[TokenBulletIndent-29]
-	_ = x[TokenBulletNumberedImplicit-30]
-	_ = x[TokenBulletNumberedExplicit-31]
-	_ = x[TokenTagImg-32]
-	_ = x[TokenTagTable-33]
-	_ = x[TokenParagraphOpen-34]
-	_ = x[TokenParagraphClose-35]
+	_ = x[TokenLinkDisplayOpen-22]
+	_ = x[TokenLinkDisplayClose-23]
+	_ = x[TokenAutoLink-24]
+	_ = x[TokenRocketLinkOpen-25]
+	_ = x[TokenRocketLinkClose-26]
+	_ = x[TokenBlockQuoteOpen-27]
+	_ = x[TokenBlockQuoteClose-28]
+	_ = x[TokenBulletUnnumbered-29]
+	_ = x[TokenBulletIndent-30]
+	_ = x[TokenBulletNumberedImplicit-31]
+	_ = x[TokenBulletNumberedExplicit-32]
+	_ = x[TokenTagImg-33]
+	_ = x[TokenTagTable-34]
+	_ = x[TokenParagraphOpen-35]
+	_ = x[TokenParagraphClose-36]
 }
 
-const _TokenKind_name = "ErrBraceOpenBraceCloseNewLineHorizontalLinePreformattedFencePreformattedAltTextHeadingOpenHeadingCloseSpanNewLineSpanTextSpanItalicSpanBoldSpanMonospaceSpanMarkerSpanSuperSpanSubSpanStrikeSpanUnderlineSpanLinkOpenSpanLinkCloseLinkAddressLinkDisplayAutoLinkRocketLinkOpenRocketLinkCloseBlockQuoteOpenBlockQuoteCloseBulletUnnumberedBulletIndentBulletNumberedImplicitBulletNumberedExplicitTagImgTagTableParagraphOpenParagraphClose"
+const _TokenKind_name = "ErrBraceOpenBraceCloseNewLineHorizontalLinePreformattedFencePreformattedAltTextHeadingOpenHeadingCloseSpanNewLineSpanTextSpanItalicSpanBoldSpanMonospaceSpanMarkerSpanSuperSpanSubSpanStrikeSpanUnderlineSpanLinkOpenSpanLinkCloseLinkAddressLinkDisplayOpenLinkDisplayCloseAutoLinkRocketLinkOpenRocketLinkCloseBlockQuoteOpenBlockQuoteCloseBulletUnnumberedBulletIndentBulletNumberedImplicitBulletNumberedExplicitTagImgTagTableParagraphOpenParagraphClose"
 
-var _TokenKind_index = [...]uint16{0, 3, 12, 22, 29, 43, 60, 79, 90, 102, 113, 121, 131, 139, 152, 162, 171, 178, 188, 201, 213, 226, 237, 248, 256, 270, 285, 299, 314, 330, 342, 364, 386, 392, 400, 413, 427}
+var _TokenKind_index = [...]uint16{0, 3, 12, 22, 29, 43, 60, 79, 90, 102, 113, 121, 131, 139, 152, 162, 171, 178, 188, 201, 213, 226, 237, 252, 268, 276, 290, 305, 319, 334, 350, 362, 384, 406, 412, 420, 433, 447}
 
 func (i TokenKind) String() string {
 	if i < 0 || i >= TokenKind(len(_TokenKind_index)-1) {

@@ -33,7 +33,8 @@ const (
 	TokenSpanLinkOpen
 	TokenSpanLinkClose
 	TokenLinkAddress
-	TokenLinkDisplay
+	TokenLinkDisplayOpen
+	TokenLinkDisplayClose
 	TokenAutoLink
 
 	TokenRocketLinkOpen

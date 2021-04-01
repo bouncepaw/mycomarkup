@@ -89,7 +89,9 @@ func callbackRocket(s *State) {
 	}
 
 	if buf.Len() != 0 && inDisplay {
-		s.appendToken(Token{kind: TokenLinkDisplay, value: buf.String()})
+		s.appendToken(Token{TokenLinkDisplayOpen, ""})
+		s.appendToken(Token{TokenSpanText, buf.String()})
+		s.appendToken(Token{TokenLinkDisplayClose, ""})
 	} else if buf.Len() != 0 {
 		s.appendToken(Token{kind: TokenLinkAddress, value: buf.String()})
 	}
