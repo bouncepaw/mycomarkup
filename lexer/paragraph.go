@@ -33,8 +33,10 @@ type paragraphLexEntry struct {
 }
 
 func closeTextSpan(s *State, ps *ParagraphState) {
-	s.appendToken(Token{TokenSpanText, ps.buf.String()})
-	ps.buf.Reset()
+	if ps.buf.Len() != 0 {
+		s.appendToken(Token{TokenSpanText, ps.buf.String()})
+		ps.buf.Reset()
+	}
 }
 
 func λcloseEatAppend(n int, tk TokenKind) func(*State, *ParagraphState) {
@@ -46,6 +48,7 @@ func λcloseEatAppend(n int, tk TokenKind) func(*State, *ParagraphState) {
 				eatChar(s)
 			}
 		}
+		// fmt.Printf("The rest: %s\n", s.b.String())
 		s.appendToken(Token{tk, ""})
 	}
 }
@@ -61,7 +64,7 @@ func init() {
 		{[]string{"\\"}, nil},
 		{[]string{"[["}, nil},
 		{[]string{"//"}, λcloseEatAppend(2, TokenSpanItalic)},
-		{[]string{"**"}, λcloseEatAppend(2, TokenSpanItalic)},
+		{[]string{"**"}, λcloseEatAppend(2, TokenSpanBold)},
 		{[]string{"`"}, λcloseEatAppend(2, TokenSpanMonospace)},
 
 		{[]string{"^^"}, λcloseEatAppend(2, TokenSpanSuper)},
@@ -96,6 +99,8 @@ func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token 
 			stackState: newStateStack(),
 			buf:        &bytes.Buffer{},
 		}
+		ch  byte
+		err error
 	)
 	paragraphState.stackState.push(StateParagraph)
 	for {
@@ -111,7 +116,7 @@ func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token 
 			paragraphState.stackState.push(StateEscape)
 			eatChar(s)
 			continue
-		case startsWithStr(s.b, "}"):
+		case startsWithStr(s.b, "}") && terminateOnCloseBrace:
 			break
 		}
 		switch *(paragraphState.stackState.topElem) {
@@ -134,7 +139,7 @@ func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token 
 				for _, prefix := range rule.prefices {
 					if startsWithStr(s.b, prefix) {
 						rule.λ(s, &paragraphState)
-						continue
+						goto next // this is required because of the nested loop
 					}
 				}
 			}
@@ -150,14 +155,13 @@ func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token 
 		case StateLinkAddress:
 		case StateLinkDisplay:
 		}
-		ch, err := s.b.ReadByte()
+		ch, err = s.b.ReadByte()
 		if err != nil {
 			break
 		}
 		paragraphState.buf.WriteByte(ch)
+	next:
 	}
-	if paragraphState.buf.Len() != 0 {
-		closeTextSpan(s, &paragraphState)
-	}
+	closeTextSpan(s, &paragraphState)
 	return nil
 }
