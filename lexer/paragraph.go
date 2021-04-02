@@ -63,7 +63,6 @@ var (
 func init() {
 	// TODO: replace nil with actual functions
 	paragraphParagraphTable = []paragraphLexEntry{
-		{[]string{"\\"}, nil},
 		{[]string{"[["}, func(s *State, ps *ParagraphState) {
 			λcloseEatAppend(2, TokenSpanLinkOpen)(s, ps)
 			ps.stackState.push(StateLinkAddress)
@@ -84,7 +83,6 @@ func init() {
 			}},
 	}
 	paragraphInlineLinkAddressTable = []paragraphLexEntry{
-		{[]string{"\\"}, nil},
 		{[]string{"]]"}, func(s *State, ps *ParagraphState) {
 			eatChar(s)
 			eatChar(s)
@@ -105,7 +103,6 @@ func init() {
 		}},
 	}
 	paragraphInlineLinkDisplayTable = []paragraphLexEntry{
-		{[]string{"\\"}, nil},
 		{[]string{"]]"}, func(s *State, ps *ParagraphState) {
 			λcloseEatAppend(2, TokenLinkDisplayClose)(s, ps)
 			s.appendToken(Token{TokenSpanLinkClose, ""})
@@ -148,14 +145,25 @@ func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token 
 		err error
 	)
 	paragraphState.stackState.push(StateParagraph)
+charIterator:
 	for {
 		switch {
+		case startsWithStr(s.b, "\r"):
+			// We'll just ignore this useless character
+			continue
 		case startsWithStr(s.b, "\n"):
 			eatChar(s)
-			if looksLikeParagraph(s.b) && allowMultiline {
+			if allowMultiline {
 				paragraphState.buf.WriteByte('\n')
+				if paragraphState.hasOnTop(StateEscape) {
+					paragraphState.stackState.pop()
+					continue
+				}
 			} else {
-				break
+				if paragraphState.hasOnTop(StateEscape) {
+					paragraphState.stackState.pop()
+				}
+				break charIterator
 			}
 		case startsWithStr(s.b, "\\") && !paragraphState.hasOnTop(StateEscape):
 			paragraphState.stackState.push(StateEscape)
@@ -184,7 +192,7 @@ func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token 
 				for _, prefix := range rule.prefices {
 					if startsWithStr(s.b, prefix) {
 						rule.λ(s, &paragraphState)
-						goto next // this is required because of the nested loop
+						continue charIterator
 					}
 				}
 			}
@@ -221,7 +229,6 @@ func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) []Token 
 			break
 		}
 		paragraphState.buf.WriteByte(ch)
-	next:
 	}
 	closeTextSpan(s, &paragraphState)
 	return nil

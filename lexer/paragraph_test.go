@@ -14,6 +14,7 @@ func paraTestHelper(t *testing.T, instr string, allowMultiline, terminateOnClose
 	lexParagraph(s, allowMultiline, terminateOnCloseBrace)
 	if !reflect.DeepEqual(expected, s.elements) {
 		t.Errorf("Failure! See the lexeme printouts below!")
+		t.Logf("Wanted this:\n")
 		for i, e := range expected {
 			t.Logf("%d	%s\n", i, e.String())
 		}
@@ -109,4 +110,64 @@ func TestParagraphWithAutoLink2(t *testing.T) {
 			Token{TokenSpanLinkClose, ""},
 			Token{TokenSpanText, "). I will not bite you!"},
 		})
+}
+
+func TestParagraphNewLine1(t *testing.T) {
+	paraTestHelper(
+		t,
+		"line that is consumed\nline that is not consumed yet",
+		false, false,
+		[]Token{
+			Token{TokenSpanText, "line that is consumed"},
+		})
+}
+
+func TestParagraphNewLine2(t *testing.T) {
+	paraTestHelper(
+		t,
+		"line that is consumed\nline that is consumed too",
+		true, false,
+		[]Token{
+			Token{TokenSpanText, "line that is consumed\nline that is consumed too"},
+		})
+}
+
+func TestParagraphWithEscaping1(t *testing.T) {
+	paraTestHelper(
+		t,
+		"\\Escape first char",
+		false, false,
+		[]Token{
+			Token{TokenSpanText, "Escape first char"},
+		})
+}
+
+func TestParagraphWithEscaping2(t *testing.T) {
+	// multiline on
+	paraTestHelper(
+		t,
+		"Escape last char on line\\\nHmm",
+		true, false,
+		[]Token{
+			Token{TokenSpanText, "Escape last char on line\nHmm"},
+		})
+}
+
+func TestParagraphWithEscaping3(t *testing.T) {
+	// multiline off
+	paraTestHelper(
+		t,
+		"Escape last char on line\\\nHmm",
+		false, false,
+		[]Token{
+			Token{TokenSpanText, "Escape last char on line"},
+		})
+}
+
+func TestParagraphWithEscaping4(t *testing.T) {
+	paraTestHelper(
+		t,
+		"\\",
+		false, false,
+		[]Token{})
 }
