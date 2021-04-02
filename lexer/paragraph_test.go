@@ -31,7 +31,7 @@ func TestSimpleParagraph(t *testing.T) {
 		"use it!",
 		false, false,
 		[]Token{
-			Token{TokenSpanText, "use it!"},
+			{TokenSpanText, "use it!"},
 		})
 }
 
@@ -41,9 +41,9 @@ func TestParagraphWithItalic(t *testing.T) {
 		"//italic text//",
 		false, false,
 		[]Token{
-			Token{TokenSpanItalic, ""},
-			Token{TokenSpanText, "italic text"},
-			Token{TokenSpanItalic, ""},
+			{TokenSpanItalic, ""},
+			{TokenSpanText, "italic text"},
+			{TokenSpanItalic, ""},
 		})
 }
 
@@ -53,14 +53,14 @@ func TestParagraphWithMultipleStyles(t *testing.T) {
 		"adventure: //visit Italy **and look at the Colosseo**//. Good?",
 		true, true,
 		[]Token{
-			Token{TokenSpanText, "adventure: "},
-			Token{TokenSpanItalic, ""},
-			Token{TokenSpanText, "visit Italy "},
-			Token{TokenSpanBold, ""},
-			Token{TokenSpanText, "and look at the Colosseo"},
-			Token{TokenSpanBold, ""},
-			Token{TokenSpanItalic, ""},
-			Token{TokenSpanText, ". Good?"},
+			{TokenSpanText, "adventure: "},
+			{TokenSpanItalic, ""},
+			{TokenSpanText, "visit Italy "},
+			{TokenSpanBold, ""},
+			{TokenSpanText, "and look at the Colosseo"},
+			{TokenSpanBold, ""},
+			{TokenSpanItalic, ""},
+			{TokenSpanText, ". Good?"},
 		})
 
 }
@@ -71,13 +71,13 @@ func TestParagraphWithLink(t *testing.T) {
 		"see these resources: [[hypha|ὑφή]]",
 		true, false,
 		[]Token{
-			Token{TokenSpanText, "see these resources: "},
-			Token{TokenSpanLinkOpen, ""},
-			Token{TokenLinkAddress, "hypha"},
-			Token{TokenLinkDisplayOpen, ""},
-			Token{TokenSpanText, "ὑφή"},
-			Token{TokenLinkDisplayClose, ""},
-			Token{TokenSpanLinkClose, ""},
+			{TokenSpanText, "see these resources: "},
+			{TokenSpanLinkOpen, ""},
+			{TokenLinkAddress, "hypha"},
+			{TokenLinkDisplayOpen, ""},
+			{TokenSpanText, "ὑφή"},
+			{TokenLinkDisplayClose, ""},
+			{TokenSpanLinkClose, ""},
 		})
 }
 
@@ -87,14 +87,14 @@ func TestParagraphWithAutoLink1(t *testing.T) {
 		"ftp://example.org gemini://lesarbr.es two nice links\nfor two nice people here",
 		true, true,
 		[]Token{
-			Token{TokenSpanLinkOpen, ""},
-			Token{TokenLinkAddress, "ftp://example.org"},
-			Token{TokenSpanLinkClose, ""},
-			Token{TokenSpanText, " "},
-			Token{TokenSpanLinkOpen, ""},
-			Token{TokenLinkAddress, "gemini://lesarbr.es"},
-			Token{TokenSpanLinkClose, ""},
-			Token{TokenSpanText, " two nice links\nfor two nice people here"},
+			{TokenSpanLinkOpen, ""},
+			{TokenLinkAddress, "ftp://example.org"},
+			{TokenSpanLinkClose, ""},
+			{TokenSpanText, " "},
+			{TokenSpanLinkOpen, ""},
+			{TokenLinkAddress, "gemini://lesarbr.es"},
+			{TokenSpanLinkClose, ""},
+			{TokenSpanText, " two nice links\nfor two nice people here"},
 		})
 }
 
@@ -104,11 +104,11 @@ func TestParagraphWithAutoLink2(t *testing.T) {
 		"Do not hesitate to contact me (mailto:nikołaj.przewalski@example.org). I will not bite you!",
 		false, true,
 		[]Token{
-			Token{TokenSpanText, "Do not hesitate to contact me ("},
-			Token{TokenSpanLinkOpen, ""},
-			Token{TokenLinkAddress, "mailto:nikołaj.przewalski@example.org"},
-			Token{TokenSpanLinkClose, ""},
-			Token{TokenSpanText, "). I will not bite you!"},
+			{TokenSpanText, "Do not hesitate to contact me ("},
+			{TokenSpanLinkOpen, ""},
+			{TokenLinkAddress, "mailto:nikołaj.przewalski@example.org"},
+			{TokenSpanLinkClose, ""},
+			{TokenSpanText, "). I will not bite you!"},
 		})
 }
 
@@ -118,7 +118,7 @@ func TestParagraphNewLine1(t *testing.T) {
 		"line that is consumed\nline that is not consumed yet",
 		false, false,
 		[]Token{
-			Token{TokenSpanText, "line that is consumed"},
+			{TokenSpanText, "line that is consumed"},
 		})
 }
 
@@ -128,7 +128,7 @@ func TestParagraphNewLine2(t *testing.T) {
 		"line that is consumed\nline that is consumed too",
 		true, false,
 		[]Token{
-			Token{TokenSpanText, "line that is consumed\nline that is consumed too"},
+			{TokenSpanText, "line that is consumed\nline that is consumed too"},
 		})
 }
 
@@ -138,7 +138,7 @@ func TestParagraphWithEscaping1(t *testing.T) {
 		"\\Escape first char",
 		false, false,
 		[]Token{
-			Token{TokenSpanText, "Escape first char"},
+			{TokenSpanText, "Escape first char"},
 		})
 }
 
@@ -149,7 +149,7 @@ func TestParagraphWithEscaping2(t *testing.T) {
 		"Escape last char on line\\\nHmm",
 		true, false,
 		[]Token{
-			Token{TokenSpanText, "Escape last char on line\nHmm"},
+			{TokenSpanText, "Escape last char on line\nHmm"},
 		})
 }
 
@@ -160,7 +160,7 @@ func TestParagraphWithEscaping3(t *testing.T) {
 		"Escape last char on line\\\nHmm",
 		false, false,
 		[]Token{
-			Token{TokenSpanText, "Escape last char on line"},
+			{TokenSpanText, "Escape last char on line"},
 		})
 }
 
