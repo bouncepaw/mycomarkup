@@ -13,7 +13,14 @@ func paraTestHelper(t *testing.T, instr string, allowMultiline, terminateOnClose
 	}
 	lexParagraph(s, allowMultiline, terminateOnCloseBrace)
 	if !reflect.DeepEqual(expected, s.elements) {
-		t.Errorf("Failure! Wanted %v, got %v", expected, s.elements)
+		t.Errorf("Failure! See the lexeme printouts below!")
+		for i, e := range expected {
+			t.Logf("%d	%s\n", i, e.String())
+		}
+		t.Logf("Got this instead:\n")
+		for i, e := range s.elements {
+			t.Logf("%d	%s\n", i, e.String())
+		}
 	}
 }
 
@@ -71,5 +78,35 @@ func TestParagraphWithLink(t *testing.T) {
 			Token{TokenLinkDisplayClose, ""},
 			Token{TokenSpanLinkClose, ""},
 		})
+}
 
+func TestParagraphWithAutoLink1(t *testing.T) {
+	paraTestHelper(
+		t,
+		"ftp://example.org gemini://lesarbr.es two nice links\nfor two nice people here",
+		true, true,
+		[]Token{
+			Token{TokenSpanLinkOpen, ""},
+			Token{TokenLinkAddress, "ftp://example.org"},
+			Token{TokenSpanLinkClose, ""},
+			Token{TokenSpanText, " "},
+			Token{TokenSpanLinkOpen, ""},
+			Token{TokenLinkAddress, "gemini://lesarbr.es"},
+			Token{TokenSpanLinkClose, ""},
+			Token{TokenSpanText, " two nice links\nfor two nice people here"},
+		})
+}
+
+func TestParagraphWithAutoLink2(t *testing.T) {
+	paraTestHelper(
+		t,
+		"Do not hesitate to contact me (mailto:nikołaj.przewalski@example.org). I will not bite you!",
+		false, true,
+		[]Token{
+			Token{TokenSpanText, "Do not hesitate to contact me ("},
+			Token{TokenSpanLinkOpen, ""},
+			Token{TokenLinkAddress, "mailto:nikołaj.przewalski@example.org"},
+			Token{TokenSpanLinkClose, ""},
+			Token{TokenSpanText, "). I will not bite you!"},
+		})
 }

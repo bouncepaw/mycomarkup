@@ -126,8 +126,9 @@ func init() {
 		{[]string{"(", ")", "[", "]", "{", "}", ". ", ", ", " ", "\t"},
 			func(s *State, ps *ParagraphState) {
 				ps.stackState.pop()
-				s.appendToken(Token{TokenLinkAddress, s.b.String()})
-				s.b.Reset()
+				s.appendToken(Token{TokenLinkAddress, ps.buf.String()})
+				s.appendToken(Token{TokenSpanLinkClose, ""})
+				ps.buf.Reset()
 			}},
 	}
 }
