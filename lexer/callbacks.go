@@ -1,10 +1,12 @@
 package lexer
 
-import (
-	"bytes"
-	"strings"
-)
+import ()
 
+func eatChar(s *State) {
+	_, _ = s.b.ReadByte()
+}
+
+/*
 // Read all next spaces and tabs and forget about them
 func eatLWS(s *State) {
 	for {
@@ -20,10 +22,6 @@ func eatLWS(s *State) {
 		}
 	}
 	return
-}
-
-func eatChar(s *State) {
-	_, _ = s.b.ReadByte()
 }
 
 // For debug purposes, ig
@@ -152,3 +150,4 @@ func callbackBlockquote(s *State) {
 	// End quote
 	s.appendToken(Token{kind: TokenBraceClose})
 }
+*/

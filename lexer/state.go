@@ -7,22 +7,7 @@ import (
 type State struct {
 	// General:
 
-	b           *bytes.Buffer
-	line        uint
-	column      uint
-	elements    []Token
-	lastElement *Token
-}
-
-func (s *State) onNewLine() Ternary {
-	if s.lastElement == nil {
-		return True
-	}
-	switch s.lastElement.kind {
-	case TokenNewLine, TokenHeadingClose, TokenRocketLinkClose:
-		return True
-	}
-	return False
+	b *bytes.Buffer
 }
 
 // When the line is - only
@@ -38,9 +23,4 @@ func (s *State) okForHorizontalLine() Ternary {
 		}
 	}
 	return False
-}
-
-func (s *State) appendToken(token Token) {
-	s.lastElement = &token
-	s.elements = append(s.elements, token)
 }

@@ -8,18 +8,17 @@ import (
 
 func paraTestHelper(t *testing.T, instr string, allowMultiline, terminateOnCloseBrace bool, expected []Token) {
 	s := &State{
-		b:        bytes.NewBufferString(instr),
-		elements: make([]Token, 0),
+		b: bytes.NewBufferString(instr),
 	}
-	lexParagraph(s, allowMultiline, terminateOnCloseBrace)
-	if !reflect.DeepEqual(expected, s.elements) {
+	tw := lexParagraph(s, allowMultiline, terminateOnCloseBrace)
+	if !reflect.DeepEqual(expected, tw.elements) {
 		t.Errorf("Failure! See the lexeme printouts below!")
 		t.Logf("Wanted this:\n")
 		for i, e := range expected {
 			t.Logf("%d	%s\n", i, e.String())
 		}
 		t.Logf("Got this instead:\n")
-		for i, e := range s.elements {
+		for i, e := range tw.elements {
 			t.Logf("%d	%s\n", i, e.String())
 		}
 	}

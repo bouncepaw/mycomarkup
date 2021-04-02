@@ -9,6 +9,7 @@ func startsWithStr(b *bytes.Buffer, s string) bool {
 	return strings.HasPrefix(b.String(), s)
 }
 
+/*
 func Lex(b *bytes.Buffer) []Token {
 	var (
 		state = &State{
@@ -50,3 +51,4 @@ func Lex(b *bytes.Buffer) []Token {
 	}
 	return state.elements
 }
+*/
