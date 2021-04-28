@@ -1,8 +1,6 @@
 package lexer
 
-import ()
-
-// See table.go for imgTable, see lexer.go for the table usage
+// See table.go for imgTable, see byteworks.go for the table usage
 
 type imgStatePosition int
 
@@ -26,6 +24,6 @@ func (is *imgState) transition(isp imgStatePosition) {
 	is.position = isp
 }
 
-func imgStartToLineBegin(s *State) {
+func imgStartToLineBegin(s *SourceText) {
 	eatChar(s)
 }

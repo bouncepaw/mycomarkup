@@ -4,12 +4,12 @@ import (
 	"bytes"
 )
 
-func closeTextSpan(s *State, tw *TokenWriter) {
+func closeTextSpan(s *SourceText, tw *TokenWriter) {
 	tw.nonEmptyBufIntoToken(TokenSpanText)
 }
 
-func λcloseEatAppend(n int, tk TokenKind) func(*State, *TokenWriter) {
-	return func(s *State, tw *TokenWriter) {
+func closeEatAppender(n int, tk TokenKind) func(*SourceText, *TokenWriter) {
+	return func(s *SourceText, tw *TokenWriter) {
 		closeTextSpan(s, tw)
 		if n > 0 {
 			eatChar(s)
@@ -27,32 +27,38 @@ var (
 	paragraphInlineLinkAddressTable []tableEntry
 	paragraphInlineLinkDisplayTable []tableEntry
 	paragraphAutolinkTable          []tableEntry
+	paragraphNowikiTable            []tableEntry
+	paragraphNewLineTable           []tableEntry
 )
 
 func init() {
 	// TODO: replace nil with actual functions
 	paragraphParagraphTable = []tableEntry{
-		{[]string{"[["}, func(s *State, tw *TokenWriter) {
-			λcloseEatAppend(2, TokenSpanLinkOpen)(s, tw)
+		{[]string{"[["}, func(s *SourceText, tw *TokenWriter) {
+			closeEatAppender(2, TokenSpanLinkOpen)(s, tw)
 			tw.pushState(StateLinkAddress)
 		}},
-		{[]string{"//"}, λcloseEatAppend(2, TokenSpanItalic)},
-		{[]string{"**"}, λcloseEatAppend(2, TokenSpanBold)},
-		{[]string{"`"}, λcloseEatAppend(2, TokenSpanMonospace)},
+		{[]string{"//"}, closeEatAppender(2, TokenSpanItalic)},
+		{[]string{"**"}, closeEatAppender(2, TokenSpanBold)},
+		{[]string{"`"}, closeEatAppender(2, TokenSpanMonospace)},
 
-		{[]string{"^^"}, λcloseEatAppend(2, TokenSpanSuper)},
-		{[]string{",,"}, λcloseEatAppend(2, TokenSpanSub)},
-		{[]string{"~~"}, λcloseEatAppend(2, TokenSpanStrike)},
-		{[]string{"__"}, λcloseEatAppend(2, TokenSpanUnderline)},
-		{[]string{"%%"}, nil},
+		{[]string{"^^"}, closeEatAppender(2, TokenSpanSuper)},
+		{[]string{",,"}, closeEatAppender(2, TokenSpanSub)},
+		{[]string{"~~"}, closeEatAppender(2, TokenSpanStrike)},
+		{[]string{"__"}, closeEatAppender(2, TokenSpanUnderline)},
+		{[]string{"%%"}, func(s *SourceText, tw *TokenWriter) {
+			eatChar(s)
+			eatChar(s)
+			tw.pushState(StateNowiki)
+		}},
 		{[]string{"https.//", "http://", "gemini://", "gopher://", "ftp://", "sftp://", "ssh://", "file://", "mailto:"},
-			func(s *State, tw *TokenWriter) {
-				λcloseEatAppend(0, TokenSpanLinkOpen)(s, tw)
+			func(s *SourceText, tw *TokenWriter) {
+				closeEatAppender(0, TokenSpanLinkOpen)(s, tw)
 				tw.pushState(StateAutolink)
 			}},
 	}
 	paragraphInlineLinkAddressTable = []tableEntry{
-		{[]string{"]]"}, func(s *State, tw *TokenWriter) {
+		{[]string{"]]"}, func(s *SourceText, tw *TokenWriter) {
 			eatChar(s)
 			eatChar(s)
 			tw.appendToken(Token{TokenLinkAddress, tw.buf.String()})
@@ -61,7 +67,7 @@ func init() {
 
 			tw.popState()
 		}},
-		{[]string{"|"}, func(s *State, tw *TokenWriter) {
+		{[]string{"|"}, func(s *SourceText, tw *TokenWriter) {
 			eatChar(s)
 			tw.appendToken(Token{TokenLinkAddress, tw.buf.String()})
 			tw.appendToken(Token{TokenLinkDisplayOpen, ""})
@@ -72,44 +78,61 @@ func init() {
 		}},
 	}
 	paragraphInlineLinkDisplayTable = []tableEntry{
-		{[]string{"]]"}, func(s *State, tw *TokenWriter) {
-			λcloseEatAppend(2, TokenLinkDisplayClose)(s, tw)
+		{[]string{"]]"}, func(s *SourceText, tw *TokenWriter) {
+			closeEatAppender(2, TokenLinkDisplayClose)(s, tw)
 			tw.appendToken(Token{TokenSpanLinkClose, ""})
 			tw.popState()
 		}},
 		// those below may need further modifications
-		{[]string{"//"}, λcloseEatAppend(2, TokenSpanItalic)},
-		{[]string{"**"}, λcloseEatAppend(2, TokenSpanBold)},
-		{[]string{"`"}, λcloseEatAppend(2, TokenSpanMonospace)},
+		{[]string{"//"}, closeEatAppender(2, TokenSpanItalic)},
+		{[]string{"**"}, closeEatAppender(2, TokenSpanBold)},
+		{[]string{"`"}, closeEatAppender(2, TokenSpanMonospace)},
 
-		{[]string{"^^"}, λcloseEatAppend(2, TokenSpanSuper)},
-		{[]string{",,"}, λcloseEatAppend(2, TokenSpanSub)},
-		{[]string{"~~"}, λcloseEatAppend(2, TokenSpanStrike)},
-		{[]string{"__"}, λcloseEatAppend(2, TokenSpanUnderline)},
+		{[]string{"^^"}, closeEatAppender(2, TokenSpanSuper)},
+		{[]string{",,"}, closeEatAppender(2, TokenSpanSub)},
+		{[]string{"~~"}, closeEatAppender(2, TokenSpanStrike)},
+		{[]string{"__"}, closeEatAppender(2, TokenSpanUnderline)},
 		{[]string{"%%"}, nil},
 	}
 	paragraphAutolinkTable = []tableEntry{
 		{[]string{"(", ")", "[", "]", "{", "}", ". ", ", ", " ", "\t"},
-			func(s *State, tw *TokenWriter) {
+			func(s *SourceText, tw *TokenWriter) {
 				tw.popState()
 				tw.appendToken(Token{TokenLinkAddress, tw.buf.String()})
 				tw.appendToken(Token{TokenSpanLinkClose, ""})
 				tw.buf.Reset()
 			}},
 	}
+	paragraphNowikiTable = []tableEntry{
+		{[]string{"%%"}, func(s *SourceText, tw *TokenWriter) {
+			tw.popState()
+		}},
+	}
+	paragraphNewLineTable = []tableEntry{
+		{[]string{"img "}, closeParagraphAndGo(StateImgBegin)},
+		{[]string{"table "}, closeParagraphAndGo(StateTableBegin)},
+		{[]string{"msg "}, closeParagraphAndGo(StateMsgBegin)},
+		{[]string{"----", "=>", "<=", "# ", "## ", "### ", "#### ", "#####", "###### "}, closeParagraphAndGo(StateOneLiner)},
+		{[]string{"* "}, closeParagraphAndGo(StateBulletListBegin)},
+		{[]string{"*. "}, closeParagraphAndGo(StateNumberListBegin)},
+		{[]string{"```"}, closeParagraphAndGo(StateCodeblockBegin)},
+	}
 }
 
-func looksLikeParagraph(b *bytes.Buffer) bool {
-	// TODO: implement
-	return true
+func closeParagraphAndGo(ls LexerState) func(s *SourceText, tw *TokenWriter) {
+	return func(s *SourceText, tw *TokenWriter) {
+		tw.popState() // pop the newline state
+		tw.popState() // pop the paragraph state
+		tw.pushState(ls)
+	}
 }
 
-func lexParagraph(s *State, allowMultiline, terminateOnCloseBrace bool) *TokenWriter {
+func lexParagraph(s *SourceText, allowMultiline, terminateOnCloseBrace bool) *TokenWriter {
 	var (
 		tw = TokenWriter{
-			StateStack: newStateStack(),
-			buf:        &bytes.Buffer{},
-			elements:   make([]Token, 0),
+			StateStack:  newStateStack(),
+			buf:         &bytes.Buffer{},
+			savedTokens: make([]Token, 0),
 		}
 		ch  byte
 		err error

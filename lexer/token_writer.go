@@ -7,16 +7,19 @@ import (
 // TokenWriter stores tokens found during lexing and stores the state needed for that. Short: tw.
 type TokenWriter struct {
 	StateStack
+	// Current buffer of characters. Emptied and filled at will.
 	buf *bytes.Buffer
 
-	elements    []Token
-	lastElement *Token
+	// List of saved tokens. New tokens could be added, older should not be modified.
+	savedTokens []Token
+	// Pointer to last saved token.
+	recentToken *Token
 }
 
 // appendToken appends the given token and saves a pointer to that token for quick access.
 func (tw *TokenWriter) appendToken(token Token) {
-	tw.lastElement = &token
-	tw.elements = append(tw.elements, token)
+	tw.recentToken = &token
+	tw.savedTokens = append(tw.savedTokens, token)
 }
 
 // bufIntoToken takes the buffer contents and creates a token of the given kind and with the contents of the buffer. Then it resets the buffer.

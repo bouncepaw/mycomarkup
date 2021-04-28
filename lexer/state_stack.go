@@ -13,6 +13,26 @@ const (
 	StateAutolink
 	StateLinkAddress
 	StateLinkDisplay
+	StateParagraphNewLine
+
+	StateOneLiner
+
+	StateImgBegin
+	StateImgDestination
+	// more states here...
+	StateImgDescription
+
+	StateTableBegin
+	// more...
+
+	StateMsgBegin
+	// more...
+
+	StateBulletListBegin
+
+	StateNumberListBegin
+
+	StateCodeblockBegin
 )
 
 // StateStack is a stack of LexerState.

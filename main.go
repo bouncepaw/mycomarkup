@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/bouncepaw/mycomarkup/blocks"
-	"github.com/bouncepaw/mycomarkup/lexer"
 	"github.com/bouncepaw/mycomarkup/links"
 )
 
@@ -23,7 +21,7 @@ func demoBlocks() {
 }
 
 func main() {
-	doc := `# I am an internet
+	_ = `# I am an internet
 Why the life is so rough with me?, I wonder.
 => link
 => link_link display
@@ -35,9 +33,9 @@ Why the life is so rough with me?, I wonder.
 => [[|]]
 =>
 `
-	tokens := lexer.Lex(bytes.NewBufferString(doc))
-	fmt.Printf("↓ Source text:\n%s\n↓ Tokens got:\n", doc)
-	for _, token := range tokens {
-		fmt.Println(token.String())
-	}
+	/*	tokens := lexer.Lex(bytes.NewBufferString(doc))
+		fmt.Printf("↓ Source text:\n%s\n↓ Tokens got:\n", doc)
+		for _, token := range tokens {
+			fmt.Println(token.String())
+		}*/
 }
