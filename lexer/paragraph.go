@@ -8,6 +8,7 @@ func closeTextSpan(s *SourceText, tw *TokenWriter) {
 	tw.nonEmptyBufIntoToken(TokenSpanText)
 }
 
+// Close current text span, eat n (0, 1 or 2) chars, append token.
 func closeEatAppender(n int, tk TokenKind) func(*SourceText, *TokenWriter) {
 	return func(s *SourceText, tw *TokenWriter) {
 		closeTextSpan(s, tw)
@@ -17,7 +18,6 @@ func closeEatAppender(n int, tk TokenKind) func(*SourceText, *TokenWriter) {
 				eatChar(s)
 			}
 		}
-		// fmt.Printf("The rest: %s\n", s.b.String())
 		tw.appendToken(Token{tk, ""})
 	}
 }
@@ -29,11 +29,14 @@ var (
 	paragraphAutolinkTable          []tableEntry
 	paragraphNowikiTable            []tableEntry
 	paragraphNewLineTable           []tableEntry
+	paragraphEscapeTable            []tableEntry
 )
 
 func init() {
 	// TODO: replace nil with actual functions
 	paragraphParagraphTable = []tableEntry{
+		{[]string{"\\"}, beginEscaping},
+		{[]string{"\n"}, beginNewLine},
 		{[]string{"[["}, func(s *SourceText, tw *TokenWriter) {
 			closeEatAppender(2, TokenSpanLinkOpen)(s, tw)
 			tw.pushState(StateLinkAddress)
@@ -46,11 +49,7 @@ func init() {
 		{[]string{",,"}, closeEatAppender(2, TokenSpanSub)},
 		{[]string{"~~"}, closeEatAppender(2, TokenSpanStrike)},
 		{[]string{"__"}, closeEatAppender(2, TokenSpanUnderline)},
-		{[]string{"%%"}, func(s *SourceText, tw *TokenWriter) {
-			eatChar(s)
-			eatChar(s)
-			tw.pushState(StateNowiki)
-		}},
+		{[]string{"%%"}, beginNowiki},
 		{[]string{"https.//", "http://", "gemini://", "gopher://", "ftp://", "sftp://", "ssh://", "file://", "mailto:"},
 			func(s *SourceText, tw *TokenWriter) {
 				closeEatAppender(0, TokenSpanLinkOpen)(s, tw)
@@ -58,6 +57,16 @@ func init() {
 			}},
 	}
 	paragraphInlineLinkAddressTable = []tableEntry{
+		{[]string{"\\"}, beginEscaping},
+		{[]string{"\n"}, func(s *SourceText, tw *TokenWriter) {
+			eatChar(s)
+			tw.appendToken(Token{TokenLinkAddress, tw.buf.String()})
+			tw.appendToken(Token{TokenSpanLinkClose, ""})
+			tw.buf.Reset()
+
+			tw.popState()
+			tw.pushState(StateParagraphNewLine)
+		}},
 		{[]string{"]]"}, func(s *SourceText, tw *TokenWriter) {
 			eatChar(s)
 			eatChar(s)
@@ -78,6 +87,13 @@ func init() {
 		}},
 	}
 	paragraphInlineLinkDisplayTable = []tableEntry{
+		{[]string{"\\"}, beginEscaping},
+		{[]string{"\n"}, func(s *SourceText, tw *TokenWriter) {
+			closeEatAppender(1, TokenLinkDisplayClose)(s, tw)
+			tw.appendToken(Token{TokenSpanLinkClose, ""})
+			tw.popState()
+			tw.pushState(StateParagraphNewLine)
+		}},
 		{[]string{"]]"}, func(s *SourceText, tw *TokenWriter) {
 			closeEatAppender(2, TokenLinkDisplayClose)(s, tw)
 			tw.appendToken(Token{TokenSpanLinkClose, ""})
@@ -92,9 +108,17 @@ func init() {
 		{[]string{",,"}, closeEatAppender(2, TokenSpanSub)},
 		{[]string{"~~"}, closeEatAppender(2, TokenSpanStrike)},
 		{[]string{"__"}, closeEatAppender(2, TokenSpanUnderline)},
-		{[]string{"%%"}, nil},
+		{[]string{"%%"}, beginNowiki},
 	}
 	paragraphAutolinkTable = []tableEntry{
+		{[]string{"\\"}, beginEscaping},
+		{[]string{"\n"}, func(s *SourceText, tw *TokenWriter) {
+			tw.popState()
+			tw.appendToken(Token{TokenLinkAddress, tw.buf.String()})
+			tw.appendToken(Token{TokenSpanLinkClose, ""})
+			tw.buf.Reset()
+			tw.pushState(StateParagraphNewLine)
+		}},
 		{[]string{"(", ")", "[", "]", "{", "}", ". ", ", ", " ", "\t"},
 			func(s *SourceText, tw *TokenWriter) {
 				tw.popState()
@@ -104,11 +128,34 @@ func init() {
 			}},
 	}
 	paragraphNowikiTable = []tableEntry{
-		{[]string{"%%"}, func(s *SourceText, tw *TokenWriter) {
+		{[]string{"%%"}, func(st *SourceText, tw *TokenWriter) {
+			eatChar(st)
+			eatChar(st)
 			tw.popState()
+		}},
+		{[]string{"\\"}, func(st *SourceText, tw *TokenWriter) {
+			eatChar(st)
+			tw.buf.WriteByte('\\')
+			tw.popState()
+		}},
+		{[]string{"\n"}, func(st *SourceText, tw *TokenWriter) {
+			eatChar(st)
+			tw.popState()
+			tw.pushState(StateParagraphNewLine)
 		}},
 	}
 	paragraphNewLineTable = []tableEntry{
+		{[]string{"\\"}, func(st *SourceText, tw *TokenWriter) {
+			eatChar(st)
+			tw.buf.WriteByte('\n')
+			tw.popState() // Continue the paragraph as usual
+			beginEscaping(st, tw)
+		}},
+		{[]string{"\n"}, func(st *SourceText, tw *TokenWriter) {
+			eatChar(st)
+			tw.popState()
+			tw.popState() // Exit paragraph state
+		}},
 		{[]string{"img "}, closeParagraphAndGo(StateImgBegin)},
 		{[]string{"table "}, closeParagraphAndGo(StateTableBegin)},
 		{[]string{"msg "}, closeParagraphAndGo(StateMsgBegin)},
@@ -117,6 +164,34 @@ func init() {
 		{[]string{"*. "}, closeParagraphAndGo(StateNumberListBegin)},
 		{[]string{"```"}, closeParagraphAndGo(StateCodeblockBegin)},
 	}
+	paragraphEscapeTable = []tableEntry{
+		{[]string{"\n"}, func(st *SourceText, tw *TokenWriter) {
+			eatChar(st)
+			tw.popState()
+			tw.pushState(StateParagraphNewLine)
+		}},
+		{[]string{"\\"}, func(st *SourceText, tw *TokenWriter) {
+			eatChar(st)
+			tw.popState()
+			tw.buf.WriteByte('\\')
+		}},
+	}
+}
+
+func beginNowiki(st *SourceText, tw *TokenWriter) {
+	eatChar(st)
+	eatChar(st)
+	tw.pushState(StateNowiki)
+}
+
+func beginEscaping(st *SourceText, tw *TokenWriter) {
+	eatChar(st)
+	tw.pushState(StateEscape)
+}
+
+func beginNewLine(st *SourceText, tw *TokenWriter) {
+	eatChar(st)
+	tw.pushState(StateParagraphNewLine)
 }
 
 func closeParagraphAndGo(ls LexerState) func(s *SourceText, tw *TokenWriter) {
@@ -127,7 +202,8 @@ func closeParagraphAndGo(ls LexerState) func(s *SourceText, tw *TokenWriter) {
 	}
 }
 
-func lexParagraph(s *SourceText, allowMultiline, terminateOnCloseBrace bool) *TokenWriter {
+func lexParagraph(s *SourceText) *TokenWriter {
+	// should probably move the token writer to the parameter list
 	var (
 		tw = TokenWriter{
 			StateStack:  newStateStack(),
@@ -138,48 +214,23 @@ func lexParagraph(s *SourceText, allowMultiline, terminateOnCloseBrace bool) *To
 		err error
 	)
 	tw.pushState(StateParagraph)
-charIterator:
+
 	for {
-		switch {
-		case startsWithStr(s.b, "\r"):
-			// We'll just ignore this useless character
-			continue
-		case startsWithStr(s.b, "\n"):
-			eatChar(s)
-			if allowMultiline {
-				tw.buf.WriteByte('\n')
-				if tw.hasOnTop(StateEscape) {
-					tw.popState()
-					continue
-				}
-			} else {
-				if tw.hasOnTop(StateEscape) {
-					tw.popState()
-				}
-				break charIterator
-			}
-		case startsWithStr(s.b, "\\") && !tw.hasOnTop(StateEscape):
-			tw.pushState(StateEscape)
+		// We'll just ignore this useless character
+		if startsWithStr(s.b, "\r") {
 			eatChar(s)
 			continue
-		case startsWithStr(s.b, "}") && terminateOnCloseBrace:
-			break
 		}
 		switch tw.topElem {
 		case StateEscape:
-			ch, err := s.b.ReadByte()
-			if err != nil {
-				break
+			if executeTable(paragraphEscapeTable, s, &tw) {
+				continue
 			}
 			tw.popState()
-			tw.buf.WriteByte(ch)
 		case StateNowiki:
-			if startsWithStr(s.b, "%%") {
-				eatChar(s)
-				eatChar(s)
-				tw.popState()
+			if executeTable(paragraphNowikiTable, s, &tw) {
+				continue
 			}
-			continue
 		case StateParagraph:
 			if executeTable(paragraphParagraphTable, s, &tw) {
 				continue
@@ -196,6 +247,17 @@ charIterator:
 			if executeTable(paragraphInlineLinkDisplayTable, s, &tw) {
 				continue
 			}
+		case StateParagraphNewLine:
+			if !s.allowMultilineParagraph {
+				tw.popState()
+				closeTextSpan(s, &tw)
+				return &tw
+			}
+			if executeTable(paragraphNewLineTable, s, &tw) {
+				continue
+			}
+			tw.popState()
+			tw.buf.WriteByte('\n')
 		}
 		ch, err = s.b.ReadByte()
 		if err != nil {

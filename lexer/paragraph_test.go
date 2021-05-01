@@ -6,11 +6,13 @@ import (
 	"testing"
 )
 
-func paraTestHelper(t *testing.T, instr string, allowMultiline, terminateOnCloseBrace bool, expected []Token) {
+func paraTestHelper(t *testing.T, instr string, allowMultilineParagraph, terminateOnCloseBrace bool, expected []Token) {
 	s := &SourceText{
-		b: bytes.NewBufferString(instr),
+		b:                       bytes.NewBufferString(instr),
+		allowMultilineParagraph: allowMultilineParagraph,
+		terminateOnCloseBrace:   terminateOnCloseBrace,
 	}
-	tw := lexParagraph(s, allowMultiline, terminateOnCloseBrace)
+	tw := lexParagraph(s)
 	if !reflect.DeepEqual(expected, tw.savedTokens) {
 		t.Errorf("Failure! See the lexeme printouts below!")
 		t.Logf("Wanted this:\n")
@@ -20,6 +22,29 @@ func paraTestHelper(t *testing.T, instr string, allowMultiline, terminateOnClose
 		t.Logf("Got this instead:\n")
 		for i, e := range tw.savedTokens {
 			t.Logf("%d	%s\n", i, e.String())
+		}
+	}
+}
+
+func TestEnsureNewLineAndEscapeAreHandled(t *testing.T) {
+	tables := [][]tableEntry{paragraphParagraphTable, paragraphInlineLinkAddressTable, paragraphInlineLinkDisplayTable, paragraphAutolinkTable, paragraphNowikiTable, paragraphNewLineTable, paragraphEscapeTable}
+
+	for i, table := range tables {
+		var (
+			escapingHandled bool
+			newLineHandled  bool
+		)
+		for _, entry := range table {
+			for _, prefix := range entry.prefices {
+				if prefix == "\\" {
+					escapingHandled = true
+				} else if prefix == "\n" {
+					newLineHandled = true
+				}
+			}
+		}
+		if !(escapingHandled && newLineHandled) {
+			t.Errorf("Escaping and newlines not handled in table number %d", i)
 		}
 	}
 }
