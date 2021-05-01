@@ -12,7 +12,12 @@ func paraTestHelper(t *testing.T, instr string, allowMultilineParagraph, termina
 		allowMultilineParagraph: allowMultilineParagraph,
 		terminateOnCloseBrace:   terminateOnCloseBrace,
 	}
-	tw := lexParagraph(s)
+	tw := &TokenWriter{
+		StateStack:  newStateStack(),
+		buf:         &bytes.Buffer{},
+		savedTokens: make([]Token, 0),
+	}
+	lexParagraph(s, tw)
 	if !reflect.DeepEqual(expected, tw.savedTokens) {
 		t.Errorf("Failure! See the lexeme printouts below!")
 		t.Logf("Wanted this:\n")

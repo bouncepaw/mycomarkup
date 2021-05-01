@@ -1,8 +1,6 @@
 package lexer
 
-import (
-	"bytes"
-)
+import ()
 
 func closeTextSpan(s *SourceText, tw *TokenWriter) {
 	tw.nonEmptyBufIntoToken(TokenSpanText)
@@ -202,14 +200,8 @@ func closeParagraphAndGo(ls LexerState) func(s *SourceText, tw *TokenWriter) {
 	}
 }
 
-func lexParagraph(s *SourceText) *TokenWriter {
-	// should probably move the token writer to the parameter list
+func lexParagraph(s *SourceText, tw *TokenWriter) {
 	var (
-		tw = TokenWriter{
-			StateStack:  newStateStack(),
-			buf:         &bytes.Buffer{},
-			savedTokens: make([]Token, 0),
-		}
 		ch  byte
 		err error
 	)
@@ -223,37 +215,37 @@ func lexParagraph(s *SourceText) *TokenWriter {
 		}
 		switch tw.topElem {
 		case StateEscape:
-			if executeTable(paragraphEscapeTable, s, &tw) {
+			if executeTable(paragraphEscapeTable, s, tw) {
 				continue
 			}
 			tw.popState()
 		case StateNowiki:
-			if executeTable(paragraphNowikiTable, s, &tw) {
+			if executeTable(paragraphNowikiTable, s, tw) {
 				continue
 			}
 		case StateParagraph:
-			if executeTable(paragraphParagraphTable, s, &tw) {
+			if executeTable(paragraphParagraphTable, s, tw) {
 				continue
 			}
 		case StateAutolink:
-			if executeTable(paragraphAutolinkTable, s, &tw) {
+			if executeTable(paragraphAutolinkTable, s, tw) {
 				continue
 			}
 		case StateLinkAddress:
-			if executeTable(paragraphInlineLinkAddressTable, s, &tw) {
+			if executeTable(paragraphInlineLinkAddressTable, s, tw) {
 				continue
 			}
 		case StateLinkDisplay:
-			if executeTable(paragraphInlineLinkDisplayTable, s, &tw) {
+			if executeTable(paragraphInlineLinkDisplayTable, s, tw) {
 				continue
 			}
 		case StateParagraphNewLine:
 			if !s.allowMultilineParagraph {
 				tw.popState()
-				closeTextSpan(s, &tw)
-				return &tw
+				closeTextSpan(s, tw)
+				return
 			}
-			if executeTable(paragraphNewLineTable, s, &tw) {
+			if executeTable(paragraphNewLineTable, s, tw) {
 				continue
 			}
 			tw.popState()
@@ -265,6 +257,6 @@ func lexParagraph(s *SourceText) *TokenWriter {
 		}
 		tw.buf.WriteByte(ch)
 	}
-	closeTextSpan(s, &tw)
-	return &tw
+	closeTextSpan(s, tw)
+	return
 }
