@@ -94,7 +94,7 @@ func TestParagraphWithMultipleStyles(t *testing.T) {
 
 }
 
-func TestParagraphWithLink(t *testing.T) {
+func TestParagraphWithLink1(t *testing.T) {
 	paraTestHelper(
 		t,
 		"see these resources: [[hypha|ὑφή]]",
@@ -105,6 +105,46 @@ func TestParagraphWithLink(t *testing.T) {
 			{TokenLinkAddress, "hypha"},
 			{TokenLinkDisplayOpen, ""},
 			{TokenSpanText, "ὑφή"},
+			{TokenLinkDisplayClose, ""},
+			{TokenSpanLinkClose, ""},
+		})
+}
+
+func TestParagraphWithLink2(t *testing.T) {
+	paraTestHelper(
+		t,
+		"[[]]",
+		false, false,
+		[]Token{
+			{TokenSpanLinkOpen, ""},
+			{TokenLinkAddress, ""},
+			{TokenSpanLinkClose, ""},
+		})
+}
+
+func TestParagraphWithLink3(t *testing.T) {
+	paraTestHelper(
+		t,
+		"[[|]]",
+		false, false,
+		[]Token{
+			{TokenSpanLinkOpen, ""},
+			{TokenLinkAddress, ""},
+			{TokenLinkDisplayOpen, ""},
+			{TokenLinkDisplayClose, ""},
+			{TokenSpanLinkClose, ""},
+		})
+}
+
+func TestParagraphWithLink4(t *testing.T) {
+	paraTestHelper(
+		t,
+		"[[underground |]]",
+		false, false,
+		[]Token{
+			{TokenSpanLinkOpen, ""},
+			{TokenLinkAddress, "underground "},
+			{TokenLinkDisplayOpen, ""},
 			{TokenLinkDisplayClose, ""},
 			{TokenSpanLinkClose, ""},
 		})
@@ -199,4 +239,44 @@ func TestParagraphWithEscaping4(t *testing.T) {
 		"\\",
 		false, false,
 		[]Token{})
+}
+
+func TestParagraphWithNowiki1(t *testing.T) {
+	paraTestHelper(
+		t,
+		"Stay %%//safe//%%",
+		false, false,
+		[]Token{
+			{TokenSpanText, "Stay //safe//"},
+		})
+}
+
+func TestParagraphWithNowiki2(t *testing.T) {
+	paraTestHelper(
+		t,
+		"This is %%more\n//dangerous//",
+		true, false,
+		[]Token{
+			{TokenSpanText, "This is more\n"},
+			{TokenSpanItalic, ""},
+			{TokenSpanText, "dangerous"},
+			{TokenSpanItalic, ""},
+		})
+}
+
+func TestParagraphWithNowiki3(t *testing.T) {
+	paraTestHelper(
+		t,
+		"the coool [[link| %%!!link!!%%]] has arrived",
+		false, false,
+		[]Token{
+			{TokenSpanText, "the coool "},
+			{TokenSpanLinkOpen, ""},
+			{TokenLinkAddress, "link"},
+			{TokenLinkDisplayOpen, ""},
+			{TokenSpanText, " !!link!!"},
+			{TokenLinkDisplayClose, ""},
+			{TokenSpanLinkClose, ""},
+			{TokenSpanText, " has arrived"},
+		})
 }

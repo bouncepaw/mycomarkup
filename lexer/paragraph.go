@@ -31,7 +31,6 @@ var (
 )
 
 func init() {
-	// TODO: replace nil with actual functions
 	paragraphParagraphTable = []tableEntry{
 		{[]string{"\\"}, beginEscaping},
 		{[]string{"\n"}, beginNewLine},
@@ -42,7 +41,6 @@ func init() {
 		{[]string{"//"}, closeEatAppender(2, TokenSpanItalic)},
 		{[]string{"**"}, closeEatAppender(2, TokenSpanBold)},
 		{[]string{"`"}, closeEatAppender(2, TokenSpanMonospace)},
-
 		{[]string{"^^"}, closeEatAppender(2, TokenSpanSuper)},
 		{[]string{",,"}, closeEatAppender(2, TokenSpanSub)},
 		{[]string{"~~"}, closeEatAppender(2, TokenSpanStrike)},
@@ -101,7 +99,6 @@ func init() {
 		{[]string{"//"}, closeEatAppender(2, TokenSpanItalic)},
 		{[]string{"**"}, closeEatAppender(2, TokenSpanBold)},
 		{[]string{"`"}, closeEatAppender(2, TokenSpanMonospace)},
-
 		{[]string{"^^"}, closeEatAppender(2, TokenSpanSuper)},
 		{[]string{",,"}, closeEatAppender(2, TokenSpanSub)},
 		{[]string{"~~"}, closeEatAppender(2, TokenSpanStrike)},
@@ -157,10 +154,14 @@ func init() {
 		{[]string{"img "}, closeParagraphAndGo(StateImgBegin)},
 		{[]string{"table "}, closeParagraphAndGo(StateTableBegin)},
 		{[]string{"msg "}, closeParagraphAndGo(StateMsgBegin)},
-		{[]string{"----", "=>", "<=", "# ", "## ", "### ", "#### ", "#####", "###### "}, closeParagraphAndGo(StateOneLiner)},
+		{[]string{"----", "=>", "<=", "# ", "## ", "### ", "#### ", "##### ", "###### "}, closeParagraphAndGo(StateOneLiner)},
 		{[]string{"* "}, closeParagraphAndGo(StateBulletListBegin)},
 		{[]string{"*. "}, closeParagraphAndGo(StateNumberListBegin)},
 		{[]string{"```"}, closeParagraphAndGo(StateCodeblockBegin)},
+		{[]string{""}, func(st *SourceText, tw *TokenWriter) {
+			tw.popState()
+			tw.buf.WriteByte('\n')
+		}},
 	}
 	paragraphEscapeTable = []tableEntry{
 		{[]string{"\n"}, func(st *SourceText, tw *TokenWriter) {
@@ -248,8 +249,6 @@ func lexParagraph(s *SourceText, tw *TokenWriter) {
 			if executeTable(paragraphNewLineTable, s, tw) {
 				continue
 			}
-			tw.popState()
-			tw.buf.WriteByte('\n')
 		}
 		ch, err = s.b.ReadByte()
 		if err != nil {
