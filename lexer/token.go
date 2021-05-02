@@ -48,8 +48,11 @@ const (
 	TokenBulletNumberedImplicit
 	TokenBulletNumberedExplicit
 
-	TokenTagImg
-	TokenTagTable
+	TokenImgOpen
+	TokenImg
+	TokenImgClose
+
+	TokenTable
 
 	TokenParagraphOpen
 	TokenParagraphClose

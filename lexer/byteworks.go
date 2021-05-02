@@ -11,7 +11,14 @@ func startsWithStr(b *bytes.Buffer, s string) bool {
 	return strings.HasPrefix(b.String(), s)
 }
 
-func eatChar(s *SourceText) {
+func eatChar(st *SourceText) {
 	// how confident i am
-	_, _ = s.b.ReadByte()
+	_, _ = st.b.ReadByte()
+}
+
+func eatN(st *SourceText, n uint) {
+	for n != 0 {
+		eatChar(st)
+		n--
+	}
 }

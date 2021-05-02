@@ -18,8 +18,10 @@ const (
 	StateOneLiner
 
 	StateImgBegin
-	StateImgDestination
-	// more states here...
+	StateImgAddress
+	StateImgNewLine
+	StateImgHorizontalDimension
+	StateImgVerticalDimension
 	StateImgDescription
 
 	StateTableBegin
