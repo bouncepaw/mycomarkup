@@ -1,7 +1,5 @@
 package lexer
 
-import ()
-
 func closeTextSpan(s *SourceText, tw *TokenWriter) {
 	tw.nonEmptyBufIntoToken(TokenSpanText)
 }
@@ -193,11 +191,13 @@ func beginNewLine(st *SourceText, tw *TokenWriter) {
 	tw.pushState(StateParagraphNewLine)
 }
 
-func closeParagraphAndGo(ls LexerState) func(s *SourceText, tw *TokenWriter) {
-	return func(s *SourceText, tw *TokenWriter) {
+func closeParagraphAndGo(ls LexerState) func(st *SourceText, tw *TokenWriter) {
+	return func(st *SourceText, tw *TokenWriter) {
 		tw.popState() // pop the newline state
 		tw.popState() // pop the paragraph state
-		tw.pushState(ls)
+		if !st.lexingParagraphOnly {
+			tw.pushState(ls)
+		}
 	}
 }
 
@@ -209,6 +209,9 @@ func lexParagraph(s *SourceText, tw *TokenWriter) {
 	tw.pushState(StateParagraph)
 
 	for {
+		if tw.hasOnTop(StateNil) {
+			break
+		}
 		// We'll just ignore this useless character
 		if startsWithStr(s.b, "\r") {
 			eatChar(s)
@@ -244,7 +247,7 @@ func lexParagraph(s *SourceText, tw *TokenWriter) {
 			if !s.allowMultilineParagraph {
 				tw.popState()
 				closeTextSpan(s, tw)
-				return
+				break
 			}
 			if executeTable(paragraphNewLineTable, s, tw) {
 				continue

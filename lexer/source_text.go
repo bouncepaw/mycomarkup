@@ -6,9 +6,11 @@ import (
 
 type SourceText struct {
 	// General:
-	b *bytes.Buffer
+	hyphaName string
+	b         *bytes.Buffer
 
-	// Configuration:
+	// Configuration for paragraph-lexing:
+	lexingParagraphOnly     bool
 	allowMultilineParagraph bool
 	terminateOnCloseBrace   bool
 }

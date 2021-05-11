@@ -41,15 +41,17 @@ func _() {
 	_ = x[TokenBulletIndent-30]
 	_ = x[TokenBulletNumberedImplicit-31]
 	_ = x[TokenBulletNumberedExplicit-32]
-	_ = x[TokenTagImg-33]
-	_ = x[TokenTagTable-34]
-	_ = x[TokenParagraphOpen-35]
-	_ = x[TokenParagraphClose-36]
+	_ = x[TokenImgOpen-33]
+	_ = x[TokenImg-34]
+	_ = x[TokenImgClose-35]
+	_ = x[TokenTable-36]
+	_ = x[TokenParagraphOpen-37]
+	_ = x[TokenParagraphClose-38]
 }
 
-const _TokenKind_name = "ErrBraceOpenBraceCloseNewLineHorizontalLinePreformattedFencePreformattedAltTextHeadingOpenHeadingCloseSpanNewLineSpanTextSpanItalicSpanBoldSpanMonospaceSpanMarkerSpanSuperSpanSubSpanStrikeSpanUnderlineSpanLinkOpenSpanLinkCloseLinkAddressLinkDisplayOpenLinkDisplayCloseAutoLinkRocketLinkOpenRocketLinkCloseBlockQuoteOpenBlockQuoteCloseBulletUnnumberedBulletIndentBulletNumberedImplicitBulletNumberedExplicitTagImgTagTableParagraphOpenParagraphClose"
+const _TokenKind_name = "ErrBraceOpenBraceCloseNewLineHorizontalLinePreformattedFencePreformattedAltTextHeadingOpenHeadingCloseSpanNewLineSpanTextSpanItalicSpanBoldSpanMonospaceSpanMarkerSpanSuperSpanSubSpanStrikeSpanUnderlineSpanLinkOpenSpanLinkCloseLinkAddressLinkDisplayOpenLinkDisplayCloseAutoLinkRocketLinkOpenRocketLinkCloseBlockQuoteOpenBlockQuoteCloseBulletUnnumberedBulletIndentBulletNumberedImplicitBulletNumberedExplicitImgOpenImgImgCloseTableParagraphOpenParagraphClose"
 
-var _TokenKind_index = [...]uint16{0, 3, 12, 22, 29, 43, 60, 79, 90, 102, 113, 121, 131, 139, 152, 162, 171, 178, 188, 201, 213, 226, 237, 252, 268, 276, 290, 305, 319, 334, 350, 362, 384, 406, 412, 420, 433, 447}
+var _TokenKind_index = [...]uint16{0, 3, 12, 22, 29, 43, 60, 79, 90, 102, 113, 121, 131, 139, 152, 162, 171, 178, 188, 201, 213, 226, 237, 252, 268, 276, 290, 305, 319, 334, 350, 362, 384, 406, 413, 416, 424, 429, 442, 456}
 
 func (i TokenKind) String() string {
 	if i < 0 || i >= TokenKind(len(_TokenKind_index)-1) {

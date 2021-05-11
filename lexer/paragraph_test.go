@@ -7,25 +7,20 @@ import (
 )
 
 func paraTestHelper(t *testing.T, instr string, allowMultilineParagraph, terminateOnCloseBrace bool, expected []Token) {
-	s := &SourceText{
+	st := SourceText{
 		b:                       bytes.NewBufferString(instr),
 		allowMultilineParagraph: allowMultilineParagraph,
 		terminateOnCloseBrace:   terminateOnCloseBrace,
 	}
-	tw := &TokenWriter{
-		StateStack:  newStateStack(),
-		buf:         &bytes.Buffer{},
-		savedTokens: make([]Token, 0),
-	}
-	lexParagraph(s, tw)
-	if !reflect.DeepEqual(expected, tw.savedTokens) {
+	result, _ := LexParagraph(st)
+	if !reflect.DeepEqual(expected, result) {
 		t.Errorf("Failure! See the lexeme printouts below!")
 		t.Logf("Wanted this:\n")
 		for i, e := range expected {
 			t.Logf("%d	%s\n", i, e.String())
 		}
 		t.Logf("Got this instead:\n")
-		for i, e := range tw.savedTokens {
+		for i, e := range result {
 			t.Logf("%d	%s\n", i, e.String())
 		}
 	}

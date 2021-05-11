@@ -2,20 +2,17 @@ package blocks
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/lexer"
 )
 
 type Paragraph struct {
-	content *Formatted
-}
-
-func MakeParagraph(content *Formatted) *Paragraph {
-	return &Paragraph{content}
+	tokens []lexer.Token
 }
 
 func (p *Paragraph) String() string {
 	return fmt.Sprintf(`Paragraph() {
 %s
-};`, p.content)
+};`, p.tokens)
 }
 
 func (p *Paragraph) IsNesting() bool {
@@ -24,4 +21,11 @@ func (p *Paragraph) IsNesting() bool {
 
 func (p *Paragraph) Kind() BlockKind {
 	return KindParagraph
+}
+
+func (p *Paragraph) AsHTML() string {
+	for _, _ = range p.tokens {
+
+	}
+	return ""
 }
