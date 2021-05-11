@@ -1,11 +1,11 @@
 run: build
 	./mycomarkup
 
-build: generate
+build:
 	go build .
 
 generate:
-	stringer -type=TokenKind -trimprefix Token ./lexer
+	# stringer -type=TokenKind -trimprefix Token ./lexer
 
 indent:
 	go run . | indent

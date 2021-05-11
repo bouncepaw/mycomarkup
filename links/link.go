@@ -5,7 +5,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/bouncepaw/mycomarkup/utils"
+	"github.com/bouncepaw/mycomarkup/util"
 )
 
 // LinkType tells what type the given link is.
@@ -71,19 +71,19 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 		link.kind = LinkLocalRoot
 	case strings.HasPrefix(link.address, "./"):
 		link.kind = LinkLocalHypha
-		link.address = utils.CanonicalName(path.Join(link.srcHypha, link.address[2:]))
+		link.address = util.CanonicalName(path.Join(link.srcHypha, link.address[2:]))
 	case link.address == "..":
-		link.address = utils.CanonicalName(path.Dir(link.srcHypha))
+		link.address = util.CanonicalName(path.Dir(link.srcHypha))
 	case strings.HasPrefix(link.address, "../"):
 		link.kind = LinkLocalHypha
-		link.address = utils.CanonicalName(path.Join(path.Dir(link.srcHypha), link.address[3:]))
+		link.address = util.CanonicalName(path.Join(path.Dir(link.srcHypha), link.address[3:]))
 	case strings.HasPrefix(link.address, "#"):
 		link.kind = LinkLocalHypha
 		link.anchor = link.address
-		link.address = utils.CanonicalName(link.srcHypha)
+		link.address = util.CanonicalName(link.srcHypha)
 	default:
 		link.kind = LinkLocalHypha
-		link.address = utils.CanonicalName(link.address)
+		link.address = util.CanonicalName(link.address)
 	}
 
 	// If no display text is given, copy the address there.
