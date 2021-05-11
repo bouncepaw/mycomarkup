@@ -159,3 +159,8 @@ func (link *Link) Address() string {
 func (link *Link) OfKind(kind LinkType) bool {
 	return link.kind == kind
 }
+
+// DestinationUnknown is true when the link should be red.
+func (link *Link) DestinationUnknown() bool {
+	return link.destinationUnknown
+}
