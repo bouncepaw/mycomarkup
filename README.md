@@ -1,6 +1,8 @@
 # Mycomarkup
 **Mycomarkup** is a markup language designed to be used in [MycorrhizaWiki](https://mycorrhiza.lesarbr.es). This project is an attempt to separate the two and let mycomarkup be used stand-alone.
 
+This branch is for the sad ones. There are good things, but let's bury them for the time being.
+
 ## Goals
 Also see [our kanban board](https://github.com/bouncepaw/mycomarkup/projects/1).
 
