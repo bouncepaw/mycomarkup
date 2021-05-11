@@ -37,7 +37,7 @@ type Link struct {
 	kind     LinkType
 	protocol string
 	// Settable stuff
-	destinationUnknown bool
+	DestinationUnknown bool
 }
 
 func From(srcAddress, srcDisplay, srcHypha string) *Link {
@@ -99,7 +99,7 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 
 // ItExists notes that the destination makes sense, exists.
 func (link *Link) ItExists() *Link {
-	link.destinationUnknown = false
+	link.DestinationUnknown = false
 	return link
 }
 
@@ -109,7 +109,7 @@ func (link *Link) Classes() (classes string) {
 	switch link.kind {
 	case LinkLocalRoot, LinkLocalHypha:
 		classes += " wikilink_internal"
-		if link.destinationUnknown {
+		if link.DestinationUnknown {
 			classes += " wikilink_new"
 		}
 	case LinkInterwiki:
@@ -158,9 +158,4 @@ func (link *Link) Address() string {
 // OfKind returns if the given link is of the given kind.
 func (link *Link) OfKind(kind LinkType) bool {
 	return link.kind == kind
-}
-
-// DestinationUnknown is true when the link should be red.
-func (link *Link) DestinationUnknown() bool {
-	return link.destinationUnknown
 }
