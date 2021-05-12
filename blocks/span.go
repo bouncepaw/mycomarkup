@@ -35,11 +35,11 @@ func getSpanText(p *Paragraph) spanText {
 	)
 
 	// Always read the first byte in advance to avoid endless loops that kill computers (sad experience)
-	if st.Len() != 0 {
+	if p.Len() != 0 {
 		b, _ := p.ReadByte()
 		_ = st.WriteByte(b)
 	}
-	for st.Len() != 0 {
+	for p.Len() != 0 {
 		// We check for length, this should never fail:
 		ch, _ := p.ReadByte()
 		if escaping {

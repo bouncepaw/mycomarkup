@@ -40,7 +40,6 @@ type Line struct {
 }
 
 func (md *MycoDoc) lex() (ast []Line) {
-	blocks.HyphaExists = HyphaExists
 	var state = GemLexerState{name: md.hyphaName}
 
 	for _, line := range append(strings.Split(md.contents, "\n"), "") {

@@ -1,11 +1,12 @@
 package main
 
 import (
-	_ "github.com/bouncepaw/mycomarkup/legacy"
+	"fmt"
+	markup "github.com/bouncepaw/mycomarkup/legacy"
 )
 
-func main() {
-	_ = `# I am an internet
+func text() string {
+	return `# I am an internet
 Why the life is so rough with me?, I wonder.
 => link
 => link_link display
@@ -17,4 +18,19 @@ Why the life is so rough with me?, I wonder.
 => [[|]]
 =>
 `
+}
+
+func main() {
+	markup.HyphaExists = func(s string) bool {
+		return true
+	}
+	markup.HyphaAccess = func(s string) (rawText, binaryHtml string, err error) {
+		return "aaaaaaaa,", "aaaaaaaaaaaaa", nil
+	}
+	markup.HyphaIterate = func(f func(string)) {
+		fmt.Println("hello")
+	}
+
+	doc := markup.Doc("Example", text())
+	fmt.Println(doc.AsHTML())
 }

@@ -3,6 +3,7 @@ package markup
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/blocks"
 	"regexp"
 	"strings"
 
@@ -31,6 +32,7 @@ type MycoDoc struct {
 
 // Constructor
 func Doc(hyphaName, contents string) *MycoDoc {
+	blocks.HyphaExists = HyphaExists
 	md := &MycoDoc{
 		hyphaName: hyphaName,
 		contents:  contents,
