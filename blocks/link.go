@@ -1,4 +1,4 @@
-package markup
+package blocks
 
 import (
 	"strings"

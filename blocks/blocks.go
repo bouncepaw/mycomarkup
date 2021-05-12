@@ -1,5 +1,7 @@
 package blocks
 
+var HyphaExists func(string) bool
+
 type Block interface {
 	// String returns a debug string representation of the block.
 	String() string

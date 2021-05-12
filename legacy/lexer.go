@@ -40,6 +40,7 @@ type Line struct {
 }
 
 func (md *MycoDoc) lex() (ast []Line) {
+	blocks.HyphaExists = HyphaExists
 	var state = GemLexerState{name: md.hyphaName}
 
 	for _, line := range append(strings.Split(md.contents, "\n"), "") {
@@ -56,7 +57,7 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 	addParagraphIfNeeded := func() {
 		if state.where == "p" {
 			state.where = ""
-			addLine(fmt.Sprintf("<p id='%d'>%s</p>", state.id, strings.ReplaceAll(ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
+			addLine(fmt.Sprintf("<p id='%d'>%s</p>", state.id, strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
 			state.buf = ""
 		}
 	}
@@ -80,7 +81,7 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 	}
 	addHeading := func(i int) {
 		id := util.StringID(line[i+1:])
-		addLine(fmt.Sprintf(`<h%d id='%d'>%s<a href="#%s" id="%s" class="heading__link"></a></h%d>`, i, state.id, ParagraphToHtml(state.name, line[i+1:]), id, id, i))
+		addLine(fmt.Sprintf(`<h%d id='%d'>%s<a href="#%s" id="%s" class="heading__link"></a></h%d>`, i, state.id, blocks.ParagraphToHtml(state.name, line[i+1:]), id, id, i))
 	}
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
@@ -136,7 +137,7 @@ preformattedState:
 launchpadState:
 	switch {
 	case startsWith("=>"):
-		href, text, class := Rocketlink(line, state.name)
+		href, text, class := blocks.Rocketlink(line, state.name)
 		state.buf += fmt.Sprintf(`	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, href, class, text)
 	case startsWith("```"):
 		state.where = "pre"
@@ -184,7 +185,7 @@ normalState:
 			fmt.Sprintf(
 				"<blockquote id='%d'>%s</blockquote>",
 				state.id,
-				ParagraphToHtml(state.name, remover(">")(line)),
+				blocks.ParagraphToHtml(state.name, remover(">")(line)),
 			),
 		)
 	case startsWith("=>"):

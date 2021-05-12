@@ -2,6 +2,7 @@ package markup
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/blocks"
 	"regexp"
 	"strings"
 	"unicode"
@@ -204,7 +205,7 @@ func (tc *tableCell) contentAsHtml(hyphaName string) (html string) {
 			if html != "" {
 				html += `<br>`
 			}
-			html += ParagraphToHtml(hyphaName, line)
+			html += blocks.ParagraphToHtml(hyphaName, line)
 		}
 	}
 	return html

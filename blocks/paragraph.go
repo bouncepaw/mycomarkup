@@ -1,4 +1,4 @@
-package markup
+package blocks
 
 import (
 	"bytes"
@@ -7,6 +7,12 @@ import (
 	"strings"
 	"unicode"
 )
+
+type Paragraph struct {
+	TerminalBlock
+	*bytes.Buffer
+	spans []span
+}
 
 type spanTokenType int
 
@@ -35,7 +41,7 @@ func tagFromState(stt spanTokenType, tagState map[spanTokenType]bool, tagName, o
 	}
 }
 
-func getLinkNode(input *bytes.Buffer, hyphaName string, isBracketedLink bool) string {
+func getLinkNode(input *Paragraph, hyphaName string, isBracketedLink bool) string {
 	if isBracketedLink {
 		input.Next(2) // drop those [[
 	}
@@ -66,47 +72,13 @@ func getLinkNode(input *bytes.Buffer, hyphaName string, isBracketedLink bool) st
 	return fmt.Sprintf(`<a href="%s" class="%s">%s</a>`, href, class, html.EscapeString(text))
 }
 
-// getTextNode splits the `input` into two parts `textNode` and `rest` by the first encountered rune that resembles a span tag. If there is none, `textNode = input`, `rest = ""`. It handles escaping with backslash.
-func getTextNode(input *bytes.Buffer) string {
-	var (
-		textNodeBuffer = bytes.Buffer{}
-		escaping       = false
-		startsWith     = func(t string) bool {
-			return bytes.HasPrefix(input.Bytes(), []byte(t))
-		}
-		couldBeLinkStart = func() bool {
-			return startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")
-		}
-	)
-	// Always read the first byte in advance to avoid endless loops that kill computers (sad experience)
-	if input.Len() != 0 {
-		b, _ := input.ReadByte()
-		textNodeBuffer.WriteByte(b)
-	}
-	for input.Len() != 0 {
-		// Assume no error is possible because we check for length
-		b, _ := input.ReadByte()
-		if escaping {
-			textNodeBuffer.WriteByte(b)
-			escaping = false
-		} else if b == '\\' {
-			escaping = true
-		} else if strings.IndexByte("/*`^,![~", b) >= 0 {
-			input.UnreadByte()
-			break
-		} else if couldBeLinkStart() {
-			textNodeBuffer.WriteByte(b)
-			break
-		} else {
-			textNodeBuffer.WriteByte(b)
-		}
-	}
-	return textNodeBuffer.String()
-}
-
 func ParagraphToHtml(hyphaName, input string) string {
 	var (
-		p   = bytes.NewBufferString(input)
+		p = &Paragraph{
+			TerminalBlock{},
+			bytes.NewBufferString(input),
+			make([]span, 0),
+		}
 		ret strings.Builder
 		// true = tag is opened, false = tag is not opened
 		tagState = map[spanTokenType]bool{
@@ -154,7 +126,7 @@ func ParagraphToHtml(hyphaName, input string) string {
 		case (startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")) && noTagsActive():
 			ret.WriteString(getLinkNode(p, hyphaName, false))
 		default:
-			ret.WriteString(html.EscapeString(getTextNode(p)))
+			ret.WriteString(html.EscapeString(getSpanText(p).htmlWithState(tagState)))
 		}
 	}
 

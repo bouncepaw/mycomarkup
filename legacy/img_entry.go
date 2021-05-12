@@ -1,6 +1,7 @@
 package markup
 
 import (
+	"github.com/bouncepaw/mycomarkup/blocks"
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/links"
@@ -24,7 +25,7 @@ func (entry *imgEntry) descriptionAsHtml(hyphaName string) (html string) {
 			if html != "" {
 				html += `<br>`
 			}
-			html += ParagraphToHtml(hyphaName, line)
+			html += blocks.ParagraphToHtml(hyphaName, line)
 		}
 	}
 	return `<figcaption>` + html + `</figcaption>`
