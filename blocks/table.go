@@ -1,8 +1,7 @@
-package markup
+package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/blocks"
 	"regexp"
 	"strings"
 	"unicode"
@@ -131,7 +130,7 @@ func (t *Table) pushCell() {
 	t.currCellBuilder = strings.Builder{}
 }
 
-func (t *Table) asHtml() (html string) {
+func (t *Table) AsHtml() (html string) {
 	if t.caption != "" {
 		html += fmt.Sprintf("<caption>%s</caption>", t.caption)
 	}
@@ -205,7 +204,7 @@ func (tc *tableCell) contentAsHtml(hyphaName string) (html string) {
 			if html != "" {
 				html += `<br>`
 			}
-			html += blocks.ParagraphToHtml(hyphaName, line)
+			html += ParagraphToHtml(hyphaName, line)
 		}
 	}
 	return html

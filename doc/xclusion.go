@@ -1,8 +1,8 @@
-package markup
+package doc
 
 import (
 	"fmt"
-	"path"
+	"github.com/bouncepaw/mycomarkup/blocks"
 	"strconv"
 	"strings"
 
@@ -32,12 +32,12 @@ func Transclude(xcl Transclusion, recursionLevel int) (html string) {
 		return fmt.Sprintf(tmptFailed, xcl.name, xcl.name)
 	}
 
-	rawText, binaryHtml, err := HyphaAccess(xcl.name)
+	rawText, binaryHtml, err := blocks.HyphaAccess(xcl.name)
 	if err != nil {
 		return fmt.Sprintf(tmptFailed, xcl.name, xcl.name)
 	}
 	md := Doc(xcl.name, rawText)
-	xclText := Parse(md.lex(), xcl.from, xcl.to, recursionLevel)
+	xclText := Parse(md.LexHelper(), xcl.from, xcl.to, recursionLevel)
 	return fmt.Sprintf(tmptOk, xcl.name, xcl.name, binaryHtml+xclText)
 }
 
@@ -49,32 +49,21 @@ range              ::= id | (from_id two_dots to_id) | (from_id two_dots) | (two
 two_dots           ::= ".."
 */
 
-func parseTransclusion(line, hyphaName string) (xclusion Transclusion) {
-	line = strings.TrimSpace(remover("<=")(line))
+func ParseTransclusion(line, hyphaName string) (xclusion Transclusion) {
+	line = strings.TrimSpace(util.Remover("<=")(line))
 	if line == "" {
 		return Transclusion{"", xclError, xclError}
 	}
 
 	if strings.ContainsRune(line, ':') {
 		parts := strings.SplitN(line, ":", 2)
-		xclusion.name = xclCanonicalName(hyphaName, strings.TrimSpace(parts[0]))
+		xclusion.name = util.XclCanonicalName(hyphaName, strings.TrimSpace(parts[0]))
 		selector := strings.TrimSpace(parts[1])
 		xclusion.from, xclusion.to = parseSelector(selector)
 	} else {
-		xclusion.name = xclCanonicalName(hyphaName, strings.TrimSpace(line))
+		xclusion.name = util.XclCanonicalName(hyphaName, strings.TrimSpace(line))
 	}
 	return xclusion
-}
-
-func xclCanonicalName(hyphaName, xclName string) string {
-	switch {
-	case strings.HasPrefix(xclName, "./"):
-		return util.CanonicalName(path.Join(hyphaName, strings.TrimPrefix(xclName, "./")))
-	case strings.HasPrefix(xclName, "../"):
-		return util.CanonicalName(path.Join(path.Dir(hyphaName), strings.TrimPrefix(xclName, "../")))
-	default:
-		return util.CanonicalName(xclName)
-	}
 }
 
 // At this point:

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	markup "github.com/bouncepaw/mycomarkup/legacy"
+	doc2 "github.com/bouncepaw/mycomarkup/doc"
 )
 
 func text() string {
@@ -21,16 +21,16 @@ Why the life is so rough with me?, I wonder.
 }
 
 func main() {
-	markup.HyphaExists = func(s string) bool {
+	doc2.HyphaExists = func(s string) bool {
 		return true
 	}
-	markup.HyphaAccess = func(s string) (rawText, binaryHtml string, err error) {
+	doc2.HyphaAccess = func(s string) (rawText, binaryHtml string, err error) {
 		return "aaaaaaaa,", "aaaaaaaaaaaaa", nil
 	}
-	markup.HyphaIterate = func(f func(string)) {
+	doc2.HyphaIterate = func(f func(string)) {
 		fmt.Println("hello")
 	}
 
-	doc := markup.Doc("Example", text())
+	doc := doc2.Doc("Example", text())
 	fmt.Println(doc.AsHTML())
 }

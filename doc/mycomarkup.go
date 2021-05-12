@@ -1,5 +1,5 @@
 // This is not done yet
-package markup
+package doc
 
 import (
 	"fmt"
@@ -33,6 +33,8 @@ type MycoDoc struct {
 // Constructor
 func Doc(hyphaName, contents string) *MycoDoc {
 	blocks.HyphaExists = HyphaExists
+	blocks.HyphaAccess = HyphaAccess
+	blocks.HyphaIterate = HyphaIterate
 	md := &MycoDoc{
 		hyphaName: hyphaName,
 		contents:  contents,
@@ -42,7 +44,7 @@ func Doc(hyphaName, contents string) *MycoDoc {
 
 func (md *MycoDoc) Lex(recursionLevel int) *MycoDoc {
 	if !md.parsedAlready {
-		md.ast = md.lex()
+		md.ast = md.LexHelper()
 	}
 	md.parsedAlready = true
 	return md
@@ -80,16 +82,16 @@ func (md *MycoDoc) ogFillVars() *MycoDoc {
 	foundDesc := false
 	foundImg := false
 	for _, line := range md.ast {
-		switch v := line.contents.(type) {
+		switch v := line.Contents.(type) {
 		case string:
 			if !foundDesc {
 				md.description = v
 				foundDesc = true
 			}
-		case Img:
-			if !foundImg && len(v.entries) > 0 {
-				md.firstImageURL = v.entries[0].srclink.ImgSrc()
-				if !v.entries[0].srclink.OfKind(links.LinkExternal) {
+		case blocks.Img:
+			if !foundImg && len(v.Entries) > 0 {
+				md.firstImageURL = v.Entries[0].Srclink.ImgSrc()
+				if !v.Entries[0].Srclink.OfKind(links.LinkExternal) {
 					md.firstImageURL = cfg.URL + md.firstImageURL
 				}
 				foundImg = true

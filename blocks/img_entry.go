@@ -1,14 +1,13 @@
-package markup
+package blocks
 
 import (
-	"github.com/bouncepaw/mycomarkup/blocks"
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/links"
 )
 
 type imgEntry struct {
-	srclink *links.Link
+	Srclink *links.Link
 	path    strings.Builder
 	sizeW   strings.Builder
 	sizeH   strings.Builder
@@ -25,7 +24,7 @@ func (entry *imgEntry) descriptionAsHtml(hyphaName string) (html string) {
 			if html != "" {
 				html += `<br>`
 			}
-			html += blocks.ParagraphToHtml(hyphaName, line)
+			html += ParagraphToHtml(hyphaName, line)
 		}
 	}
 	return `<figcaption>` + html + `</figcaption>`

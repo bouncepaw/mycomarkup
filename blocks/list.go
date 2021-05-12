@@ -1,8 +1,7 @@
-package markup
+package blocks
 
 import (
 	"errors"
-	"github.com/bouncepaw/mycomarkup/blocks"
 	"strings"
 )
 
@@ -52,7 +51,7 @@ func newListItem(parent *listItem) *listItem {
 func (item *listItem) renderAsHtmlTo(b *strings.Builder, hyphaName string, ordered bool) {
 	if len(item.content) > 0 {
 		b.WriteString("<li>")
-		b.WriteString(blocks.ParagraphToHtml(hyphaName, item.content))
+		b.WriteString(ParagraphToHtml(hyphaName, item.content))
 	}
 
 	if len(item.children) > 0 {

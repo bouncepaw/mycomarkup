@@ -1,6 +1,9 @@
 package markup
 
+/*
 import (
+	"github.com/bouncepaw/mycomarkup/blocks"
+	"github.com/bouncepaw/mycomarkup/doc"
 	"regexp"
 	"strings"
 
@@ -14,7 +17,7 @@ import (
 // * Transclusion
 // * Image galleries
 // Not needed anymore, I guess.
-func (md *MycoDoc) OutLinks() chan string {
+func (md *doc.MycoDoc) OutLinks() chan string {
 	ch := make(chan string)
 	if !md.parsedAlready {
 		md.Lex(0)
@@ -26,9 +29,9 @@ func (md *MycoDoc) OutLinks() chan string {
 				if strings.HasPrefix(v, "<p") || strings.HasPrefix(v, "<ul class='launchpad'") {
 					extractLinks(v, ch)
 				}
-			case Transclusion:
+			case doc.Transclusion:
 				ch <- v.name
-			case Img:
+			case blocks.Img:
 				extractImageLinks(v, ch)
 			}
 		}
@@ -48,10 +51,11 @@ func extractLinks(html string, ch chan string) {
 	}
 }
 
-func extractImageLinks(img Img, ch chan string) {
+func extractImageLinks(img blocks.Img, ch chan string) {
 	for _, entry := range img.entries {
 		if entry.srclink.OfKind(links.LinkLocalHypha) {
 			ch <- entry.srclink.Address()
 		}
 	}
 }
+*/

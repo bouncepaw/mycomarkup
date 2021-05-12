@@ -1,4 +1,4 @@
-package markup
+package doc
 
 import (
 	"fmt"
@@ -28,18 +28,18 @@ type GemLexerState struct {
 	id  int
 	buf string
 	// Temporaries
-	img   *Img
-	table *Table
-	list  *List
+	img   *blocks.Img
+	table *blocks.Table
+	list  *blocks.List
 }
 
 type Line struct {
-	id int
+	Id int
 	// interface{} may be bad. TODO: a proper type
-	contents interface{}
+	Contents interface{}
 }
 
-func (md *MycoDoc) lex() (ast []Line) {
+func (md *MycoDoc) LexHelper() (ast []Line) {
 	var state = GemLexerState{name: md.hyphaName}
 
 	for _, line := range append(strings.Split(md.contents, "\n"), "") {
@@ -51,12 +51,12 @@ func (md *MycoDoc) lex() (ast []Line) {
 // Lex `line` in markup and save it to `ast` using `state`.
 func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 	addLine := func(text interface{}) {
-		*ast = append(*ast, Line{id: state.id, contents: text})
+		*ast = append(*ast, Line{Id: state.id, Contents: text})
 	}
 	addParagraphIfNeeded := func() {
 		if state.where == "p" {
 			state.where = ""
-			addLine(fmt.Sprintf("<p id='%d'>%s</p>", state.id, strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
+			addLine(fmt.Sprintf("<p Id='%d'>%s</p>", state.id, strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
 			state.buf = ""
 		}
 	}
@@ -80,7 +80,7 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 	}
 	addHeading := func(i int) {
 		id := util.StringID(line[i+1:])
-		addLine(fmt.Sprintf(`<h%d id='%d'>%s<a href="#%s" id="%s" class="heading__link"></a></h%d>`, i, state.id, blocks.ParagraphToHtml(state.name, line[i+1:]), id, id, i))
+		addLine(fmt.Sprintf(`<h%d Id='%d'>%s<a href="#%s" Id="%s" class="heading__link"></a></h%d>`, i, state.id, blocks.ParagraphToHtml(state.name, line[i+1:]), id, id, i))
 	}
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
@@ -142,7 +142,7 @@ launchpadState:
 		state.where = "pre"
 		addLine(state.buf + "</ul>")
 		state.id++
-		state.buf = fmt.Sprintf("<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
+		state.buf = fmt.Sprintf("<pre Id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
 	default:
 		state.where = ""
 		addLine(state.buf + "</ul>")
@@ -157,7 +157,7 @@ normalState:
 	case startsWith("```"):
 		addParagraphIfNeeded()
 		state.where = "pre"
-		state.buf = fmt.Sprintf("<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
+		state.buf = fmt.Sprintf("<pre Id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
 
 	case startsWith("###### "):
 		addParagraphIfNeeded()
@@ -182,43 +182,43 @@ normalState:
 		addParagraphIfNeeded()
 		addLine(
 			fmt.Sprintf(
-				"<blockquote id='%d'>%s</blockquote>",
+				"<blockquote Id='%d'>%s</blockquote>",
 				state.id,
-				blocks.ParagraphToHtml(state.name, remover(">")(line)),
+				blocks.ParagraphToHtml(state.name, util.Remover(">")(line)),
 			),
 		)
 	case startsWith("=>"):
 		addParagraphIfNeeded()
 		state.where = "launchpad"
-		state.buf = fmt.Sprintf("<ul class='launchpad' id='%d'>\n", state.id)
+		state.buf = fmt.Sprintf("<ul class='launchpad' Id='%d'>\n", state.id)
 		goto launchpadState
 
 	case startsWith("<="):
 		addParagraphIfNeeded()
-		addLine(parseTransclusion(line, state.name))
+		addLine(ParseTransclusion(line, state.name))
 	case startsWith("----"):
 		addParagraphIfNeeded()
 		hr := blocks.MakeHorizontalLine(line)
-		*ast = append(*ast, Line{id: -1, contents: generator.BlockToHTML(hr)})
-	case MatchesList(line):
+		*ast = append(*ast, Line{Id: -1, Contents: generator.BlockToHTML(hr)})
+	case blocks.MatchesList(line):
 		addParagraphIfNeeded()
-		list, _ := NewList(line, state.name)
+		list, _ := blocks.NewList(line, state.name)
 		state.where = "list"
 		state.list = list
 		addLine(state.list)
-	case MatchesImg(line):
+	case blocks.MatchesImg(line):
 		addParagraphIfNeeded()
-		img, shouldGoBackToNormal := ImgFromFirstLine(line, state.name)
+		img, shouldGoBackToNormal := blocks.ImgFromFirstLine(line, state.name)
 		if shouldGoBackToNormal {
 			addLine(*img)
 		} else {
 			state.where = "img"
 			state.img = img
 		}
-	case MatchesTable(line):
+	case blocks.MatchesTable(line):
 		addParagraphIfNeeded()
 		state.where = "table"
-		state.table = TableFromFirstLine(line, state.name)
+		state.table = blocks.TableFromFirstLine(line, state.name)
 
 	case state.where == "p":
 		state.buf += "\n" + line

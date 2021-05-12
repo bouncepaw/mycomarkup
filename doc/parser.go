@@ -1,4 +1,6 @@
-package markup
+package doc
+
+import "github.com/bouncepaw/mycomarkup/blocks"
 
 const maxRecursionLevel = 3
 
@@ -7,15 +9,15 @@ func Parse(ast []Line, from, to int, recursionLevel int) (html string) {
 		return "Transclusion depth limit"
 	}
 	for _, line := range ast {
-		if line.id >= from && (line.id <= to || to == 0) || line.id == -1 {
-			switch v := line.contents.(type) {
+		if line.Id >= from && (line.Id <= to || to == 0) || line.Id == -1 {
+			switch v := line.Contents.(type) {
 			case Transclusion:
 				html += Transclude(v, recursionLevel)
-			case Img:
+			case blocks.Img:
 				html += v.ToHtml()
-			case Table:
-				html += v.asHtml()
-			case *List:
+			case blocks.Table:
+				html += v.AsHtml()
+			case *blocks.List:
 				html += v.RenderAsHtml()
 			case string:
 				html += v

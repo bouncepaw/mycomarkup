@@ -1,6 +1,8 @@
 package blocks
 
 var HyphaExists func(string) bool
+var HyphaAccess func(string) (rawText, binaryHtml string, err error)
+var HyphaIterate func(func(string))
 
 type Block interface {
 	// String returns a debug string representation of the block.
