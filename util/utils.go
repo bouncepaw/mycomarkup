@@ -6,8 +6,8 @@ import (
 	"unicode"
 )
 
-// LettersNumbersOnly keeps letters and numbers only in the given string.
-func LettersNumbersOnly(s string) string {
+// StringID sanitized the string and makes it more suitable for the id attribute in HTML.
+func StringID(s string) string {
 	var (
 		ret            strings.Builder
 		usedUnderscore bool
@@ -45,15 +45,4 @@ func remover(prefix string) func(string) string {
 	return func(l string) string {
 		return strings.TrimSpace(strings.TrimPrefix(l, prefix))
 	}
-}
-
-// Remove #, ## or ### from beginning of `line`.
-func removeHeadingOctothorps(line string) string {
-	f := remover("#")
-	return f(f(f(line)))
-}
-
-// Return a canonical representation of a hypha `name`.
-func canonicalName(name string) string {
-	return strings.ToLower(strings.ReplaceAll(strings.TrimSpace(name), " ", "_"))
 }

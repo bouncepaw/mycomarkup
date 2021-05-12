@@ -2,6 +2,8 @@ package markup
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/blocks"
+	"github.com/bouncepaw/mycomarkup/generator"
 	"html"
 	"strings"
 
@@ -10,9 +12,6 @@ import (
 
 // HyphaExists holds function that checks that a hypha is present.
 var HyphaExists func(string) bool
-
-//
-var HyphaImageForOG func(string) string
 
 // HyphaAccess holds function that accesses a hypha by its name.
 var HyphaAccess func(string) (rawText, binaryHtml string, err error)
@@ -80,7 +79,7 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 		return strings.HasPrefix(line, token)
 	}
 	addHeading := func(i int) {
-		id := util.LettersNumbersOnly(line[i+1:])
+		id := util.StringID(line[i+1:])
 		addLine(fmt.Sprintf(`<h%d id='%d'>%s<a href="#%s" id="%s" class="heading__link"></a></h%d>`, i, state.id, ParagraphToHtml(state.name, line[i+1:]), id, id, i))
 	}
 
@@ -197,9 +196,10 @@ normalState:
 	case startsWith("<="):
 		addParagraphIfNeeded()
 		addLine(parseTransclusion(line, state.name))
-	case MatchesHorizontalLine(line):
+	case startsWith("----"):
 		addParagraphIfNeeded()
-		*ast = append(*ast, Line{id: -1, contents: "<hr/>"})
+		hr := blocks.MakeHorizontalLine(line)
+		*ast = append(*ast, Line{id: -1, contents: generator.BlockToHTML(hr)})
 	case MatchesList(line):
 		addParagraphIfNeeded()
 		list, _ := NewList(line, state.name)
