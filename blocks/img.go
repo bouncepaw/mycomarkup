@@ -2,6 +2,7 @@ package blocks
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/globals"
 	"github.com/bouncepaw/mycomarkup/util"
 	"regexp"
 	"strings"
@@ -163,7 +164,7 @@ func parseDimensions(dimensions string) (sizeW, sizeH string) {
 }
 
 func (img *Img) markExistenceOfSrcLinks() {
-	HyphaIterate(func(hn string) {
+	globals.HyphaIterate(func(hn string) {
 		for _, entry := range img.Entries {
 			if hn == entry.Srclink.Address() {
 				entry.Srclink.DestinationUnknown = false

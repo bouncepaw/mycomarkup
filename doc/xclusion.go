@@ -2,7 +2,7 @@ package doc
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/blocks"
+	"github.com/bouncepaw/mycomarkup/globals"
 	"strconv"
 	"strings"
 
@@ -20,6 +20,11 @@ type Transclusion struct {
 
 // Transclude transcludes `xcl` and returns html representation.
 func Transclude(xcl Transclusion, recursionLevel int) (html string) {
+	if globals.UseBatch {
+		return `<section class="transclusion transclusion_failed">
+	<p>Transclusion is not supported in documents generated using Mycomarkup CLI</p>
+</section>`
+	}
 	recursionLevel++
 	tmptOk := `<section class="transclusion transclusion_ok">
 	<a class="transclusion__link" href="/page/%s">%s</a>
@@ -32,7 +37,7 @@ func Transclude(xcl Transclusion, recursionLevel int) (html string) {
 		return fmt.Sprintf(tmptFailed, xcl.name, xcl.name)
 	}
 
-	rawText, binaryHtml, err := blocks.HyphaAccess(xcl.name)
+	rawText, binaryHtml, err := globals.HyphaAccess(xcl.name)
 	if err != nil {
 		return fmt.Sprintf(tmptFailed, xcl.name, xcl.name)
 	}

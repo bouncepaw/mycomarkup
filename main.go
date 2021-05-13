@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/doc"
-	"github.com/bouncepaw/mycomarkup/opts"
+	"github.com/bouncepaw/mycomarkup/globals"
 	"io/ioutil"
 )
 
@@ -24,13 +24,13 @@ Why the life is so rough with me?, I wonder.
 }
 
 func init() {
-	doc.HyphaExists = func(s string) bool {
+	globals.HyphaExists = func(s string) bool {
 		return true
 	}
-	doc.HyphaAccess = func(s string) (rawText, binaryHtml string, err error) {
+	globals.HyphaAccess = func(s string) (rawText, binaryHtml string, err error) {
 		return "aaaaaaaa,", "aaaaaaaaaaaaa", nil
 	}
-	doc.HyphaIterate = func(f func(string)) {
+	globals.HyphaIterate = func(f func(string)) {
 		fmt.Println("hello")
 	}
 }
@@ -47,7 +47,7 @@ func main() {
 }
 
 func parseFlags() (hyphaName, filename string) {
-	opts.UseBatch = true
+	globals.UseBatch = true
 
 	flag.StringVar(&hyphaName, "hypha-name", "", "Set hypha name. Relative links depend on it.")
 	flag.StringVar(&filename, "filename", "/dev/stdin", "File with mycomarkup.")

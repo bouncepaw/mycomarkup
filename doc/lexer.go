@@ -10,15 +10,6 @@ import (
 	"github.com/bouncepaw/mycomarkup/util"
 )
 
-// HyphaExists holds function that checks that a hypha is present.
-var HyphaExists func(string) bool
-
-// HyphaAccess holds function that accesses a hypha by its name.
-var HyphaAccess func(string) (rawText, binaryHtml string, err error)
-
-// HyphaIterate is a function that iterates all hypha names existing.
-var HyphaIterate func(func(string))
-
 // GemLexerState is used by markup parser to remember what is going on.
 type GemLexerState struct {
 	// Name of hypha being parsed
@@ -56,7 +47,7 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 	addParagraphIfNeeded := func() {
 		if state.where == "p" {
 			state.where = ""
-			addLine(fmt.Sprintf("<p Id='%d'>%s</p>", state.id, strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
+			addLine(fmt.Sprintf("<p id='%d'>%s</p>", state.id, strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
 			state.buf = ""
 		}
 	}
@@ -80,7 +71,7 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 	}
 	addHeading := func(i int) {
 		id := util.StringID(line[i+1:])
-		addLine(fmt.Sprintf(`<h%d Id='%d'>%s<a href="#%s" Id="%s" class="heading__link"></a></h%d>`, i, state.id, blocks.ParagraphToHtml(state.name, line[i+1:]), id, id, i))
+		addLine(fmt.Sprintf(`<h%d id='%d'>%s<a href="#%s" id="%s" class="heading__link"></a></h%d>`, i, state.id, blocks.ParagraphToHtml(state.name, line[i+1:]), id, id, i))
 	}
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
@@ -142,7 +133,7 @@ launchpadState:
 		state.where = "pre"
 		addLine(state.buf + "</ul>")
 		state.id++
-		state.buf = fmt.Sprintf("<pre Id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
+		state.buf = fmt.Sprintf("<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
 	default:
 		state.where = ""
 		addLine(state.buf + "</ul>")
@@ -157,7 +148,7 @@ normalState:
 	case startsWith("```"):
 		addParagraphIfNeeded()
 		state.where = "pre"
-		state.buf = fmt.Sprintf("<pre Id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
+		state.buf = fmt.Sprintf("<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
 
 	case startsWith("###### "):
 		addParagraphIfNeeded()
@@ -182,7 +173,7 @@ normalState:
 		addParagraphIfNeeded()
 		addLine(
 			fmt.Sprintf(
-				"<blockquote Id='%d'>%s</blockquote>",
+				"<blockquote id='%d'>%s</blockquote>",
 				state.id,
 				blocks.ParagraphToHtml(state.name, util.Remover(">")(line)),
 			),
@@ -190,7 +181,7 @@ normalState:
 	case startsWith("=>"):
 		addParagraphIfNeeded()
 		state.where = "launchpad"
-		state.buf = fmt.Sprintf("<ul class='launchpad' Id='%d'>\n", state.id)
+		state.buf = fmt.Sprintf("<ul class='launchpad' id='%d'>\n", state.id)
 		goto launchpadState
 
 	case startsWith("<="):

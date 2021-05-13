@@ -32,9 +32,6 @@ type MycoDoc struct {
 
 // Constructor
 func Doc(hyphaName, contents string) *MycoDoc {
-	blocks.HyphaExists = HyphaExists
-	blocks.HyphaAccess = HyphaAccess
-	blocks.HyphaIterate = HyphaIterate
 	md := &MycoDoc{
 		hyphaName: hyphaName,
 		contents:  contents,

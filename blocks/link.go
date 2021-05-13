@@ -3,6 +3,7 @@ package blocks
 import (
 	"strings"
 
+	"github.com/bouncepaw/mycomarkup/globals"
 	"github.com/bouncepaw/mycomarkup/links"
 )
 
@@ -13,7 +14,7 @@ import (
 // TODO: deprecate
 func LinkParts(addr, display, hyphaName string) (href, text, class string) {
 	l := links.From(addr, display, hyphaName)
-	if l.OfKind(links.LinkLocalHypha) && !HyphaExists(l.Address()) {
+	if l.OfKind(links.LinkLocalHypha) && !globals.HyphaExists(l.Address()) {
 		l.DestinationUnknown = true
 	}
 	return l.Href(), l.Display(), l.Classes()
