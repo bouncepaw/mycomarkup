@@ -6,6 +6,10 @@ import (
 	"github.com/bouncepaw/mycomarkup/util"
 )
 
+// HorizontalLine represents the horizontal line block.
+//
+// In Mycomarkup it is written like that:
+//     ----
 type HorizontalLine struct {
 	TerminalBlock
 	src string

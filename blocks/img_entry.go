@@ -6,15 +6,17 @@ import (
 	"github.com/bouncepaw/mycomarkup/links"
 )
 
-type imgEntry struct {
-	Srclink *links.Link
-	path    strings.Builder
-	sizeW   strings.Builder
-	sizeH   strings.Builder
-	desc    strings.Builder
+// ImgEntry is an entry of an image gallery. It can only be nested into Img.
+type ImgEntry struct {
+	Srclink   *links.Link
+	hyphaName string
+	path      strings.Builder
+	sizeW     strings.Builder
+	sizeH     strings.Builder
+	desc      strings.Builder
 }
 
-func (entry *imgEntry) descriptionAsHtml(hyphaName string) (html string) {
+func (entry *ImgEntry) DescriptionAsHtml() (html string) {
 	if entry.desc.Len() == 0 {
 		return ""
 	}
@@ -24,20 +26,20 @@ func (entry *imgEntry) descriptionAsHtml(hyphaName string) (html string) {
 			if html != "" {
 				html += `<br>`
 			}
-			html += ParagraphToHtml(hyphaName, line)
+			html += ParagraphToHtml(entry.hyphaName, line)
 		}
 	}
 	return `<figcaption>` + html + `</figcaption>`
 }
 
-func (entry *imgEntry) sizeWAsAttr() string {
+func (entry *ImgEntry) SizeWAsAttr() string {
 	if entry.sizeW.Len() == 0 {
 		return ""
 	}
 	return ` width="` + entry.sizeW.String() + `"`
 }
 
-func (entry *imgEntry) sizeHAsAttr() string {
+func (entry *ImgEntry) SizeHAsAttr() string {
 	if entry.sizeH.Len() == 0 {
 		return ""
 	}

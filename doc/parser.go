@@ -1,6 +1,9 @@
 package doc
 
-import "github.com/bouncepaw/mycomarkup/blocks"
+import (
+	"github.com/bouncepaw/mycomarkup/blocks"
+	"github.com/bouncepaw/mycomarkup/generator"
+)
 
 const maxRecursionLevel = 3
 
@@ -14,7 +17,7 @@ func Parse(ast []Line, from, to int, recursionLevel int) (html string) {
 			case Transclusion:
 				html += Transclude(v, recursionLevel)
 			case blocks.Img:
-				html += v.ToHtml()
+				html += generator.BlockToHTML(v)
 			case blocks.Table:
 				html += v.AsHtml()
 			case *blocks.List:

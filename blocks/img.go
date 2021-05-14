@@ -1,7 +1,6 @@
 package blocks
 
 import (
-	"fmt"
 	"github.com/bouncepaw/mycomarkup/globals"
 	"github.com/bouncepaw/mycomarkup/util"
 	"regexp"
@@ -27,10 +26,19 @@ const (
 )
 
 type Img struct {
-	Entries   []imgEntry
-	currEntry imgEntry
+	Entries   []ImgEntry
+	currEntry ImgEntry
 	hyphaName string
 	state     imgState
+}
+
+// HasOneImage returns true if img has exactly one image and that images has no description.
+func (img *Img) HasOneImage() bool {
+	return len(img.Entries) == 1 && img.Entries[0].desc.Len() == 0
+}
+
+func (img *Img) IsNesting() bool {
+	return true
 }
 
 func (img *Img) pushEntry() {
@@ -38,7 +46,7 @@ func (img *Img) pushEntry() {
 		img.currEntry.Srclink = links.From(img.currEntry.path.String(), "", img.hyphaName)
 		// img.currEntry.Srclink.DoubtExistence()
 		img.Entries = append(img.Entries, img.currEntry)
-		img.currEntry = imgEntry{}
+		img.currEntry = ImgEntry{hyphaName: img.hyphaName}
 		img.currEntry.path.Reset()
 	}
 }
@@ -52,10 +60,16 @@ func (img *Img) Process(line string) (shouldGoBackToNormal bool) {
 		inDescription: img.processInDescription,
 	}
 	for _, r := range line {
+		if r == '\r' {
+			continue
+		}
 		if shouldReturnTrue := stateToProcessor[img.state](r); shouldReturnTrue {
 			return true
 		}
 	}
+	// We do that because \n are not part of line we receive as the argument:
+	stateToProcessor[img.state]('\n')
+
 	return false
 }
 
@@ -74,12 +88,12 @@ func (img *Img) processInRoot(r rune) (shouldReturnTrue bool) {
 	case '}':
 		img.pushEntry()
 		return true
-	case '\n', '\r':
+	case '\n':
 		img.pushEntry()
 	case ' ', '\t':
 	default:
 		img.state = inName
-		img.currEntry = imgEntry{}
+		img.currEntry = ImgEntry{}
 		img.currEntry.path.Reset()
 		img.currEntry.path.WriteRune(r)
 	}
@@ -95,7 +109,7 @@ func (img *Img) processInName(r rune) (shouldReturnTrue bool) {
 		img.state = inDimensionsW
 	case '{':
 		img.state = inDescription
-	case '\n', '\r':
+	case '\n':
 		img.pushEntry()
 		img.state = inRoot
 	default:
@@ -137,7 +151,7 @@ func (img *Img) processInDimensionsH(r rune) (shouldGoBackToNormal bool) {
 func ImgFromFirstLine(line, hyphaName string) (img *Img, shouldGoBackToNormal bool) {
 	img = &Img{
 		hyphaName: hyphaName,
-		Entries:   make([]imgEntry, 0),
+		Entries:   make([]ImgEntry, 0),
 	}
 	line = line[strings.IndexRune(line, '{')+1:]
 	return img, img.Process(line)
@@ -163,7 +177,7 @@ func parseDimensions(dimensions string) (sizeW, sizeH string) {
 	return
 }
 
-func (img *Img) markExistenceOfSrcLinks() {
+func (img *Img) MarkExistenceOfSrcLinks() {
 	globals.HyphaIterate(func(hn string) {
 		for _, entry := range img.Entries {
 			if hn == entry.Srclink.Address() {
@@ -171,35 +185,4 @@ func (img *Img) markExistenceOfSrcLinks() {
 			}
 		}
 	})
-}
-
-func (img *Img) ToHtml() (html string) {
-	img.markExistenceOfSrcLinks()
-	isOneImageOnly := len(img.Entries) == 1 && img.Entries[0].desc.Len() == 0
-	if isOneImageOnly {
-		html += `<section class="img-gallery img-gallery_one-image">`
-	} else {
-		html += `<section class="img-gallery img-gallery_many-images">`
-	}
-
-	for _, entry := range img.Entries {
-		html += `<figure>`
-		if entry.Srclink.DestinationUnknown {
-			html += fmt.Sprintf(
-				`<a class="%s" href="%s">Hypha <i>%s</i> does not exist</a>`,
-				entry.Srclink.Classes(),
-				entry.Srclink.Href(),
-				entry.Srclink.Address)
-		} else {
-			html += fmt.Sprintf(
-				`<a href="%s"><img src="%s" %s %s></a>`,
-				entry.Srclink.Href(),
-				entry.Srclink.ImgSrc(),
-				entry.sizeWAsAttr(),
-				entry.sizeHAsAttr())
-		}
-		html += entry.descriptionAsHtml(img.hyphaName)
-		html += `</figure>`
-	}
-	return html + `</section>`
 }
