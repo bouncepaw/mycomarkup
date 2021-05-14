@@ -3,7 +3,6 @@ package doc
 import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/blocks"
-	"github.com/bouncepaw/mycomarkup/generator"
 	"html"
 	"strings"
 
@@ -19,9 +18,10 @@ type GemLexerState struct {
 	id  int
 	buf string
 	// Temporaries
-	img   *blocks.Img
-	table *blocks.Table
-	list  *blocks.List
+	img       *blocks.Img
+	table     *blocks.Table
+	list      *blocks.List
+	launchpad *blocks.LaunchPad
 }
 
 type Line struct {
@@ -47,7 +47,7 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 	addParagraphIfNeeded := func() {
 		if state.where == "p" {
 			state.where = ""
-			addLine(fmt.Sprintf("<p id='%d'>%s</p>", state.id, strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
+			addLine(fmt.Sprintf("\n<p id='%d'>%s</p>", state.id, strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
 			state.buf = ""
 		}
 	}
@@ -59,7 +59,8 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 			state.buf += "\n"
 		case "launchpad":
 			state.where = ""
-			addLine(state.buf + "</ul>")
+			addLine(*state.launchpad)
+			state.launchpad = nil
 		case "p":
 			addParagraphIfNeeded()
 		}
@@ -71,7 +72,8 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 	}
 	addHeading := func(i int) {
 		id := util.StringID(line[i+1:])
-		addLine(fmt.Sprintf(`<h%d id='%d'>%s<a href="#%s" id="%s" class="heading__link"></a></h%d>`, i, state.id, blocks.ParagraphToHtml(state.name, line[i+1:]), id, id, i))
+		addLine(fmt.Sprintf(`<h%d id='%d'>%s<a href="#%s" id="%s" class="heading__link"></a></h%d>
+`, i, state.id, blocks.ParagraphToHtml(state.name, line[i+1:]), id, id, i))
 	}
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
@@ -127,16 +129,18 @@ preformattedState:
 launchpadState:
 	switch {
 	case startsWith("=>"):
-		href, text, class := blocks.Rocketlink(line, state.name)
-		state.buf += fmt.Sprintf(`	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, href, class, text)
+		state.launchpad.AddRocket(blocks.MakeRocketLink(line, state.name))
 	case startsWith("```"):
+		addLine(*state.launchpad)
+		state.launchpad = nil
 		state.where = "pre"
-		addLine(state.buf + "</ul>")
 		state.id++
-		state.buf = fmt.Sprintf("<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
+		state.buf = fmt.Sprintf("\n<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
 	default:
+		fmt.Println("night call")
+		addLine(*state.launchpad)
+		state.launchpad = nil
 		state.where = ""
-		addLine(state.buf + "</ul>")
 		goto normalState
 	}
 	return
@@ -148,7 +152,7 @@ normalState:
 	case startsWith("```"):
 		addParagraphIfNeeded()
 		state.where = "pre"
-		state.buf = fmt.Sprintf("<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
+		state.buf = fmt.Sprintf("\n<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
 
 	case startsWith("###### "):
 		addParagraphIfNeeded()
@@ -181,7 +185,8 @@ normalState:
 	case startsWith("=>"):
 		addParagraphIfNeeded()
 		state.where = "launchpad"
-		state.buf = fmt.Sprintf("<ul class='launchpad' id='%d'>\n", state.id)
+		lp := blocks.MakeLaunchPad()
+		state.launchpad = &lp
 		goto launchpadState
 
 	case startsWith("<="):
@@ -189,8 +194,7 @@ normalState:
 		addLine(ParseTransclusion(line, state.name))
 	case startsWith("----"):
 		addParagraphIfNeeded()
-		hr := blocks.MakeHorizontalLine(line)
-		*ast = append(*ast, Line{Id: -1, Contents: generator.BlockToHTML(hr)})
+		*ast = append(*ast, Line{Id: -1, Contents: blocks.MakeHorizontalLine(line)})
 	case blocks.MatchesList(line):
 		addParagraphIfNeeded()
 		list, _ := blocks.NewList(line, state.name)

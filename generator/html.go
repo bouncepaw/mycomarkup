@@ -16,8 +16,22 @@ func BlockToHTML(block interface{}) string {
 		return imgToHTML(b)
 	case blocks.ImgEntry:
 		return imgEntryToHTML(b)
+	case blocks.LaunchPad:
+		return launchpadToHTML(b)
+	case blocks.RocketLink:
+		return fmt.Sprintf(`
+	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), b.Display())
 	}
 	return ""
+}
+
+func launchpadToHTML(lp blocks.LaunchPad) string {
+	var ret string
+	for _, rocket := range lp.Rockets {
+		ret += BlockToHTML(rocket)
+	}
+	return fmt.Sprintf(`<ul class="launchpad">%s
+</ul>`, ret)
 }
 
 func imgEntryToHTML(entry blocks.ImgEntry) string {

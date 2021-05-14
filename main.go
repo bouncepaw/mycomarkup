@@ -31,7 +31,7 @@ func init() {
 		return "aaaaaaaa,", "aaaaaaaaaaaaa", nil
 	}
 	globals.HyphaIterate = func(f func(string)) {
-		fmt.Println("hello")
+
 	}
 }
 

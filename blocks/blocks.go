@@ -8,9 +8,6 @@ type Block interface {
 
 	// ID returns an id for the block which may be utilised in markup languages. It may not be unique.
 	ID() string
-
-	// IsNesting returns true if the block can contain other blocks.
-	IsNesting() bool
 }
 
 type NestingBlock struct{}
