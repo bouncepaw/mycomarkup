@@ -24,8 +24,27 @@ func BlockToHTML(block interface{}) string {
 	case blocks.Heading:
 		return fmt.Sprintf(`<h%[1]d id='%[2]d'>%[3]s<a href="#%[4]s" id="%[4]s" class="heading__link"></a></h%[1]d>
 `, b.Level, b.LegacyID, b.ContentsHTML, b.ID())
+	case blocks.Table:
+		return tableToHTML(b)
 	}
 	return ""
+}
+
+func tableToHTML(t blocks.Table) string {
+	var ret string
+	if t.Caption != "" {
+		ret = fmt.Sprintf("<caption>%s</caption>", t.Caption)
+	}
+	if len(t.Rows) > 0 && t.Rows[0].LooksLikeThead() {
+		ret += fmt.Sprintf("<thead>%s</thead>", t.Rows[0].AsHtml(t.HyphaName))
+		t.Rows = t.Rows[1:]
+	}
+	ret += "\n<tbody>\n"
+	for _, tr := range t.Rows {
+		ret += tr.AsHtml(t.HyphaName)
+	}
+	return fmt.Sprintf(`
+<table>%s</tbody></table>`, ret)
 }
 
 func launchpadToHTML(lp blocks.LaunchPad) string {

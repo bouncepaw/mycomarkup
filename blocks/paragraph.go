@@ -9,7 +9,6 @@ import (
 )
 
 type Paragraph struct {
-	TerminalBlock
 	*bytes.Buffer
 	spans []span
 }
@@ -62,7 +61,7 @@ func getLinkNode(input *Paragraph, hyphaName string, isBracketedLink bool) strin
 			input.Next(1)
 			break
 		} else if !isBracketedLink && (unicode.IsSpace(rune(b)) || strings.ContainsRune("<>{}|\\^[]`,()", rune(b))) {
-			input.UnreadByte()
+			_ = input.UnreadByte()
 			break
 		} else {
 			currBuf.WriteByte(b)
@@ -75,7 +74,6 @@ func getLinkNode(input *Paragraph, hyphaName string, isBracketedLink bool) strin
 func ParagraphToHtml(hyphaName, input string) string {
 	var (
 		p = &Paragraph{
-			TerminalBlock{},
 			bytes.NewBufferString(input),
 			make([]span, 0),
 		}

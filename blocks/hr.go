@@ -11,7 +11,6 @@ import (
 // In Mycomarkup it is written like that:
 //     ----
 type HorizontalLine struct {
-	TerminalBlock
 	src string
 }
 

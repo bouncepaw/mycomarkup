@@ -7,6 +7,19 @@ import (
 	"unicode"
 )
 
+type Table struct {
+	// data
+	HyphaName string
+	Caption   string
+	Rows      []*TableRow
+	// state
+	inMultiline bool
+	// tmp
+	currCellMarker  rune
+	currColspan     uint
+	currCellBuilder strings.Builder
+}
+
 var tableRe = regexp.MustCompile(`^table\s+{`)
 
 func MatchesTable(line string) bool {
@@ -15,9 +28,9 @@ func MatchesTable(line string) bool {
 
 func TableFromFirstLine(line, hyphaName string) *Table {
 	return &Table{
-		hyphaName: hyphaName,
-		caption:   line[strings.IndexRune(line, '{')+1:],
-		rows:      make([]*tableRow, 0),
+		HyphaName: hyphaName,
+		Caption:   line[strings.IndexRune(line, '{')+1:],
+		Rows:      make([]*TableRow, 0),
 	}
 }
 
@@ -94,27 +107,14 @@ func (t *Table) Process(line string) (shouldGoBackToNormal bool) {
 	return false
 }
 
-type Table struct {
-	// data
-	hyphaName string
-	caption   string
-	rows      []*tableRow
-	// state
-	inMultiline bool
-	// tmp
-	currCellMarker  rune
-	currColspan     uint
-	currCellBuilder strings.Builder
-}
-
 func (t *Table) pushRow() {
-	t.rows = append(t.rows, &tableRow{
-		cells: make([]*tableCell, 0),
+	t.Rows = append(t.Rows, &TableRow{
+		cells: make([]*TableCell, 0),
 	})
 }
 
 func (t *Table) pushCell() {
-	tc := &tableCell{
+	tc := &TableCell{
 		content: t.currCellBuilder.String(),
 		colspan: t.currColspan,
 	}
@@ -125,31 +125,16 @@ func (t *Table) pushCell() {
 		tc.kind = tableCellHeader
 	}
 	// We expect the table to have at least one row ready, so no nil-checking
-	tr := t.rows[len(t.rows)-1]
+	tr := t.Rows[len(t.Rows)-1]
 	tr.cells = append(tr.cells, tc)
 	t.currCellBuilder = strings.Builder{}
 }
 
-func (t *Table) AsHtml() (html string) {
-	if t.caption != "" {
-		html += fmt.Sprintf("<caption>%s</caption>", t.caption)
-	}
-	if len(t.rows) > 0 && t.rows[0].looksLikeThead() {
-		html += fmt.Sprintf("<thead>%s</thead>", t.rows[0].asHtml(t.hyphaName))
-		t.rows = t.rows[1:]
-	}
-	html += "\n<tbody>\n"
-	for _, tr := range t.rows {
-		html += tr.asHtml(t.hyphaName)
-	}
-	return fmt.Sprintf(`<table>%s</tbody></table>`, html)
+type TableRow struct {
+	cells []*TableCell
 }
 
-type tableRow struct {
-	cells []*tableCell
-}
-
-func (tr *tableRow) asHtml(hyphaName string) (html string) {
+func (tr *TableRow) AsHtml(hyphaName string) (html string) {
 	for _, tc := range tr.cells {
 		html += tc.asHtml(hyphaName)
 	}
@@ -160,7 +145,7 @@ func (tr *tableRow) asHtml(hyphaName string) (html string) {
 // |   ! a ! b
 // ! c | d | e
 // ! f | g | h
-func (tr *tableRow) looksLikeThead() bool {
+func (tr *TableRow) LooksLikeThead() bool {
 	var (
 		headerAmount = 0
 		datumAmount  = 0
@@ -176,13 +161,13 @@ func (tr *tableRow) looksLikeThead() bool {
 	return headerAmount >= 2 && datumAmount <= 1
 }
 
-type tableCell struct {
-	kind    tableCellKind
+type TableCell struct {
+	kind    TableCellKind
 	colspan uint
 	content string
 }
 
-func (tc *tableCell) asHtml(hyphaName string) string {
+func (tc *TableCell) asHtml(hyphaName string) string {
 	return fmt.Sprintf(
 		"<%[1]s %[2]s>%[3]s</%[1]s>\n",
 		tc.kind.tagName(),
@@ -191,14 +176,14 @@ func (tc *tableCell) asHtml(hyphaName string) string {
 	)
 }
 
-func (tc *tableCell) colspanAttribute() string {
+func (tc *TableCell) colspanAttribute() string {
 	if tc.colspan <= 1 {
 		return ""
 	}
 	return fmt.Sprintf(`colspan="%d"`, tc.colspan)
 }
 
-func (tc *tableCell) contentAsHtml(hyphaName string) (html string) {
+func (tc *TableCell) contentAsHtml(hyphaName string) (html string) {
 	for _, line := range strings.Split(tc.content, "\n") {
 		if line = strings.TrimSpace(line); line != "" {
 			if html != "" {
@@ -210,15 +195,15 @@ func (tc *tableCell) contentAsHtml(hyphaName string) (html string) {
 	return html
 }
 
-type tableCellKind int
+type TableCellKind int
 
 const (
-	tableCellUnknown tableCellKind = iota
+	tableCellUnknown TableCellKind = iota
 	tableCellHeader
 	tableCellDatum
 )
 
-func (tck tableCellKind) tagName() string {
+func (tck TableCellKind) tagName() string {
 	switch tck {
 	case tableCellHeader:
 		return "th"

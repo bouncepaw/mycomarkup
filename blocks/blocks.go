@@ -9,15 +9,3 @@ type Block interface {
 	// ID returns an id for the block which may be utilised in markup languages. It may not be unique.
 	ID() string
 }
-
-type NestingBlock struct{}
-
-func (ns *NestingBlock) IsNesting() bool {
-	return true
-}
-
-type TerminalBlock struct{}
-
-func (tb *TerminalBlock) IsNesting() bool {
-	return false
-}
