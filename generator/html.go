@@ -21,6 +21,9 @@ func BlockToHTML(block interface{}) string {
 	case blocks.RocketLink:
 		return fmt.Sprintf(`
 	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), b.Display())
+	case blocks.Heading:
+		return fmt.Sprintf(`<h%[1]d id='%[2]d'>%[3]s<a href="#%[4]s" id="%[4]s" class="heading__link"></a></h%[1]d>
+`, b.Level, b.LegacyID, b.ContentsHTML, b.ID())
 	}
 	return ""
 }

@@ -16,7 +16,7 @@ func Parse(ast []Line, from, to int, recursionLevel int) (html string) {
 			switch v := line.Contents.(type) {
 			case Transclusion:
 				html += Transclude(v, recursionLevel)
-			case blocks.Img, blocks.HorizontalLine, blocks.LaunchPad:
+			case blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading:
 				html += generator.BlockToHTML(v)
 			case blocks.Table:
 				html += v.AsHtml()

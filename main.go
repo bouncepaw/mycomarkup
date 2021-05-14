@@ -39,7 +39,7 @@ func main() {
 	hyphaName, filename := parseFlags()
 	contents, err := ioutil.ReadFile(filename)
 	if err != nil {
-		fmt.Errorf("%s\n", err)
+		_ = fmt.Errorf("%s\n", err)
 	}
 
 	dok := doc.Doc(hyphaName, string(contents))

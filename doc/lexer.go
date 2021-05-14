@@ -71,9 +71,7 @@ func lineToAST(line string, state *GemLexerState, ast *[]Line) {
 		return strings.HasPrefix(line, token)
 	}
 	addHeading := func(i int) {
-		id := util.StringID(line[i+1:])
-		addLine(fmt.Sprintf(`<h%d id='%d'>%s<a href="#%s" id="%s" class="heading__link"></a></h%d>
-`, i, state.id, blocks.ParagraphToHtml(state.name, line[i+1:]), id, id, i))
+		addLine(blocks.MakeHeading(line, state.name, uint(i), state.id))
 	}
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
