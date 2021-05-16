@@ -2,10 +2,10 @@ package doc
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/blocks"
 	"html"
 	"strings"
 
+	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/util"
 )
 
@@ -14,10 +14,9 @@ type LexerState struct {
 	// Target of hypha being lexed
 	name  string
 	where string // "", "list", "pre", etc.
-	// Token id
-	id  int
-	buf string
 	// Temporaries
+	buf       string // TODO: get rid of this as soon as we can.
+	code      *blocks.CodeBlock
 	img       *blocks.Img
 	table     *blocks.Table
 	list      *blocks.List
@@ -25,20 +24,19 @@ type LexerState struct {
 }
 
 type Token struct {
-	Id int
-	// TODO: replace with an interface one day, when it's all over.
+	// TODO: replace with a proper interface one day, when it's all over.
 	Value interface{}
 }
 
 // Lex `line` in markup and save it to `ast` using `state`.
 func lineToToken(line string, state *LexerState, ast *[]Token) {
 	addLine := func(text interface{}) {
-		*ast = append(*ast, Token{Id: state.id, Value: text})
+		*ast = append(*ast, Token{Value: text})
 	}
 	addParagraphIfNeeded := func() {
 		if state.where == "p" {
 			state.where = ""
-			addLine(fmt.Sprintf("\n<p id='%d'>%s</p>", state.id, strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
+			addLine(fmt.Sprintf("\n<p>%s</p>", strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
 			state.buf = ""
 		}
 	}
@@ -62,7 +60,7 @@ func lineToToken(line string, state *LexerState, ast *[]Token) {
 		return strings.HasPrefix(line, token)
 	}
 	addHeading := func(i int) {
-		addLine(blocks.MakeHeading(line, state.name, uint(i), state.id))
+		addLine(blocks.MakeHeading(line, state.name, uint(i)))
 	}
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
@@ -107,11 +105,10 @@ preformattedState:
 	switch {
 	case startsWith("```"):
 		state.where = ""
-		state.buf = strings.TrimSuffix(state.buf, "\n")
-		addLine(state.buf + "</code></pre>")
-		state.buf = ""
+		addLine(*state.code)
 	default:
-		state.buf += html.EscapeString(line) + "\n"
+		fmt.Println("adding line@")
+		state.code.AddLine(html.EscapeString(line))
 	}
 	return
 
@@ -123,8 +120,8 @@ launchpadState:
 		addLine(*state.launchpad)
 		state.launchpad = nil
 		state.where = "pre"
-		state.id++
-		state.buf = fmt.Sprintf("\n<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
+		cb := blocks.MakeCodeBlock(strings.TrimPrefix(line, "```"), "")
+		state.code = &cb
 	default:
 		fmt.Println("night call")
 		addLine(*state.launchpad)
@@ -135,13 +132,13 @@ launchpadState:
 	return
 
 normalState:
-	state.id++
 	switch {
 
 	case startsWith("```"):
 		addParagraphIfNeeded()
 		state.where = "pre"
-		state.buf = fmt.Sprintf("\n<pre id='%d' alt='%s' class='codeblock'><code>", state.id, strings.TrimPrefix(line, "```"))
+		cb := blocks.MakeCodeBlock(strings.TrimPrefix(line, "```"), "")
+		state.code = &cb
 
 	case startsWith("###### "):
 		addParagraphIfNeeded()
@@ -166,8 +163,7 @@ normalState:
 		addParagraphIfNeeded()
 		addLine(
 			fmt.Sprintf(
-				"<blockquote id='%d'>%s</blockquote>",
-				state.id,
+				"<blockquote>%s</blockquote>",
 				blocks.ParagraphToHtml(state.name, util.Remover(">")(line)),
 			),
 		)
@@ -183,7 +179,7 @@ normalState:
 		addLine(blocks.MakeTransclusion(line, state.name))
 	case startsWith("----"):
 		addParagraphIfNeeded()
-		*ast = append(*ast, Token{Id: -1, Value: blocks.MakeHorizontalLine(line)})
+		*ast = append(*ast, Token{Value: blocks.MakeHorizontalLine(line)})
 	case blocks.MatchesList(line):
 		addParagraphIfNeeded()
 		list, _ := blocks.NewList(line, state.name)

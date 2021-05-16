@@ -8,15 +8,13 @@ type Heading struct {
 	Level        uint
 	ContentsHTML string
 	src          string
-	LegacyID     int
 }
 
-func MakeHeading(line, hyphaName string, level uint, legacyID int) Heading {
+func MakeHeading(line, hyphaName string, level uint) Heading {
 	h := Heading{
 		Level:        level,
 		ContentsHTML: ParagraphToHtml(hyphaName, line[level+1:]),
 		src:          line,
-		LegacyID:     legacyID,
 	}
 	return h
 }
