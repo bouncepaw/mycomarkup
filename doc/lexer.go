@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/blocks"
-	"github.com/bouncepaw/mycomarkup/util"
 )
 
 // LexerState is used by markup lexer to remember what is going on.
@@ -107,7 +106,6 @@ preformattedState:
 		state.where = ""
 		addLine(*state.code)
 	default:
-		fmt.Println("adding line@")
 		state.code.AddLine(html.EscapeString(line))
 	}
 	return
@@ -118,14 +116,12 @@ launchpadState:
 		state.launchpad.AddRocket(blocks.MakeRocketLink(line, state.name))
 	case startsWith("```"):
 		addLine(*state.launchpad)
-		state.launchpad = nil
 		state.where = "pre"
 		cb := blocks.MakeCodeBlock(strings.TrimPrefix(line, "```"), "")
 		state.code = &cb
 	default:
 		fmt.Println("night call")
 		addLine(*state.launchpad)
-		state.launchpad = nil
 		state.where = ""
 		goto normalState
 	}
@@ -133,7 +129,6 @@ launchpadState:
 
 normalState:
 	switch {
-
 	case startsWith("```"):
 		addParagraphIfNeeded()
 		state.where = "pre"
@@ -161,12 +156,7 @@ normalState:
 
 	case startsWith(">"):
 		addParagraphIfNeeded()
-		addLine(
-			fmt.Sprintf(
-				"<blockquote>%s</blockquote>",
-				blocks.ParagraphToHtml(state.name, util.Remover(">")(line)),
-			),
-		)
+		addLine(blocks.MakeQuote(line, state.name))
 	case startsWith("=>"):
 		addParagraphIfNeeded()
 		state.where = "launchpad"

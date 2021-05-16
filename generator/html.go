@@ -28,6 +28,8 @@ func BlockToHTML(block interface{}) string {
 		return tableToHTML(b)
 	case blocks.CodeBlock:
 		return fmt.Sprintf("\n<pre class='codeblock'><code class='language-%s'>%s</code></pre>", b.Language(), b.Contents())
+	case blocks.Quote:
+		return fmt.Sprintf("\n<blockquote>%s</blockquote>", b.Contents())
 	}
 	return "<b>UNKNOWN ELEMENT</b>"
 }

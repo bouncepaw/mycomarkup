@@ -5,7 +5,7 @@ build:
 	go build .
 
 test1: build
-	./mycomarkup -hypha-name "test doc" -filename "legacy/testdata/test.myco"
+	./mycomarkup -hypha-name "test doc" -filename "testdata/test1.myco"
 
 generate:
 	# stringer -type=TokenKind -trimprefix Token ./lexer
