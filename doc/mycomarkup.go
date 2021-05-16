@@ -3,11 +3,12 @@ package doc
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/blocks"
 	"regexp"
 	"strings"
 
+	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/links"
+	"github.com/bouncepaw/mycomarkup/util"
 )
 
 var cfg = struct {
@@ -16,86 +17,92 @@ var cfg = struct {
 	URL: "PLACEHOLDER",
 }
 
-// A Mycomarkup-formatted document
+// MycoDoc is a mycomarkup-formatted document.
 type MycoDoc struct {
 	// data
-	hyphaName string
-	contents  string
+	HyphaName string
+	Contents  string
 	// indicators
 	parsedAlready bool
 	// results
-	ast           []Line
-	html          string
-	firstImageURL string
-	description   string
+	ast []Token
 }
 
-// Constructor
+// Doc returns a mycomarkup document with the given name and mycomarkup-formatted contents.
+//
+// The returned document is not lexed not parsed yet. You have to do that separately.
 func Doc(hyphaName, contents string) *MycoDoc {
 	md := &MycoDoc{
-		hyphaName: hyphaName,
-		contents:  contents,
+		HyphaName: hyphaName,
+		Contents:  contents,
 	}
 	return md
 }
 
-func (md *MycoDoc) Lex(recursionLevel int) *MycoDoc {
-	if !md.parsedAlready {
-		md.ast = md.LexHelper()
+func (md *MycoDoc) Lex(recursionLevel int) []Token {
+	var (
+		state = LexerState{name: md.HyphaName}
+		ast   = []Token{}
+	)
+
+	for _, line := range append(strings.Split(md.Contents, "\n"), "") {
+		lineToToken(line, &state, &ast)
 	}
-	md.parsedAlready = true
-	return md
+
+	return ast
 }
 
 // AsHTML returns an html representation of the document
 func (md *MycoDoc) AsHTML() string {
-	md.html = Parse(md.Lex(0).ast, 0, 0, 0)
-	return md.html
+	return Parse(md.Lex(0), 0)
 }
 
 // AsGemtext returns a gemtext representation of the document. Currently really limited, just returns source text
 func (md *MycoDoc) AsGemtext() string {
-	return md.contents
+	return md.Contents
 }
+
+/// The rest of the file is OpenGraph-related.
 
 // Used to clear opengraph description from html tags. This method is usually bad because of dangers of malformed HTML, but I'm going to use it only for Mycorrhiza-generated HTML, so it's okay. The question mark is required; without it the whole string is eaten away.
 var htmlTagRe = regexp.MustCompile(`<.*?>`)
 
 // OpenGraphHTML returns an html representation of og: meta tags.
 func (md *MycoDoc) OpenGraphHTML() string {
-	md.ogFillVars()
+	ogImage, ogDescription := md.openGraphImageAndDescription()
 	return strings.Join([]string{
-		ogTag("title", md.hyphaName),
+		ogTag("title", util.BeautifulName(md.HyphaName)),
 		ogTag("type", "article"),
-		ogTag("image", md.firstImageURL),
-		ogTag("url", cfg.URL+"/hypha/"+md.hyphaName),
+		ogTag("image", ogImage),
+		ogTag("url", cfg.URL+"/hypha/"+md.HyphaName),
 		ogTag("determiner", ""),
-		ogTag("description", htmlTagRe.ReplaceAllString(md.description, "")),
+		ogTag("description", ogDescription),
 	}, "\n")
 }
 
-func (md *MycoDoc) ogFillVars() *MycoDoc {
-	md.firstImageURL = cfg.URL + "/favicon.ico"
+// return image and description of the document for including in open graph.
+func (md *MycoDoc) openGraphImageAndDescription() (ogImage, ogDescription string) {
+	ogImage = cfg.URL + "/favicon.ico"
 	foundDesc := false
 	foundImg := false
 	for _, line := range md.ast {
-		switch v := line.Contents.(type) {
+		switch v := line.Value.(type) {
 		case string:
 			if !foundDesc {
-				md.description = v
+				ogDescription = v
 				foundDesc = true
 			}
 		case blocks.Img:
 			if !foundImg && len(v.Entries) > 0 {
-				md.firstImageURL = v.Entries[0].Srclink.ImgSrc()
+				ogImage = v.Entries[0].Srclink.ImgSrc()
 				if !v.Entries[0].Srclink.OfKind(links.LinkExternal) {
-					md.firstImageURL = cfg.URL + md.firstImageURL
+					ogImage = cfg.URL + ogImage
 				}
 				foundImg = true
 			}
 		}
 	}
-	return md
+	return ogImage, htmlTagRe.ReplaceAllString(ogDescription, "")
 }
 
 func ogTag(property, content string) string {

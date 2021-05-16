@@ -50,7 +50,7 @@ func MakeRocketLink(line, hyphaName string) RocketLink {
 	return rl
 }
 
-// LinkParts determines what href, text and class should resulting <a> have based on mycomarkup's addr, display and hypha name.
+// LinkParts determines what href, text and class should resulting <a> have based on mycomarkup's addr, display and hypha Target.
 //
 // => addr display
 // [[addr|display]]

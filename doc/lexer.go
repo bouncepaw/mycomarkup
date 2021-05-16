@@ -9,12 +9,12 @@ import (
 	"github.com/bouncepaw/mycomarkup/util"
 )
 
-// GemLexerState is used by markup parser to remember what is going on.
-type GemLexerState struct {
-	// Name of hypha being parsed
+// LexerState is used by markup lexer to remember what is going on.
+type LexerState struct {
+	// Target of hypha being lexed
 	name  string
-	where string // "", "list", "pre"
-	// Line id
+	where string // "", "list", "pre", etc.
+	// Token id
 	id  int
 	buf string
 	// Temporaries
@@ -24,25 +24,16 @@ type GemLexerState struct {
 	launchpad *blocks.LaunchPad
 }
 
-type Line struct {
+type Token struct {
 	Id int
-	// interface{} may be bad. TODO: a proper type
-	Contents interface{}
-}
-
-func (md *MycoDoc) LexHelper() (ast []Line) {
-	var state = GemLexerState{name: md.hyphaName}
-
-	for _, line := range append(strings.Split(md.contents, "\n"), "") {
-		lineToAST(line, &state, &ast)
-	}
-	return ast
+	// TODO: replace with an interface one day, when it's all over.
+	Value interface{}
 }
 
 // Lex `line` in markup and save it to `ast` using `state`.
-func lineToAST(line string, state *GemLexerState, ast *[]Line) {
+func lineToToken(line string, state *LexerState, ast *[]Token) {
 	addLine := func(text interface{}) {
-		*ast = append(*ast, Line{Id: state.id, Contents: text})
+		*ast = append(*ast, Token{Id: state.id, Value: text})
 	}
 	addParagraphIfNeeded := func() {
 		if state.where == "p" {
@@ -189,10 +180,10 @@ normalState:
 
 	case startsWith("<="):
 		addParagraphIfNeeded()
-		addLine(ParseTransclusion(line, state.name))
+		addLine(blocks.MakeTransclusion(line, state.name))
 	case startsWith("----"):
 		addParagraphIfNeeded()
-		*ast = append(*ast, Line{Id: -1, Contents: blocks.MakeHorizontalLine(line)})
+		*ast = append(*ast, Token{Id: -1, Value: blocks.MakeHorizontalLine(line)})
 	case blocks.MatchesList(line):
 		addParagraphIfNeeded()
 		list, _ := blocks.NewList(line, state.name)

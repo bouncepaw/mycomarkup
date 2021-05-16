@@ -25,7 +25,7 @@ func StringID(s string) string {
 	return strings.Trim(ret.String(), "_")
 }
 
-// Strip hypha name from all ancestor names, replace _ with spaces, title case
+// BeautifulName makes the ugly name beautiful by replacing _ with spaces and using title case
 func BeautifulName(uglyName string) string {
 	if uglyName == "" {
 		return uglyName
