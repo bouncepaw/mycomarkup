@@ -16,20 +16,8 @@ type ImgEntry struct {
 	desc      strings.Builder
 }
 
-func (entry *ImgEntry) DescriptionAsHtml() (html string) {
-	if entry.desc.Len() == 0 {
-		return ""
-	}
-	lines := strings.Split(entry.desc.String(), "\n")
-	for _, line := range lines {
-		if line = strings.TrimSpace(line); line != "" {
-			if html != "" {
-				html += `<br>`
-			}
-			html += ParagraphToHtml(entry.hyphaName, line)
-		}
-	}
-	return `<figcaption>` + html + `</figcaption>`
+func (entry *ImgEntry) Description() Paragraph {
+	return MakeParagraph(entry.desc.String(), entry.hyphaName)
 }
 
 func (entry *ImgEntry) SizeWAsAttr() string {

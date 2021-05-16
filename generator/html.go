@@ -10,6 +10,8 @@ import (
 // BlockToHTML turns the given block into HTML. It supports only a subset of Mycomarkup.
 func BlockToHTML(block interface{}) string {
 	switch b := block.(type) {
+	case blocks.Paragraph:
+		return b.Html
 	case blocks.HorizontalLine:
 		return fmt.Sprintf(`<hr id="%s"/>`, b.ID())
 	case blocks.Img:
@@ -23,7 +25,7 @@ func BlockToHTML(block interface{}) string {
 	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), b.Display())
 	case blocks.Heading:
 		return fmt.Sprintf(`<h%[1]d>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
-`, b.Level, b.ContentsHTML, b.ID())
+`, b.Level, BlockToHTML(b.Contents()), b.ID())
 	case blocks.Table:
 		return tableToHTML(b)
 	case blocks.CodeBlock:
@@ -77,10 +79,10 @@ func imgEntryToHTML(entry blocks.ImgEntry) string {
 			entry.SizeHAsAttr())
 	}
 	return fmt.Sprintf(`<figure class="img-gallery__entry">
-%s
-%s
+	%s
+	<figcaption>%s</figcaption>
 </figure>
-`, ret, entry.DescriptionAsHtml())
+`, ret, BlockToHTML(entry.Description()))
 }
 
 func imgToHTML(img blocks.Img) string {

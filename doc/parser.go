@@ -2,10 +2,11 @@ package doc
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/generator"
 	"github.com/bouncepaw/mycomarkup/globals"
-	"strings"
 )
 
 const maxRecursionLevel = 3

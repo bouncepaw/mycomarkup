@@ -37,10 +37,6 @@ func (img *Img) HasOneImage() bool {
 	return len(img.Entries) == 1 && img.Entries[0].desc.Len() == 0
 }
 
-func (img *Img) IsNesting() bool {
-	return true
-}
-
 func (img *Img) pushEntry() {
 	if strings.TrimSpace(img.currEntry.path.String()) != "" {
 		img.currEntry.Srclink = links.From(img.currEntry.path.String(), "", img.hyphaName)
@@ -51,7 +47,7 @@ func (img *Img) pushEntry() {
 	}
 }
 
-func (img *Img) Process(line string) (shouldGoBackToNormal bool) {
+func (img *Img) ProcessLine(line string) (shouldGoBackToNormal bool) {
 	stateToProcessor := map[imgState]func(rune) bool{
 		inRoot:        img.processInRoot,
 		inName:        img.processInName,
@@ -154,7 +150,7 @@ func ImgFromFirstLine(line, hyphaName string) (img *Img, shouldGoBackToNormal bo
 		Entries:   make([]ImgEntry, 0),
 	}
 	line = line[strings.IndexRune(line, '{')+1:]
-	return img, img.Process(line)
+	return img, img.ProcessLine(line)
 }
 
 func (img *Img) pagePathFor(path string) string {
@@ -164,17 +160,6 @@ func (img *Img) pagePathFor(path string) string {
 	} else {
 		return "/hypha/" + util.XclCanonicalName(img.hyphaName, path)
 	}
-}
-
-func parseDimensions(dimensions string) (sizeW, sizeH string) {
-	xIndex := strings.IndexRune(dimensions, '*')
-	if xIndex == -1 { // If no x in dimensions
-		sizeW = strings.TrimSpace(dimensions)
-	} else {
-		sizeW = strings.TrimSpace(dimensions[:xIndex])
-		sizeH = strings.TrimSpace(strings.TrimPrefix(dimensions, dimensions[:xIndex+1]))
-	}
-	return
 }
 
 func (img *Img) MarkExistenceOfSrcLinks() {

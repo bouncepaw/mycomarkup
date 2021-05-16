@@ -9,6 +9,7 @@ import (
 )
 
 type Paragraph struct {
+	Html string
 	*bytes.Buffer
 	spans []span
 }
@@ -71,9 +72,16 @@ func getLinkNode(input *Paragraph, hyphaName string, isBracketedLink bool) strin
 	return fmt.Sprintf(`<a href="%s" class="%s">%s</a>`, href, class, html.EscapeString(text))
 }
 
+func MakeParagraph(input, hyphaName string) Paragraph {
+	return Paragraph{
+		Html: ParagraphToHtml(hyphaName, input),
+	}
+}
+
 func ParagraphToHtml(hyphaName, input string) string {
 	var (
 		p = &Paragraph{
+			"",
 			bytes.NewBufferString(input),
 			make([]span, 0),
 		}
