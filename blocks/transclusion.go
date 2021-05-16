@@ -1,6 +1,7 @@
 package blocks
 
 import (
+	"github.com/bouncepaw/mycomarkup/links"
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/util"
@@ -27,13 +28,13 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 	if strings.ContainsRune(line, '|') {
 		parts := strings.SplitN(line, "|", 2)
 		return Transclusion{
-			Target:   util.XclCanonicalName(hyphaName, strings.TrimSpace(parts[0])),
+			Target:   links.From(strings.TrimSpace(parts[0]), "", hyphaName).Address(),
 			Selector: strings.TrimSpace(parts[1]),
 		}
 	}
 
 	return Transclusion{
-		Target:   util.XclCanonicalName(hyphaName, strings.TrimSpace(line)),
+		Target:   links.From(strings.TrimSpace(line), "", hyphaName).Address(),
 		Selector: "",
 	}
 }

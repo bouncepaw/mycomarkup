@@ -64,19 +64,19 @@ func launchpadToHTML(lp blocks.LaunchPad) string {
 
 func imgEntryToHTML(entry blocks.ImgEntry) string {
 	var ret string
-	if entry.Srclink.DestinationUnknown {
-		ret += fmt.Sprintf(
-			`<a class="%s" href="%s">Hypha <i>%s</i> does not exist</a>`,
-			entry.Srclink.Classes(),
-			entry.Srclink.Href(),
-			entry.Srclink.Address())
-	} else {
+	if entry.Srclink.Exists() {
 		ret += fmt.Sprintf(
 			`<a href="%s"><img src="%s" %s %s></a>`,
 			entry.Srclink.Href(),
 			entry.Srclink.ImgSrc(),
 			entry.SizeWAsAttr(),
 			entry.SizeHAsAttr())
+	} else {
+		ret += fmt.Sprintf(
+			`<a class="%s" href="%s">Hypha <i>%s</i> does not exist</a>`,
+			entry.Srclink.Classes(),
+			entry.Srclink.Href(),
+			entry.Srclink.Address())
 	}
 	return fmt.Sprintf(`<figure class="img-gallery__entry">
 	%s

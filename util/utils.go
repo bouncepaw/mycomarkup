@@ -1,7 +1,6 @@
 package util
 
 import (
-	"path"
 	"regexp"
 	"strings"
 	"unicode"
@@ -52,16 +51,5 @@ func remover(prefix string) func(string) string {
 func Remover(prefix string) func(string) string {
 	return func(l string) string {
 		return strings.TrimSpace(strings.TrimPrefix(l, prefix))
-	}
-}
-
-func XclCanonicalName(hyphaName, xclName string) string {
-	switch {
-	case strings.HasPrefix(xclName, "./"):
-		return CanonicalName(path.Join(hyphaName, strings.TrimPrefix(xclName, "./")))
-	case strings.HasPrefix(xclName, "../"):
-		return CanonicalName(path.Join(path.Dir(hyphaName), strings.TrimPrefix(xclName, "../")))
-	default:
-		return CanonicalName(xclName)
 	}
 }

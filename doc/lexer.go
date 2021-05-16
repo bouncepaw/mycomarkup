@@ -178,7 +178,7 @@ normalState:
 		addLine(state.list)
 	case blocks.MatchesImg(line):
 		addParagraphIfNeeded()
-		img, shouldGoBackToNormal := blocks.ImgFromFirstLine(line, state.name)
+		img, shouldGoBackToNormal := blocks.MakeImg(line, state.name)
 		if shouldGoBackToNormal {
 			addLine(*img)
 		} else {

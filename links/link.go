@@ -42,9 +42,10 @@ type Link struct {
 
 func From(srcAddress, srcDisplay, srcHypha string) *Link {
 	link := Link{
-		srcAddress: strings.TrimSpace(srcAddress),
-		srcDisplay: strings.TrimSpace(srcDisplay),
-		srcHypha:   strings.TrimSpace(srcHypha),
+		srcAddress:         strings.TrimSpace(srcAddress),
+		srcDisplay:         strings.TrimSpace(srcDisplay),
+		srcHypha:           strings.TrimSpace(srcHypha),
+		DestinationUnknown: true,
 	}
 	link.address = link.srcAddress
 
@@ -95,6 +96,10 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 	}
 
 	return &link
+}
+
+func (link *Link) Exists() bool {
+	return (link.OfKind(LinkExternal)) || (link.OfKind(LinkLocalRoot)) || (link.OfKind(LinkLocalHypha) && !link.DestinationUnknown)
 }
 
 // ItExists notes that the destination makes sense, exists.

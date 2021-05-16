@@ -1,15 +1,15 @@
 package blocks
 
 import (
+	"fmt"
 	"github.com/bouncepaw/mycomarkup/globals"
-	"github.com/bouncepaw/mycomarkup/util"
 	"regexp"
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/links"
 )
 
-var imgRe = regexp.MustCompile(`^img\s+{`)
+var imgRe = regexp.MustCompile(`^img {`)
 
 func MatchesImg(line string) bool {
 	return imgRe.MatchString(line)
@@ -48,25 +48,35 @@ func (img *Img) pushEntry() {
 }
 
 func (img *Img) ProcessLine(line string) (shouldGoBackToNormal bool) {
-	stateToProcessor := map[imgState]func(rune) bool{
-		inRoot:        img.processInRoot,
-		inName:        img.processInName,
-		inDimensionsW: img.processInDimensionsW,
-		inDimensionsH: img.processInDimensionsH,
-		inDescription: img.processInDescription,
-	}
 	for _, r := range line {
-		if r == '\r' {
-			continue
-		}
-		if shouldReturnTrue := stateToProcessor[img.state](r); shouldReturnTrue {
+		if shouldReturnTrue := img.ProcessRune(r); shouldReturnTrue {
 			return true
 		}
 	}
 	// We do that because \n are not part of line we receive as the argument:
-	stateToProcessor[img.state]('\n')
+	img.ProcessRune('\n')
 
 	return false
+}
+
+func (img *Img) ProcessRune(r rune) (done bool) {
+	if r == '\r' {
+		return false
+	}
+	switch img.state {
+	case inRoot:
+		return img.processInRoot(r)
+	case inName:
+		return img.processInName(r)
+	case inDimensionsW:
+		return img.processInDimensionsW(r)
+	case inDimensionsH:
+		return img.processInDimensionsH(r)
+	case inDescription:
+		return img.processInDescription(r)
+	}
+	fmt.Println("ProcessRune: unreachable state", r)
+	return true
 }
 
 func (img *Img) processInDescription(r rune) (shouldReturnTrue bool) {
@@ -144,22 +154,13 @@ func (img *Img) processInDimensionsH(r rune) (shouldGoBackToNormal bool) {
 	return false
 }
 
-func ImgFromFirstLine(line, hyphaName string) (img *Img, shouldGoBackToNormal bool) {
+func MakeImg(line, hyphaName string) (img *Img, shouldGoBackToNormal bool) {
 	img = &Img{
 		hyphaName: hyphaName,
 		Entries:   make([]ImgEntry, 0),
 	}
 	line = line[strings.IndexRune(line, '{')+1:]
 	return img, img.ProcessLine(line)
-}
-
-func (img *Img) pagePathFor(path string) string {
-	path = strings.TrimSpace(path)
-	if strings.IndexRune(path, ':') != -1 || strings.IndexRune(path, '/') == 0 {
-		return path
-	} else {
-		return "/hypha/" + util.XclCanonicalName(img.hyphaName, path)
-	}
 }
 
 func (img *Img) MarkExistenceOfSrcLinks() {
