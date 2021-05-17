@@ -34,7 +34,9 @@ func TableFromFirstLine(line, hyphaName string) *Table {
 	}
 }
 
-func (t *Table) Process(line string) (shouldGoBackToNormal bool) {
+// TODO: there's a bug in ProcessLine related to ignored last characters in cells
+
+func (t *Table) ProcessLine(line string) (done bool) {
 	if strings.TrimSpace(line) == "}" && !t.inMultiline {
 		return true
 	}
@@ -109,38 +111,36 @@ func (t *Table) Process(line string) (shouldGoBackToNormal bool) {
 
 func (t *Table) pushRow() {
 	t.Rows = append(t.Rows, &TableRow{
-		cells: make([]*TableCell, 0),
+		HyphaName: t.HyphaName,
+		Cells:     []*TableCell{},
 	})
 }
 
 func (t *Table) pushCell() {
 	tc := &TableCell{
-		content: t.currCellBuilder.String(),
-		colspan: t.currColspan,
+		Contents: MakeParagraph(t.currCellBuilder.String(), t.HyphaName),
+		colspan:  t.currColspan,
 	}
 	switch t.currCellMarker {
 	case '|', '^':
-		tc.kind = tableCellDatum
+		tc.IsHeaderCell = false
 	case '!':
-		tc.kind = tableCellHeader
+		tc.IsHeaderCell = true
 	}
 	// We expect the table to have at least one row ready, so no nil-checking
 	tr := t.Rows[len(t.Rows)-1]
-	tr.cells = append(tr.cells, tc)
+	tr.Cells = append(tr.Cells, tc)
 	t.currCellBuilder = strings.Builder{}
 }
 
+// TableRow is a row in a table. Thus, it can only be nested inside a table.
 type TableRow struct {
-	cells []*TableCell
+	HyphaName string
+	Cells     []*TableCell
 }
 
-func (tr *TableRow) AsHtml(hyphaName string) (html string) {
-	for _, tc := range tr.cells {
-		html += tc.asHtml(hyphaName)
-	}
-	return fmt.Sprintf("<tr>%s</tr>\n", html)
-}
-
+// LooksLikeThead is true if the table row looks like it might as well be a thead row.
+//
 // Most likely, rows with more than two header cells are theads. I allow one extra datum cell for tables like this:
 // |   ! a ! b
 // ! c | d | e
@@ -150,11 +150,10 @@ func (tr *TableRow) LooksLikeThead() bool {
 		headerAmount = 0
 		datumAmount  = 0
 	)
-	for _, tc := range tr.cells {
-		switch tc.kind {
-		case tableCellHeader:
+	for _, tc := range tr.Cells {
+		if tc.IsHeaderCell {
 			headerAmount++
-		case tableCellDatum:
+		} else {
 			datumAmount++
 		}
 	}
@@ -162,54 +161,25 @@ func (tr *TableRow) LooksLikeThead() bool {
 }
 
 type TableCell struct {
-	kind    TableCellKind
-	colspan uint
-	content string
+	IsHeaderCell bool
+	Contents     Paragraph
+	colspan      uint
 }
 
-func (tc *TableCell) asHtml(hyphaName string) string {
-	return fmt.Sprintf(
-		"<%[1]s %[2]s>%[3]s</%[1]s>\n",
-		tc.kind.tagName(),
-		tc.colspanAttribute(),
-		tc.contentAsHtml(hyphaName),
-	)
-}
-
-func (tc *TableCell) colspanAttribute() string {
+// ColspanAttribute returns either an empty string (if the cell doesn't have colspan) or a string in this format:
+//
+//     colspan="<number here>"
+func (tc *TableCell) ColspanAttribute() string {
 	if tc.colspan <= 1 {
 		return ""
 	}
-	return fmt.Sprintf(`colspan="%d"`, tc.colspan)
+	return fmt.Sprintf(` colspan="%d"`, tc.colspan)
 }
 
-func (tc *TableCell) contentAsHtml(hyphaName string) (html string) {
-	for _, line := range strings.Split(tc.content, "\n") {
-		if line = strings.TrimSpace(line); line != "" {
-			if html != "" {
-				html += `<br>`
-			}
-			html += ParagraphToHtml(hyphaName, line)
-		}
-	}
-	return html
-}
-
-type TableCellKind int
-
-const (
-	tableCellUnknown TableCellKind = iota
-	tableCellHeader
-	tableCellDatum
-)
-
-func (tck TableCellKind) tagName() string {
-	switch tck {
-	case tableCellHeader:
+// TagName returns "th" if the cell is a header cell, "td" elsewise.
+func (tc *TableCell) TagName() string {
+	if tc.IsHeaderCell {
 		return "th"
-	case tableCellDatum:
-		return "td"
-	default:
-		return "p"
 	}
+	return "td"
 }

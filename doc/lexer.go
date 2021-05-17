@@ -86,7 +86,7 @@ imgState:
 	return
 
 tableState:
-	if shouldGoBackToNormal := state.table.Process(line); shouldGoBackToNormal {
+	if shouldGoBackToNormal := state.table.ProcessLine(line); shouldGoBackToNormal {
 		state.where = ""
 		addLine(*state.table)
 	}

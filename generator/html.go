@@ -3,7 +3,6 @@ package generator
 
 import (
 	"fmt"
-
 	"github.com/bouncepaw/mycomarkup/blocks"
 )
 
@@ -28,12 +27,34 @@ func BlockToHTML(block interface{}) string {
 `, b.Level, BlockToHTML(b.Contents()), b.ID())
 	case blocks.Table:
 		return tableToHTML(b)
+	case blocks.TableRow:
+		return tableRowToHTML(b)
+	case blocks.TableCell:
+		return tableCellToHTML(b)
 	case blocks.CodeBlock:
 		return fmt.Sprintf("\n<pre class='codeblock'><code class='language-%s'>%s</code></pre>", b.Language(), b.Contents())
 	case blocks.Quote:
 		return fmt.Sprintf("\n<blockquote>%s</blockquote>", b.Contents())
 	}
+	fmt.Printf("%q\n", block)
 	return "<b>UNKNOWN ELEMENT</b>"
+}
+
+func tableCellToHTML(tc blocks.TableCell) string {
+	return fmt.Sprintf(
+		"\n\t<%[1]s%[2]s>%[3]s</%[1]s>",
+		tc.TagName(),
+		tc.ColspanAttribute(),
+		BlockToHTML(tc.Contents),
+	)
+}
+
+func tableRowToHTML(tr blocks.TableRow) string {
+	var ret string
+	for _, tc := range tr.Cells {
+		ret += BlockToHTML(*tc)
+	}
+	return fmt.Sprintf("<tr>%s</tr>", ret)
 }
 
 func tableToHTML(t blocks.Table) string {
@@ -42,12 +63,12 @@ func tableToHTML(t blocks.Table) string {
 		ret = fmt.Sprintf("<caption>%s</caption>", t.Caption)
 	}
 	if len(t.Rows) > 0 && t.Rows[0].LooksLikeThead() {
-		ret += fmt.Sprintf("<thead>%s</thead>", t.Rows[0].AsHtml(t.HyphaName))
+		ret += fmt.Sprintf("<thead>%s</thead>", BlockToHTML(*t.Rows[0]))
 		t.Rows = t.Rows[1:]
 	}
 	ret += "\n<tbody>\n"
 	for _, tr := range t.Rows {
-		ret += tr.AsHtml(t.HyphaName)
+		ret += BlockToHTML(*tr)
 	}
 	return fmt.Sprintf(`
 <table>%s</tbody></table>`, ret)

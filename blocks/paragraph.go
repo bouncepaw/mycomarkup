@@ -3,6 +3,7 @@ package blocks
 import (
 	"bytes"
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/links"
 	"html"
 	"strings"
 	"unicode"
@@ -68,8 +69,10 @@ func getLinkNode(input *Paragraph, hyphaName string, isBracketedLink bool) strin
 			currBuf.WriteByte(b)
 		}
 	}
-	href, text, class := LinkParts(addrBuf.String(), displayBuf.String(), hyphaName)
-	return fmt.Sprintf(`<a href="%s" class="%s">%s</a>`, href, class, html.EscapeString(text))
+
+	link := links.From(addrBuf.String(), displayBuf.String(), hyphaName)
+	href, text, class := link.Href(), html.EscapeString(link.Display()), html.EscapeString(link.Classes())
+	return fmt.Sprintf(`<a href="%s" class="%s">%s</a>`, href, class, text)
 }
 
 func MakeParagraph(input, hyphaName string) Paragraph {

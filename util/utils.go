@@ -1,7 +1,7 @@
+// Package util provides simple utility functions usable in all modules.
 package util
 
 import (
-	"regexp"
 	"strings"
 	"unicode"
 )
@@ -37,17 +37,7 @@ func CanonicalName(name string) string {
 	return strings.ToLower(strings.ReplaceAll(name, " ", "_"))
 }
 
-// HyphaPattern is a pattern which all hyphae must match.
-var HyphaPattern = regexp.MustCompile(`[^?!:#@><*|"\'&%{}]+`)
-
-// Function that returns a function that can strip `prefix` and trim whitespace when called.
-func remover(prefix string) func(string) string {
-	return func(l string) string {
-		return strings.TrimSpace(strings.TrimPrefix(l, prefix))
-	}
-}
-
-// Function that returns a function that can strip `prefix` and trim whitespace when called.
+// Remover returns a function that can strip prefix and trim whitespace when called.
 func Remover(prefix string) func(string) string {
 	return func(l string) string {
 		return strings.TrimSpace(strings.TrimPrefix(l, prefix))

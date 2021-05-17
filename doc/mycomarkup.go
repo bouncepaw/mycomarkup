@@ -11,6 +11,7 @@ import (
 	"github.com/bouncepaw/mycomarkup/util"
 )
 
+// TODO: remove this abomination
 var cfg = struct {
 	URL string
 }{
