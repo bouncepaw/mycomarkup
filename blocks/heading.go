@@ -6,7 +6,7 @@ import (
 
 type Heading struct {
 	Level    uint
-	contents Paragraph
+	contents Formatted
 	src      string
 }
 
@@ -19,7 +19,7 @@ func MakeHeading(line, hyphaName string, level uint) Heading {
 	return h
 }
 
-func (h *Heading) Contents() Paragraph {
+func (h *Heading) Contents() Formatted {
 	return h.contents
 }
 

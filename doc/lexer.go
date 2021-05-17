@@ -14,12 +14,12 @@ type LexerState struct {
 	name  string
 	where string // "", "list", "pre", etc.
 	// Temporaries
-	buf       string // TODO: get rid of this as soon as we can.
 	code      *blocks.CodeBlock
 	img       *blocks.Img
 	table     *blocks.Table
 	list      *blocks.List
 	launchpad *blocks.LaunchPad
+	paragraph *blocks.Paragraph
 }
 
 type Token struct {
@@ -35,15 +35,14 @@ func lineToToken(line string, state *LexerState, ast *[]Token) {
 	addParagraphIfNeeded := func() {
 		if state.where == "p" {
 			state.where = ""
-			addLine(fmt.Sprintf("\n<p>%s</p>", strings.ReplaceAll(blocks.ParagraphToHtml(state.name, state.buf), "\n", "<br>")))
-			state.buf = ""
+			addLine(*state.paragraph)
 		}
 	}
 
 	if "" == strings.TrimSpace(line) {
 		switch state.where {
 		case "pre":
-			state.buf += "\n"
+			state.code.AddLine("")
 		case "launchpad":
 			state.where = ""
 			addLine(*state.launchpad)
@@ -190,9 +189,10 @@ normalState:
 		state.table = blocks.TableFromFirstLine(line, state.name)
 
 	case state.where == "p":
-		state.buf += "\n" + line
+		state.paragraph.AddLine(line)
 	default:
 		state.where = "p"
-		state.buf = line
+		p := blocks.MakeParagraph(line, state.name)
+		state.paragraph = &blocks.Paragraph{Formatted: p}
 	}
 }

@@ -19,7 +19,7 @@ func Parse(ast []Token, recursionLevel int) (html string) {
 		switch v := line.Value.(type) {
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel)
-		case blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
+		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
 			html += generator.BlockToHTML(v)
 		case *blocks.List:
 			html += v.RenderAsHtml()

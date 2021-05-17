@@ -9,8 +9,10 @@ import (
 // BlockToHTML turns the given block into HTML. It supports only a subset of Mycomarkup.
 func BlockToHTML(block interface{}) string {
 	switch b := block.(type) {
-	case blocks.Paragraph:
+	case blocks.Formatted:
 		return b.Html
+	case blocks.Paragraph:
+		return fmt.Sprintf("\n<p>%s</p>", b.Html)
 	case blocks.HorizontalLine:
 		return fmt.Sprintf(`<hr id="%s"/>`, b.ID())
 	case blocks.Img:

@@ -7,6 +7,7 @@ import (
 	"unicode"
 )
 
+// Table is a table, which consists of several Rows and has a Caption.
 type Table struct {
 	// data
 	HyphaName string
@@ -20,7 +21,7 @@ type Table struct {
 	currCellBuilder strings.Builder
 }
 
-var tableRe = regexp.MustCompile(`^table\s+{`)
+var tableRe = regexp.MustCompile(`^table\s*{`)
 
 func MatchesTable(line string) bool {
 	return tableRe.MatchString(line)
@@ -165,7 +166,7 @@ func (tr *TableRow) LooksLikeThead() bool {
 // TableCell is a cell in TableRow.
 type TableCell struct {
 	IsHeaderCell bool
-	Contents     Paragraph
+	Contents     Formatted
 	colspan      uint
 }
 

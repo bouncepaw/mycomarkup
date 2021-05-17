@@ -16,7 +16,7 @@ type ImgEntry struct {
 	desc      strings.Builder
 }
 
-func (entry *ImgEntry) Description() Paragraph {
+func (entry *ImgEntry) Description() Formatted {
 	return MakeParagraph(entry.desc.String(), entry.hyphaName)
 }
 

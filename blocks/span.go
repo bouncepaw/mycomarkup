@@ -22,7 +22,7 @@ func (s spanText) htmlWithState(_ map[spanTokenType]bool) string {
 	return s.String()
 }
 
-func getSpanText(p *Paragraph) spanText {
+func getSpanText(p *Formatted) spanText {
 	var (
 		st         = spanText{}
 		escaping   = false

@@ -10,7 +10,12 @@ import (
 )
 
 type Paragraph struct {
-	Html string
+	Formatted
+}
+
+type Formatted struct {
+	HyphaName string
+	Html      string
 	*bytes.Buffer
 	spans []span
 }
@@ -42,7 +47,7 @@ func tagFromState(stt spanTokenType, tagState map[spanTokenType]bool, tagName, o
 	}
 }
 
-func getLinkNode(input *Paragraph, hyphaName string, isBracketedLink bool) string {
+func getLinkNode(input *Formatted, hyphaName string, isBracketedLink bool) string {
 	if isBracketedLink {
 		input.Next(2) // drop those [[
 	}
@@ -75,15 +80,21 @@ func getLinkNode(input *Paragraph, hyphaName string, isBracketedLink bool) strin
 	return fmt.Sprintf(`<a href="%s" class="%s">%s</a>`, href, class, text)
 }
 
-func MakeParagraph(input, hyphaName string) Paragraph {
-	return Paragraph{
-		Html: ParagraphToHtml(hyphaName, input),
+func (p *Formatted) AddLine(line string) {
+	p.Html += `<br>` + ParagraphToHtml(p.HyphaName, line)
+}
+
+func MakeParagraph(input, hyphaName string) Formatted {
+	return Formatted{
+		HyphaName: hyphaName,
+		Html:      ParagraphToHtml(hyphaName, input),
 	}
 }
 
 func ParagraphToHtml(hyphaName, input string) string {
 	var (
-		p = &Paragraph{
+		p = &Formatted{
+			hyphaName,
 			"",
 			bytes.NewBufferString(input),
 			make([]span, 0),
