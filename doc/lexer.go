@@ -40,7 +40,6 @@ func lineToToken(line string, state *LexerState, ast *[]Token) {
 		}
 	}
 
-	// ProcessLine empty lines depending on the current state
 	if "" == strings.TrimSpace(line) {
 		switch state.where {
 		case "pre":
@@ -79,14 +78,14 @@ func lineToToken(line string, state *LexerState, ast *[]Token) {
 	}
 
 imgState:
-	if shouldGoBackToNormal := state.img.ProcessLine(line); shouldGoBackToNormal {
+	if done := state.img.ProcessLine(line); done {
 		state.where = ""
 		addLine(*state.img)
 	}
 	return
 
 tableState:
-	if shouldGoBackToNormal := state.table.ProcessLine(line); shouldGoBackToNormal {
+	if done := state.table.ProcessLine(line); done {
 		state.where = ""
 		addLine(*state.table)
 	}

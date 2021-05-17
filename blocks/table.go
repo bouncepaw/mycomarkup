@@ -34,8 +34,6 @@ func TableFromFirstLine(line, hyphaName string) *Table {
 	}
 }
 
-// TODO: there's a bug in ProcessLine related to ignored last characters in cells
-
 func (t *Table) ProcessLine(line string) (done bool) {
 	if strings.TrimSpace(line) == "}" && !t.inMultiline {
 		return true
@@ -52,6 +50,8 @@ func (t *Table) ProcessLine(line string) (done bool) {
 	)
 	for i, r := range line {
 		switch {
+		case r == '\r':
+			continue
 		case skipNext:
 			skipNext = false
 			continue
@@ -80,6 +80,7 @@ func (t *Table) ProcessLine(line string) (done bool) {
 		case t.inMultiline && r == '}':
 			t.inMultiline = false
 		case t.inMultiline && i == len(line)-1:
+			t.currCellBuilder.WriteRune(r)
 			t.currCellBuilder.WriteRune('\n')
 		case t.inMultiline:
 			t.currCellBuilder.WriteRune(r)
@@ -100,6 +101,7 @@ func (t *Table) ProcessLine(line string) (done bool) {
 			inLink = true
 			skipNext = true
 		case i == len(line)-1:
+			t.currCellBuilder.WriteRune(r)
 			t.pushCell()
 		default:
 			t.currCellBuilder.WriteRune(r)
@@ -160,6 +162,7 @@ func (tr *TableRow) LooksLikeThead() bool {
 	return headerAmount >= 2 && datumAmount <= 1
 }
 
+// TableCell is a cell in TableRow.
 type TableCell struct {
 	IsHeaderCell bool
 	Contents     Paragraph
