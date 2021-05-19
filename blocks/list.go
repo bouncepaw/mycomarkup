@@ -167,5 +167,5 @@ func (list *List) RenderAsHtml() (html string) {
 	// fire up recursive render process
 	list.curr.renderAsHtmlTo(b, list.hyphaName, list.ordered)
 
-	return b.String()
+	return "\n" + b.String()
 }

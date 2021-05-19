@@ -27,8 +27,8 @@ func MatchesTable(line string) bool {
 	return tableRe.MatchString(line)
 }
 
-func TableFromFirstLine(line, hyphaName string) *Table {
-	return &Table{
+func TableFromFirstLine(line, hyphaName string) Table {
+	return Table{
 		HyphaName: hyphaName,
 		Caption:   line[strings.IndexRune(line, '{')+1:],
 		Rows:      make([]*TableRow, 0),

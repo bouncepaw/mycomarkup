@@ -34,7 +34,8 @@ func GenerateHTML(ast []interface{}, recursionLevel int) (html string) {
 
 func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int) string {
 	var (
-		messageBase = `<section class="transclusion transclusion_%s">
+		messageBase = `
+<section class="transclusion transclusion_%s">
 	%s
 </section>`
 		messageCLI = fmt.Sprintf(messageBase, "failed",
