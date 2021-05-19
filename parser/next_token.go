@@ -2,7 +2,6 @@ package parser
 
 import (
 	"context"
-	"fmt"
 	"html"
 	"strings"
 
@@ -22,8 +21,22 @@ type ParserState struct {
 	paragraph *blocks.Paragraph
 }
 
-func startsWith(ctx context.Context, s string) bool {
+func isPrefixedBy(ctx context.Context, s string) bool {
 	return strings.HasPrefix(inputFrom(ctx).String(), s)
+}
+
+func nextLaunchPad(ctx context.Context) (blocks.LaunchPad, bool) {
+	var (
+		hyphaName = hyphaNameFrom(ctx)
+		launchPad = blocks.MakeLaunchPad()
+		line      string
+		done      bool
+	)
+	for isPrefixedBy(ctx, "=>") {
+		line, done = nextLine(ctx)
+		launchPad.AddRocket(blocks.MakeRocketLink(line, hyphaName))
+	}
+	return launchPad, done
 }
 
 func nextImg(ctx context.Context, state *ParserState, line string, doneBefore bool) (img blocks.Img, doneAfter bool) {
@@ -42,10 +55,10 @@ func nextImg(ctx context.Context, state *ParserState, line string, doneBefore bo
 	return img, doneAfter
 }
 
-func nextCodeBlock(ctx context.Context, firstLine string) (code blocks.CodeBlock, done bool) {
-	code = blocks.MakeCodeBlock(strings.TrimPrefix(firstLine, "```"), "")
+func nextCodeBlock(ctx context.Context) (code blocks.CodeBlock, done bool) {
+	line, done := nextLine(ctx)
+	code = blocks.MakeCodeBlock(strings.TrimPrefix(line, "```"), "")
 
-	var line string
 	for {
 		line, done = nextLine(ctx)
 		switch {
@@ -62,30 +75,70 @@ func nextCodeBlock(ctx context.Context, firstLine string) (code blocks.CodeBlock
 
 // Lex `line` in markup and maybe return a token.
 func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
-	var (
-		line, done = nextLine(ctx)
-		ret        interface{}
-	)
-	addParagraphIfNeeded := func() {
+	var ret interface{}
+	addParagraphIfNeeded := func() { // This is a bug source, I know it.
 		if state.where == "p" {
 			state.where = ""
 			ret = *state.paragraph
 		}
 	}
-	startsWith := func(token string) bool {
-		return strings.HasPrefix(line, token)
+	switch {
+	case isPrefixedBy(ctx, "```"):
+		addParagraphIfNeeded()
+		return nextCodeBlock(ctx)
+	case isPrefixedBy(ctx, "=>"):
+		addParagraphIfNeeded()
+		return nextLaunchPad(ctx)
+	case isPrefixedBy(ctx, "<="):
+		addParagraphIfNeeded()
+		line, done := nextLine(ctx)
+		return blocks.MakeTransclusion(line, hyphaNameFrom(ctx)), done
+	case isPrefixedBy(ctx, "----"):
+		addParagraphIfNeeded()
+		line, done := nextLine(ctx)
+		return blocks.MakeHorizontalLine(line), done
+
+	case isPrefixedBy(ctx, "###### "):
+		addParagraphIfNeeded()
+		line, done := nextLine(ctx)
+		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 6), done
+	case isPrefixedBy(ctx, "##### "):
+		addParagraphIfNeeded()
+		line, done := nextLine(ctx)
+		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 5), done
+	case isPrefixedBy(ctx, "#### "):
+		addParagraphIfNeeded()
+		line, done := nextLine(ctx)
+		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 4), done
+	case isPrefixedBy(ctx, "### "):
+		addParagraphIfNeeded()
+		line, done := nextLine(ctx)
+		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 3), done
+	case isPrefixedBy(ctx, "## "):
+		addParagraphIfNeeded()
+		line, done := nextLine(ctx)
+		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 2), done
+	case isPrefixedBy(ctx, "# "):
+		addParagraphIfNeeded()
+		line, done := nextLine(ctx)
+		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 1), done
+
+	case isPrefixedBy(ctx, ">"): // TODO: implement proper fractal quotes
+		addParagraphIfNeeded()
+		line, done := nextLine(ctx)
+		return blocks.MakeQuote(line, state.Name), done
 	}
-	addHeading := func(i int) {
-		ret = blocks.MakeHeading(line, state.Name, uint(i))
-	}
+
+	var (
+		line, done = nextLine(ctx) // TODO: get rid of this abomination
+	)
+
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
 	switch state.where {
 	case "table":
 		goto tableState
 	case "list":
 		goto listState
-	case "launchpad":
-		goto launchpadState
 	default: // "p" or ""
 		goto normalState
 	}
@@ -105,67 +158,11 @@ listState:
 	}
 	goto end
 
-launchpadState:
-	switch {
-	case "" == strings.TrimSpace(line):
-		state.where = ""
-		ret = *state.launchpad
-		state.launchpad = nil
-	case startsWith("=>"):
-		state.launchpad.AddRocket(blocks.MakeRocketLink(line, state.Name))
-	case startsWith("```"):
-		return nextCodeBlock(ctx, line)
-	default:
-		fmt.Println("night call")
-		ret = *state.launchpad
-		state.where = ""
-		goto normalState
-	}
-	goto end
-
 normalState:
 	switch {
 	case "" == strings.TrimSpace(line):
 		addParagraphIfNeeded()
-	case startsWith("```"):
-		addParagraphIfNeeded()
-		return nextCodeBlock(ctx, line)
 
-	case startsWith("###### "):
-		addParagraphIfNeeded()
-		addHeading(6)
-	case startsWith("##### "):
-		addParagraphIfNeeded()
-		addHeading(5)
-	case startsWith("#### "):
-		addParagraphIfNeeded()
-		addHeading(4)
-	case startsWith("### "):
-		addParagraphIfNeeded()
-		addHeading(3)
-	case startsWith("## "):
-		addParagraphIfNeeded()
-		addHeading(2)
-	case startsWith("# "):
-		addParagraphIfNeeded()
-		addHeading(1)
-
-	case startsWith(">"):
-		addParagraphIfNeeded()
-		ret = blocks.MakeQuote(line, state.Name)
-	case startsWith("=>"):
-		addParagraphIfNeeded()
-		state.where = "launchpad"
-		lp := blocks.MakeLaunchPad()
-		state.launchpad = &lp
-		goto launchpadState
-
-	case startsWith("<="):
-		addParagraphIfNeeded()
-		ret = blocks.MakeTransclusion(line, state.Name)
-	case startsWith("----"):
-		addParagraphIfNeeded()
-		ret = blocks.MakeHorizontalLine(line)
 	case blocks.MatchesList(line):
 		addParagraphIfNeeded()
 		list, _ := blocks.NewList(line, state.Name)
