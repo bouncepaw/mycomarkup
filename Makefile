@@ -11,7 +11,7 @@ test2: build
 	./mycomarkup -hypha-name "test doc" -filename "testdata/test2.myco"
 
 generate:
-	# stringer -type=TokenKind -trimprefix Token ./lexer
+	# stringer -type=TokenKind -trimprefix Token ./parser
 
 indent:
 	go run . | indent

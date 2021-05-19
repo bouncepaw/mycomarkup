@@ -2,13 +2,8 @@
 package doc
 
 import (
-	"fmt"
-	"regexp"
+	"github.com/bouncepaw/mycomarkup/parser"
 	"strings"
-
-	"github.com/bouncepaw/mycomarkup/blocks"
-	"github.com/bouncepaw/mycomarkup/links"
-	"github.com/bouncepaw/mycomarkup/util"
 )
 
 // TODO: remove this abomination
@@ -25,8 +20,6 @@ type MycoDoc struct {
 	Contents  string
 	// indicators
 	parsedAlready bool
-	// results
-	ast []Token
 }
 
 // Doc returns a mycomarkup document with the given name and mycomarkup-formatted contents.
@@ -40,14 +33,17 @@ func Doc(hyphaName, contents string) *MycoDoc {
 	return md
 }
 
-func (md *MycoDoc) Lex(recursionLevel int) []Token {
+func (md *MycoDoc) Lex(recursionLevel int) []interface{} {
 	var (
-		state = LexerState{name: md.HyphaName}
-		ast   = []Token{}
+		state = parser.ParserState{Name: md.HyphaName}
+		ast   = []interface{}{}
 	)
 
 	for _, line := range append(strings.Split(md.Contents, "\n"), "") {
-		lineToToken(line, &state, &ast)
+		token := parser.LineToToken(line, &state)
+		if token != nil {
+			ast = append(ast, token)
+		}
 	}
 
 	return ast
@@ -55,7 +51,7 @@ func (md *MycoDoc) Lex(recursionLevel int) []Token {
 
 // AsHTML returns an html representation of the document
 func (md *MycoDoc) AsHTML() string {
-	return Parse(md.Lex(0), 0)
+	return GenerateHTML(md.Lex(0), 0)
 }
 
 // AsGemtext returns a gemtext representation of the document. Currently really limited, just returns source text
@@ -63,6 +59,7 @@ func (md *MycoDoc) AsGemtext() string {
 	return md.Contents
 }
 
+/*
 /// The rest of the file is OpenGraph-related.
 
 // Used to clear opengraph description from html tags. This method is usually bad because of dangers of malformed HTML, but I'm going to use it only for Mycorrhiza-generated HTML, so it's okay. The question mark is required; without it the whole string is eaten away.
@@ -109,3 +106,4 @@ func (md *MycoDoc) openGraphImageAndDescription() (ogImage, ogDescription string
 func ogTag(property, content string) string {
 	return fmt.Sprintf(`<meta property="og:%s" content="%s"/>`, property, content)
 }
+*/

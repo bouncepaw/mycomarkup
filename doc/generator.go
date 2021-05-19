@@ -11,12 +11,12 @@ import (
 
 const maxRecursionLevel = 3
 
-func Parse(ast []Token, recursionLevel int) (html string) {
+func GenerateHTML(ast []interface{}, recursionLevel int) (html string) {
 	if recursionLevel > maxRecursionLevel {
 		return "Transclusion depth limit"
 	}
 	for _, line := range ast {
-		switch v := line.Value.(type) {
+		switch v := line.(type) {
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel)
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
@@ -70,6 +70,6 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int) string {
 		return fmt.Sprintf(messageNotExists, xcl.Target)
 	}
 	md := Doc(xcl.Target, rawText)
-	xclText := Parse(md.Lex(recursionLevel+1), recursionLevel+1)
+	xclText := GenerateHTML(md.Lex(recursionLevel+1), recursionLevel+1)
 	return fmt.Sprintf(messageOK, xcl.Target, binaryHtml+xclText)
 }

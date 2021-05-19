@@ -3,6 +3,7 @@ package generator
 
 import (
 	"fmt"
+
 	"github.com/bouncepaw/mycomarkup/blocks"
 )
 

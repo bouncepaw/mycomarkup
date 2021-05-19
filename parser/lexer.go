@@ -1,4 +1,4 @@
-package doc
+package parser
 
 import (
 	"fmt"
@@ -8,10 +8,10 @@ import (
 	"github.com/bouncepaw/mycomarkup/blocks"
 )
 
-// LexerState is used by markup lexer to remember what is going on.
-type LexerState struct {
+// ParserState is used by markup parser to remember what is going on.
+type ParserState struct {
 	// Target of hypha being lexed
-	name  string
+	Name  string
 	where string // "", "list", "pre", etc.
 	// Temporaries
 	code      *blocks.CodeBlock
@@ -22,21 +22,23 @@ type LexerState struct {
 	paragraph *blocks.Paragraph
 }
 
-type Token struct {
-	// TODO: replace with a proper interface one day, when it's all over.
-	Value interface{}
-}
-
-// Lex `line` in markup and save it to `ast` using `state`.
-func lineToToken(line string, state *LexerState, ast *[]Token) {
-	addLine := func(text interface{}) {
-		*ast = append(*ast, Token{Value: text})
+// Lex `line` in markup and maybe return a token.
+func LineToToken(line string, state *ParserState) interface{} {
+	var ret interface{}
+	addLine := func(v interface{}) {
+		ret = v
 	}
 	addParagraphIfNeeded := func() {
 		if state.where == "p" {
 			state.where = ""
 			addLine(*state.paragraph)
 		}
+	}
+	startsWith := func(token string) bool {
+		return strings.HasPrefix(line, token)
+	}
+	addHeading := func(i int) {
+		addLine(blocks.MakeHeading(line, state.Name, uint(i)))
 	}
 
 	if "" == strings.TrimSpace(line) {
@@ -50,14 +52,7 @@ func lineToToken(line string, state *LexerState, ast *[]Token) {
 		case "p":
 			addParagraphIfNeeded()
 		}
-		return
-	}
-
-	startsWith := func(token string) bool {
-		return strings.HasPrefix(line, token)
-	}
-	addHeading := func(i int) {
-		addLine(blocks.MakeHeading(line, state.name, uint(i)))
+		goto end
 	}
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
@@ -81,14 +76,14 @@ imgState:
 		state.where = ""
 		addLine(*state.img)
 	}
-	return
+	goto end
 
 tableState:
 	if done := state.table.ProcessLine(line); done {
 		state.where = ""
 		addLine(*state.table)
 	}
-	return
+	goto end
 
 listState:
 	if done := state.list.Parse(line); done {
@@ -96,7 +91,7 @@ listState:
 		state.where = ""
 		goto normalState
 	}
-	return
+	goto end
 
 preformattedState:
 	switch {
@@ -106,12 +101,12 @@ preformattedState:
 	default:
 		state.code.AddLine(html.EscapeString(line))
 	}
-	return
+	goto end
 
 launchpadState:
 	switch {
 	case startsWith("=>"):
-		state.launchpad.AddRocket(blocks.MakeRocketLink(line, state.name))
+		state.launchpad.AddRocket(blocks.MakeRocketLink(line, state.Name))
 	case startsWith("```"):
 		addLine(*state.launchpad)
 		state.where = "pre"
@@ -123,7 +118,7 @@ launchpadState:
 		state.where = ""
 		goto normalState
 	}
-	return
+	goto end
 
 normalState:
 	switch {
@@ -154,7 +149,7 @@ normalState:
 
 	case startsWith(">"):
 		addParagraphIfNeeded()
-		addLine(blocks.MakeQuote(line, state.name))
+		addLine(blocks.MakeQuote(line, state.Name))
 	case startsWith("=>"):
 		addParagraphIfNeeded()
 		state.where = "launchpad"
@@ -164,19 +159,19 @@ normalState:
 
 	case startsWith("<="):
 		addParagraphIfNeeded()
-		addLine(blocks.MakeTransclusion(line, state.name))
+		addLine(blocks.MakeTransclusion(line, state.Name))
 	case startsWith("----"):
 		addParagraphIfNeeded()
-		*ast = append(*ast, Token{Value: blocks.MakeHorizontalLine(line)})
+		addLine(blocks.MakeHorizontalLine(line))
 	case blocks.MatchesList(line):
 		addParagraphIfNeeded()
-		list, _ := blocks.NewList(line, state.name)
+		list, _ := blocks.NewList(line, state.Name)
 		state.where = "list"
 		state.list = list
 		addLine(state.list)
 	case blocks.MatchesImg(line):
 		addParagraphIfNeeded()
-		img, shouldGoBackToNormal := blocks.MakeImg(line, state.name)
+		img, shouldGoBackToNormal := blocks.MakeImg(line, state.Name)
 		if shouldGoBackToNormal {
 			addLine(*img)
 		} else {
@@ -186,13 +181,16 @@ normalState:
 	case blocks.MatchesTable(line):
 		addParagraphIfNeeded()
 		state.where = "table"
-		state.table = blocks.TableFromFirstLine(line, state.name)
+		state.table = blocks.TableFromFirstLine(line, state.Name)
 
 	case state.where == "p":
 		state.paragraph.AddLine(line)
 	default:
 		state.where = "p"
-		p := blocks.MakeParagraph(line, state.name)
+		p := blocks.MakeParagraph(line, state.Name)
 		state.paragraph = &blocks.Paragraph{Formatted: p}
 	}
+
+end:
+	return ret
 }
