@@ -154,8 +154,8 @@ func (img *Img) processInDimensionsH(r rune) (shouldGoBackToNormal bool) {
 	return false
 }
 
-func MakeImg(line, hyphaName string) (img *Img, shouldGoBackToNormal bool) {
-	img = &Img{
+func MakeImg(line, hyphaName string) (img Img, shouldGoBackToNormal bool) {
+	img = Img{
 		hyphaName: hyphaName,
 		Entries:   make([]ImgEntry, 0),
 	}

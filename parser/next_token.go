@@ -16,11 +16,30 @@ type ParserState struct {
 	where string // "", "list", "pre", etc.
 	// Temporaries
 	code      *blocks.CodeBlock
-	img       *blocks.Img
 	table     *blocks.Table
 	list      *blocks.List
 	launchpad *blocks.LaunchPad
 	paragraph *blocks.Paragraph
+}
+
+func startsWith(ctx context.Context, s string) bool {
+	return strings.HasPrefix(inputFrom(ctx).String(), s)
+}
+
+func nextImg(ctx context.Context, state *ParserState, line string, doneBefore bool) (img blocks.Img, doneAfter bool) {
+	var b byte
+	img, imgDone := blocks.MakeImg(line, state.Name)
+	if imgDone {
+		return img, doneBefore
+	}
+
+	for !imgDone {
+		b, doneAfter = nextByte(ctx)
+		imgDone = img.ProcessRune(rune(b))
+	}
+
+	defer nextLine(ctx) // Characters after the final } of img are ignored.
+	return img, doneAfter
 }
 
 // Lex `line` in markup and maybe return a token.
@@ -29,20 +48,17 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 		line, done = nextLine(ctx)
 		ret        interface{}
 	)
-	addLine := func(v interface{}) {
-		ret = v
-	}
 	addParagraphIfNeeded := func() {
 		if state.where == "p" {
 			state.where = ""
-			addLine(*state.paragraph)
+			ret = *state.paragraph
 		}
 	}
 	startsWith := func(token string) bool {
 		return strings.HasPrefix(line, token)
 	}
 	addHeading := func(i int) {
-		addLine(blocks.MakeHeading(line, state.Name, uint(i)))
+		ret = blocks.MakeHeading(line, state.Name, uint(i))
 	}
 
 	if "" == strings.TrimSpace(line) {
@@ -51,7 +67,7 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 			state.code.AddLine("")
 		case "launchpad":
 			state.where = ""
-			addLine(*state.launchpad)
+			ret = *state.launchpad
 			state.launchpad = nil
 		case "p":
 			addParagraphIfNeeded()
@@ -61,8 +77,6 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
 	switch state.where {
-	case "img":
-		goto imgState
 	case "table":
 		goto tableState
 	case "list":
@@ -75,17 +89,10 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 		goto normalState
 	}
 
-imgState:
-	if done := state.img.ProcessLine(line); done {
-		state.where = ""
-		addLine(*state.img)
-	}
-	goto end
-
 tableState:
 	if done := state.table.ProcessLine(line); done {
 		state.where = ""
-		addLine(*state.table)
+		ret = *state.table
 	}
 	goto end
 
@@ -101,7 +108,7 @@ preformattedState:
 	switch {
 	case startsWith("```"):
 		state.where = ""
-		addLine(*state.code)
+		ret = *state.code
 	default:
 		state.code.AddLine(html.EscapeString(line))
 	}
@@ -112,13 +119,13 @@ launchpadState:
 	case startsWith("=>"):
 		state.launchpad.AddRocket(blocks.MakeRocketLink(line, state.Name))
 	case startsWith("```"):
-		addLine(*state.launchpad)
+		ret = *state.launchpad
 		state.where = "pre"
 		cb := blocks.MakeCodeBlock(strings.TrimPrefix(line, "```"), "")
 		state.code = &cb
 	default:
 		fmt.Println("night call")
-		addLine(*state.launchpad)
+		ret = *state.launchpad
 		state.where = ""
 		goto normalState
 	}
@@ -153,7 +160,7 @@ normalState:
 
 	case startsWith(">"):
 		addParagraphIfNeeded()
-		addLine(blocks.MakeQuote(line, state.Name))
+		ret = blocks.MakeQuote(line, state.Name)
 	case startsWith("=>"):
 		addParagraphIfNeeded()
 		state.where = "launchpad"
@@ -163,25 +170,20 @@ normalState:
 
 	case startsWith("<="):
 		addParagraphIfNeeded()
-		addLine(blocks.MakeTransclusion(line, state.Name))
+		ret = blocks.MakeTransclusion(line, state.Name)
 	case startsWith("----"):
 		addParagraphIfNeeded()
-		addLine(blocks.MakeHorizontalLine(line))
+		ret = blocks.MakeHorizontalLine(line)
 	case blocks.MatchesList(line):
 		addParagraphIfNeeded()
 		list, _ := blocks.NewList(line, state.Name)
 		state.where = "list"
 		state.list = list
-		addLine(state.list)
+		ret = state.list
 	case blocks.MatchesImg(line):
 		addParagraphIfNeeded()
-		img, shouldGoBackToNormal := blocks.MakeImg(line, state.Name)
-		if shouldGoBackToNormal {
-			addLine(*img)
-		} else {
-			state.where = "img"
-			state.img = img
-		}
+		return nextImg(ctx, state, line, done)
+
 	case blocks.MatchesTable(line):
 		addParagraphIfNeeded()
 		state.where = "table"
