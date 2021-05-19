@@ -15,10 +15,10 @@ const (
 	KeyRecursionLevel
 )
 
-// ParsingDone is returned by Context when the parsing is done because there is no more input.
+// ParsingDone is returned by Context when the parsing is done because there is no more inputFrom.
 var ParsingDone = errors.New("parsing done")
 
-// ContextFromStringInput returns the context for the given input.
+// ContextFromStringInput returns the context for the given inputFrom.
 func ContextFromStringInput(hyphaName, input string) (context.Context, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(
 		context.WithValue(
@@ -37,10 +37,10 @@ func ContextFromStringInput(hyphaName, input string) (context.Context, context.C
 	return ctx, cancel
 }
 
-func hyphaName(ctx context.Context) string {
+func hyphaNameFrom(ctx context.Context) string {
 	return ctx.Value(KeyHyphaName).(string)
 }
 
-func input(ctx context.Context) *bytes.Buffer {
+func inputFrom(ctx context.Context) *bytes.Buffer {
 	return ctx.Value(KeyInputBuffer).(*bytes.Buffer)
 }

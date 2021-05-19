@@ -3,6 +3,7 @@ package doc
 
 import (
 	"github.com/bouncepaw/mycomarkup/parser"
+	"sync"
 )
 
 // TODO: remove this abomination
@@ -13,6 +14,8 @@ var cfg = struct {
 }
 
 // MycoDoc is a mycomarkup-formatted document.
+//
+// TODO: remove or rethink this type because I hate it.
 type MycoDoc struct {
 	// data
 	HyphaName string
@@ -35,21 +38,22 @@ func Doc(hyphaName, contents string) *MycoDoc {
 func (md *MycoDoc) Lex() []interface{} {
 	var (
 		ctx, _ = parser.ContextFromStringInput(md.HyphaName, md.Contents)
-		state  = parser.ParserState{Name: md.HyphaName}
+		tokens = make(chan interface{})
 		ast    = []interface{}{}
+		wg     sync.WaitGroup
 	)
 
-	for {
-		line, done := parser.NextLine(ctx)
-		token := parser.LineToToken(line, &state)
-		if token != nil {
-			ast = append(ast, token)
-		}
-		if done {
-			break
-		}
+	wg.Add(1)
+	go func() {
+		parser.Parse(ctx, tokens)
+		wg.Done()
+	}()
+
+	for token := range tokens {
+		ast = append(ast, token)
 	}
 
+	wg.Wait()
 	return ast
 }
 
@@ -65,6 +69,7 @@ func (md *MycoDoc) AsGemtext() string {
 
 /*
 /// The rest of the file is OpenGraph-related.
+/// TODO: rethink API
 
 // Used to clear opengraph description from html tags. This method is usually bad because of dangers of malformed HTML, but I'm going to use it only for Mycorrhiza-generated HTML, so it's okay. The question mark is required; without it the whole string is eaten away.
 var htmlTagRe = regexp.MustCompile(`<.*?>`)

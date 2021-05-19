@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"fmt"
 	"html"
 	"strings"
@@ -23,8 +24,11 @@ type ParserState struct {
 }
 
 // Lex `line` in markup and maybe return a token.
-func LineToToken(line string, state *ParserState) interface{} {
-	var ret interface{}
+func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
+	var (
+		line, done = nextLine(ctx)
+		ret        interface{}
+	)
 	addLine := func(v interface{}) {
 		ret = v
 	}
@@ -192,5 +196,5 @@ normalState:
 	}
 
 end:
-	return ret
+	return ret, done
 }

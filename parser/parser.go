@@ -8,30 +8,28 @@ import (
 
 // Parse parses the Mycomarkup document in the given context. All parsed blocks are written to out.
 func Parse(ctx context.Context, out chan interface{}) {
-	for {
-		block, ok := getNextBlock(ctx)
+	var (
+		state = ParserState{Name: hyphaNameFrom(ctx)}
+		token interface{}
+		done  bool
+	)
+	defer close(out)
+	for !done {
 		select {
 		case <-ctx.Done():
-			close(out)
 			return
 		default:
-			if !ok {
-				close(out)
-				return
+			token, done = nextToken(ctx, &state)
+			if token != nil {
+				out <- token
 			}
-			out <- block
 		}
 	}
 }
 
-// getNextBlock is ok when there is a block to return. The block is one of the types in the blocks package.
-func getNextBlock(ctx context.Context) (block interface{}, ok bool) {
-	return nil, false
-}
-
-// nextByte returns the next byte in the input. The CR byte (\r) is never returned, if there is a CR in the input, the byte after it is returned. If there is no next byte, the NL byte (\n) is returned and done is true.
+// nextByte returns the next byte in the inputFrom. The CR byte (\r) is never returned, if there is a CR in the inputFrom, the byte after it is returned. If there is no next byte, the NL byte (\n) is returned and done is true.
 func nextByte(ctx context.Context) (b byte, done bool) {
-	b, err := input(ctx).ReadByte()
+	b, err := inputFrom(ctx).ReadByte()
 	if err != nil {
 		return '\n', true
 	}
@@ -41,8 +39,8 @@ func nextByte(ctx context.Context) (b byte, done bool) {
 	return b, false
 }
 
-// NextLine returns the text in the input up to the next newline. The characters are gotten using nextByte.
-func NextLine(ctx context.Context) (line string, done bool) {
+// nextLine returns the text in the inputFrom up to the next newline. The characters are gotten using nextByte.
+func nextLine(ctx context.Context) (line string, done bool) {
 	var (
 		lineBuffer strings.Builder
 		b          byte
