@@ -41,8 +41,8 @@ func nextByte(ctx context.Context) (b byte, done bool) {
 	return b, false
 }
 
-// nextLine returns the text in the input up to the next newline. The characters are gotten using nextByte.
-func nextLine(ctx context.Context) (line string, done bool) {
+// NextLine returns the text in the input up to the next newline. The characters are gotten using nextByte.
+func NextLine(ctx context.Context) (line string, done bool) {
 	var (
 		lineBuffer strings.Builder
 		b          byte

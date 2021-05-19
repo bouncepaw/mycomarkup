@@ -3,7 +3,6 @@ package doc
 
 import (
 	"github.com/bouncepaw/mycomarkup/parser"
-	"strings"
 )
 
 // TODO: remove this abomination
@@ -33,16 +32,21 @@ func Doc(hyphaName, contents string) *MycoDoc {
 	return md
 }
 
-func (md *MycoDoc) Lex(recursionLevel int) []interface{} {
+func (md *MycoDoc) Lex() []interface{} {
 	var (
-		state = parser.ParserState{Name: md.HyphaName}
-		ast   = []interface{}{}
+		ctx, _ = parser.ContextFromStringInput(md.HyphaName, md.Contents)
+		state  = parser.ParserState{Name: md.HyphaName}
+		ast    = []interface{}{}
 	)
 
-	for _, line := range append(strings.Split(md.Contents, "\n"), "") {
+	for {
+		line, done := parser.NextLine(ctx)
 		token := parser.LineToToken(line, &state)
 		if token != nil {
 			ast = append(ast, token)
+		}
+		if done {
+			break
 		}
 	}
 
@@ -51,7 +55,7 @@ func (md *MycoDoc) Lex(recursionLevel int) []interface{} {
 
 // AsHTML returns an html representation of the document
 func (md *MycoDoc) AsHTML() string {
-	return GenerateHTML(md.Lex(0), 0)
+	return GenerateHTML(md.Lex(), 0)
 }
 
 // AsGemtext returns a gemtext representation of the document. Currently really limited, just returns source text

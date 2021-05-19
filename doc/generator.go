@@ -70,6 +70,6 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int) string {
 		return fmt.Sprintf(messageNotExists, xcl.Target)
 	}
 	md := Doc(xcl.Target, rawText)
-	xclText := GenerateHTML(md.Lex(recursionLevel+1), recursionLevel+1)
+	xclText := GenerateHTML(md.Lex(), recursionLevel+1)
 	return fmt.Sprintf(messageOK, xcl.Target, binaryHtml+xclText)
 }

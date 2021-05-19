@@ -12,6 +12,7 @@ type Key int
 const (
 	KeyHyphaName Key = iota
 	KeyInputBuffer
+	KeyRecursionLevel
 )
 
 // ParsingDone is returned by Context when the parsing is done because there is no more input.
@@ -22,11 +23,15 @@ func ContextFromStringInput(hyphaName, input string) (context.Context, context.C
 	ctx, cancel := context.WithCancel(
 		context.WithValue(
 			context.WithValue(
-				context.Background(),
-				KeyHyphaName,
-				hyphaName),
-			KeyInputBuffer,
-			bytes.NewBufferString(input),
+				context.WithValue(
+					context.Background(),
+					KeyHyphaName,
+					hyphaName),
+				KeyInputBuffer,
+				bytes.NewBufferString(input),
+			),
+			KeyRecursionLevel,
+			0,
 		),
 	)
 	return ctx, cancel
