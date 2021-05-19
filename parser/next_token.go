@@ -42,6 +42,24 @@ func nextImg(ctx context.Context, state *ParserState, line string, doneBefore bo
 	return img, doneAfter
 }
 
+func nextCodeBlock(ctx context.Context, firstLine string) (code blocks.CodeBlock, done bool) {
+	code = blocks.MakeCodeBlock(strings.TrimPrefix(firstLine, "```"), "")
+
+	var line string
+	for {
+		line, done = nextLine(ctx)
+		switch {
+		case strings.HasPrefix(line, "```"):
+			return code, done
+		default:
+			code.AddLine(html.EscapeString(line))
+		}
+		if done {
+			return code, done
+		}
+	}
+}
+
 // Lex `line` in markup and maybe return a token.
 func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 	var (
@@ -60,29 +78,12 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 	addHeading := func(i int) {
 		ret = blocks.MakeHeading(line, state.Name, uint(i))
 	}
-
-	if "" == strings.TrimSpace(line) {
-		switch state.where {
-		case "pre":
-			state.code.AddLine("")
-		case "launchpad":
-			state.where = ""
-			ret = *state.launchpad
-			state.launchpad = nil
-		case "p":
-			addParagraphIfNeeded()
-		}
-		goto end
-	}
-
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
 	switch state.where {
 	case "table":
 		goto tableState
 	case "list":
 		goto listState
-	case "pre":
-		goto preformattedState
 	case "launchpad":
 		goto launchpadState
 	default: // "p" or ""
@@ -104,25 +105,16 @@ listState:
 	}
 	goto end
 
-preformattedState:
-	switch {
-	case startsWith("```"):
-		state.where = ""
-		ret = *state.code
-	default:
-		state.code.AddLine(html.EscapeString(line))
-	}
-	goto end
-
 launchpadState:
 	switch {
+	case "" == strings.TrimSpace(line):
+		state.where = ""
+		ret = *state.launchpad
+		state.launchpad = nil
 	case startsWith("=>"):
 		state.launchpad.AddRocket(blocks.MakeRocketLink(line, state.Name))
 	case startsWith("```"):
-		ret = *state.launchpad
-		state.where = "pre"
-		cb := blocks.MakeCodeBlock(strings.TrimPrefix(line, "```"), "")
-		state.code = &cb
+		return nextCodeBlock(ctx, line)
 	default:
 		fmt.Println("night call")
 		ret = *state.launchpad
@@ -133,11 +125,11 @@ launchpadState:
 
 normalState:
 	switch {
+	case "" == strings.TrimSpace(line):
+		addParagraphIfNeeded()
 	case startsWith("```"):
 		addParagraphIfNeeded()
-		state.where = "pre"
-		cb := blocks.MakeCodeBlock(strings.TrimPrefix(line, "```"), "")
-		state.code = &cb
+		return nextCodeBlock(ctx, line)
 
 	case startsWith("###### "):
 		addParagraphIfNeeded()
