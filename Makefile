@@ -10,6 +10,9 @@ test1: build
 test2: build
 	./mycomarkup -hypha-name "test doc" -filename "testdata/test2.myco"
 
+test_list_examples: build
+	./mycomarkup -hypha-name "test doc" -filename "testdata/list_examples.myco"
+
 generate:
 	# stringer -type=TokenKind -trimprefix Token ./parser
 

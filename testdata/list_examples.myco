@@ -1,0 +1,45 @@
+## List examples
+### Basic unordered flat list
+* Item 1
+* Item 2
+* Item 3
+
+### Basic ordered flat list
+*. Item 1
+*. Item 2
+*. Item 3
+
+### Basic to do list
+*v Done
+*x Not done
+*v Done
+
+### Multiline contents
+* {
+  //Any mycomarkup supported//
+
+  * Other lists too
+}
+* This is single-line again
+
+### Nesting lists
+* As a shortcut for multiline contents with other lists only,
+** you can use this syntax.
+* You just have to
+** increase
+*** the amount of asterisks
+
+### Mixing different types of lists
+* This is from one list
+*. But this is from a different one.
+*v You can't mix them on one level
+
+*v You can only mix
+*x to do items
+
+*. You can nest
+** Items of different type
+** But they have to be the same on one level
+
+### Parsing approach
+We read all list items of the same type and their contents (single-line or multi-line). The contents are parsed as if they were separate Mycomarkup documents.

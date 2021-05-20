@@ -92,6 +92,9 @@ func nextToken(ctx context.Context, state *parserState) (interface{}, bool) {
 		}
 	}
 	switch {
+	case looksLikeList(ctx):
+		addParagraphIfNeeded()
+		return nextList(ctx)
 	case blocks.MatchesImg(inputFrom(ctx).String()):
 		addParagraphIfNeeded()
 		return nextImg(ctx)

@@ -2,6 +2,7 @@ package doc
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/parser"
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/blocks"
@@ -17,12 +18,16 @@ func GenerateHTML(ast []interface{}, recursionLevel int) (html string) {
 	}
 	for _, line := range ast {
 		switch v := line.(type) {
+		case parser.List:
+			var ret string
+			for _, item := range v.Items {
+				ret += fmt.Sprintf(markerToTemplate(item.Marker), GenerateHTML(item.Contents, recursionLevel))
+			}
+			html += fmt.Sprintf(listToTemplate(v), ret)
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel)
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
 			html += generator.BlockToHTML(v)
-		case *blocks.List:
-			html += v.RenderAsHtml()
 		case string:
 			html += v
 		default:
@@ -73,4 +78,33 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int) string {
 	md := Doc(xcl.Target, rawText)
 	xclText := GenerateHTML(md.Lex(), recursionLevel+1)
 	return fmt.Sprintf(messageOK, xcl.Target, binaryHtml+xclText)
+}
+
+func listToTemplate(list parser.List) string {
+	switch list.Marker {
+	case parser.MarkerOrdered:
+		return `
+<ol>%s</ol>`
+	default:
+		return `
+<ul>%s</ul>`
+	}
+}
+
+func markerToTemplate(m parser.ListMarker) string {
+	switch m {
+	case parser.MarkerUnordered:
+		return `
+	<li class="item_unordered">%s</li>`
+	case parser.MarkerOrdered:
+		return `
+	<li class="item_ordered">%s</li>`
+	case parser.MarkerTodoDone:
+		return `
+	<li class="item_todo item_todo-done"><input type="checkbox" disabled checked>%s</li>`
+	case parser.MarkerTodo:
+		return `
+	<li class="item_todo"><input type="checkbox" disabled>%s</li>`
+	}
+	panic("unreachable")
 }

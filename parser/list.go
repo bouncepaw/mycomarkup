@@ -3,59 +3,13 @@ package parser
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"sync"
 )
-
-/*
-## List examples
-### Basic unordered flat list
-* Item 1
-* Item 2
-* Item 3
-
-### Basic ordered flat list
-*. Item 1
-*. Item 2
-*. Item 3
-
-### Basic to do list
-*v Done
-*x Not done
-*v Done
-
-### Multiline contents
-* {
-  //Any mycomarkup supported//
-
-  * Other lists too
-}
-* This is single-line again
-
-### Nesting lists
-* As a shortcut for multiline contents with other lists only,
-** you can use this syntax.
-* You just have to
-** increase
-*** the amount of asterisks
-
-### Mixing different types of lists
-* This is from one list
-*. But this is from a different one.
-*v You can't mix them on one level
-
-*v You can only mix
-*x to do items
-
-*. You can nest
-** Items of different type
-** But they have to be the same on one level
-
-### Parsing approach
-We read all list items of the same type and their contents (single-line or multi-line). The contents are parsed as if they were separate Mycomarkup documents.
-*/
 
 type List struct {
 	Items  []ListItem
-	marker ListMarker
+	Marker ListMarker
 }
 
 // Call only if there is a list item on the line.
@@ -78,7 +32,7 @@ func nextList(ctx context.Context) (list List, eof bool) {
 		item.Contents, eof = nextListItem(ctx)
 		list.Items = append(list.Items, item)
 	}
-	list.marker = list.Items[0].Marker // There should be at least item!
+	list.Marker = list.Items[0].Marker // There should be at least one item!
 	return list, eof
 }
 
@@ -126,12 +80,19 @@ walker: // Read all item's contents
 	var (
 		blocksCh = make(chan interface{})
 		blocks   = make([]interface{}, 1)
+		wg       sync.WaitGroup
 	)
 
-	go Parse(context.WithValue(ctx, KeyInputBuffer, text), blocksCh)
+	wg.Add(1)
+	go func() {
+		Parse(context.WithValue(ctx, KeyInputBuffer, &text), blocksCh)
+		wg.Done()
+	}()
 	for block := range blocksCh {
+		fmt.Println("block!", block)
 		blocks = append(blocks, block)
 	}
+	wg.Wait()
 
 	return blocks, eof
 }
@@ -202,25 +163,11 @@ func markerOnNextLine(ctx context.Context) (m ListMarker, level uint, found bool
 			return m, level, true
 		}
 	}
-	panic("unreachable")
+	return MarkerUnordered, 0, false
 }
 
 func (m1 ListMarker) sameAs(m2 ListMarker) bool {
 	return (m1 == m2) ||
 		((m1 == MarkerTodoDone) && (m2 == MarkerTodo)) ||
 		((m1 == MarkerTodo) && (m2 == MarkerTodoDone))
-}
-
-func (m ListMarker) HTMLTemplate() string {
-	switch m {
-	case MarkerUnordered:
-		return `<li class="item_unordered">%s</li>`
-	case MarkerOrdered:
-		return `<li class="item_ordered">%s</li>`
-	case MarkerTodoDone:
-		return `<li class="item_todo item_todo-done"><input type="checkbox" disabled checked>%s</li>`
-	case MarkerTodo:
-		return `<li class="item_todo"><input type="checkbox" disabled>%s</li>`
-	}
-	panic("unreachable")
 }

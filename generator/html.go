@@ -3,7 +3,6 @@ package generator
 
 import (
 	"fmt"
-
 	"github.com/bouncepaw/mycomarkup/blocks"
 )
 
@@ -26,7 +25,8 @@ func BlockToHTML(block interface{}) string {
 		return fmt.Sprintf(`
 	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), b.Display()) // FIXME: there seems to be a bug, run test1
 	case blocks.Heading:
-		return fmt.Sprintf(`<h%[1]d>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
+		return fmt.Sprintf(`
+<h%[1]d>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
 `, b.Level, BlockToHTML(b.Contents()), b.ID())
 	case blocks.Table:
 		return tableToHTML(b)
