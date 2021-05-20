@@ -1,6 +1,9 @@
 package parser
 
-import "context"
+import (
+	"bytes"
+	"context"
+)
 
 /*
 ## List examples
@@ -51,12 +54,101 @@ We read all list items of the same type and their contents (single-line or multi
 */
 
 type List struct {
+	Items  []ListItem
+	marker ListMarker
+}
+
+// Call only if there is a list item on the line.
+func nextList(ctx context.Context) (list List, eof bool) {
+	list = List{
+		Items: make([]ListItem, 1),
+	}
+	for !eof {
+		marker, level, found := markerOnNextLine(ctx)
+		if !found {
+			break
+		}
+
+		item := ListItem{
+			Marker: marker,
+			Level:  level,
+		}
+
+		eatUntilSpace(ctx)
+		item.Contents, eof = nextListItem(ctx)
+		list.Items = append(list.Items, item)
+	}
+	list.marker = list.Items[0].Marker // There should be at least item!
+	return list, eof
+}
+
+func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
+	var (
+		escaping        = false
+		curlyBracesOpen = 0
+		text            bytes.Buffer
+		b               byte
+	)
+walker: // Read all item's contents
+	for !eof {
+		b, eof = nextByte(ctx)
+		switch {
+		case escaping:
+			escaping = false
+			if b == '\n' && curlyBracesOpen == 0 {
+				break walker
+			}
+			text.WriteByte(b)
+		case b == '\\':
+			escaping = true
+			text.WriteByte('\\')
+
+		case b == '{':
+			if curlyBracesOpen > 0 {
+				text.WriteByte('{')
+			}
+			curlyBracesOpen++
+		case b == '}':
+			if curlyBracesOpen != 1 {
+				text.WriteByte('}')
+			}
+			if curlyBracesOpen >= 0 {
+				curlyBracesOpen--
+			}
+		case b == '\n' && curlyBracesOpen == 0:
+			break walker
+		default:
+			text.WriteByte(b)
+		}
+	}
+
+	// Parse the text as a separate mycodoc
+	var (
+		blocksCh = make(chan interface{})
+		blocks   = make([]interface{}, 1)
+	)
+
+	go Parse(context.WithValue(ctx, KeyInputBuffer, text), blocksCh)
+	for block := range blocksCh {
+		blocks = append(blocks, block)
+	}
+
+	return blocks, eof
+}
+
+type ListItem struct {
 	Marker   ListMarker
 	Level    uint
 	Contents []interface{}
 }
 
-// ListMarker is the type of marker the ListEntry has.
+func eatUntilSpace(ctx context.Context) {
+	// We do not care what is read, therefore we drop the read line.
+	// We know that there //is// a space beforehand, therefore we drop the error.
+	_, _ = inputFrom(ctx).ReadString(' ')
+}
+
+// ListMarker is the type of marker the ListItem has.
 type ListMarker int
 
 const (
@@ -65,12 +157,6 @@ const (
 	MarkerTodoDone
 	MarkerTodo
 )
-
-func eatUntilSpace(ctx context.Context) {
-	// We do not care what is read, therefore we drop the read line.
-	// We know that there //is// a space beforehand, therefore we drop the error.
-	_, _ = inputFrom(ctx).ReadString(' ')
-}
 
 func looksLikeList(ctx context.Context) bool {
 	_, level, found := markerOnNextLine(ctx)
