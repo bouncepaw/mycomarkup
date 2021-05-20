@@ -15,7 +15,7 @@ type List struct {
 // Call only if there is a list item on the line.
 func nextList(ctx context.Context) (list List, eof bool) {
 	list = List{
-		Items: make([]ListItem, 1),
+		Items: make([]ListItem, 0),
 	}
 	for !eof {
 		marker, level, found := markerOnNextLine(ctx)
@@ -38,6 +38,7 @@ func nextList(ctx context.Context) (list List, eof bool) {
 
 func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
 	var (
+		onNewLine       = true
 		escaping        = false
 		curlyBracesOpen = 0
 		text            bytes.Buffer
@@ -46,7 +47,12 @@ func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
 walker: // Read all item's contents
 	for !eof {
 		b, eof = nextByte(ctx)
+	stateMachine: // I'm extremely sorry
 		switch {
+		case onNewLine && b != ' ':
+			onNewLine = false
+			goto stateMachine
+		case onNewLine: // We just ignore spaces on line beginnings
 		case escaping:
 			escaping = false
 			if b == '\n' && curlyBracesOpen == 0 {
@@ -71,6 +77,9 @@ walker: // Read all item's contents
 			}
 		case b == '\n' && curlyBracesOpen == 0:
 			break walker
+		case b == '\n':
+			text.WriteByte(b)
+			onNewLine = true
 		default:
 			text.WriteByte(b)
 		}
@@ -79,7 +88,7 @@ walker: // Read all item's contents
 	// Parse the text as a separate mycodoc
 	var (
 		blocksCh = make(chan interface{})
-		blocks   = make([]interface{}, 1)
+		blocks   = make([]interface{}, 0)
 		wg       sync.WaitGroup
 	)
 
