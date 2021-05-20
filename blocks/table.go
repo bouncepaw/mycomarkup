@@ -121,7 +121,7 @@ func (t *Table) pushRow() {
 
 func (t *Table) pushCell() {
 	tc := &TableCell{
-		Contents: MakeParagraph(t.currCellBuilder.String(), t.HyphaName),
+		Contents: MakeFormatted(t.currCellBuilder.String(), t.HyphaName),
 		colspan:  t.currColspan,
 	}
 	switch t.currCellMarker {

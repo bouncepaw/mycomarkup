@@ -17,7 +17,7 @@ type ImgEntry struct {
 }
 
 func (entry *ImgEntry) Description() Formatted {
-	return MakeParagraph(entry.desc.String(), entry.hyphaName)
+	return MakeFormatted(entry.desc.String(), entry.hyphaName)
 }
 
 func (entry *ImgEntry) SizeWAsAttr() string {

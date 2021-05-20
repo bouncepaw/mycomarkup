@@ -13,7 +13,7 @@ type Heading struct {
 func MakeHeading(line, hyphaName string, level uint) Heading {
 	h := Heading{
 		Level:    level,
-		contents: MakeParagraph(line[level+1:], hyphaName),
+		contents: MakeFormatted(line[level+1:], hyphaName),
 		src:      line,
 	}
 	return h

@@ -9,7 +9,6 @@ import (
 // Parse parses the Mycomarkup document in the given context. All parsed blocks are written to out.
 func Parse(ctx context.Context, out chan interface{}) {
 	var (
-		state = parserState{}
 		token interface{}
 		done  bool
 	)
@@ -19,7 +18,7 @@ func Parse(ctx context.Context, out chan interface{}) {
 		case <-ctx.Done():
 			return
 		default:
-			token, done = nextToken(ctx, &state)
+			token, done = nextToken(ctx)
 			if token != nil {
 				out <- token
 			}

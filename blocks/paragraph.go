@@ -84,7 +84,7 @@ func (p *Formatted) AddLine(line string) {
 	p.Html += `<br>` + ParagraphToHtml(p.HyphaName, line)
 }
 
-func MakeParagraph(input, hyphaName string) Formatted {
+func MakeFormatted(input, hyphaName string) Formatted {
 	return Formatted{
 		HyphaName: hyphaName,
 		Html:      ParagraphToHtml(hyphaName, input),

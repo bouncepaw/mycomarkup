@@ -9,15 +9,7 @@ import (
 	"github.com/bouncepaw/mycomarkup/blocks"
 )
 
-// parserState is used by markup parser to remember what is going on.
-type parserState struct {
-	where string // "", "list", "pre", etc.
-	// Temporaries
-	list      *blocks.List
-	paragraph *blocks.Paragraph
-}
-
-func isPrefixedBy(ctx context.Context, s string) bool {
+func isPrefixedBy(ctx context.Context, s string) bool { // This function has bugs in it!
 	return bytes.HasPrefix(inputFrom(ctx).Bytes(), []byte(s))
 }
 
@@ -82,110 +74,89 @@ func nextTable(ctx context.Context) (t blocks.Table, done bool) {
 	return t, done
 }
 
-// Lex `line` in markup and maybe return a token.
-func nextToken(ctx context.Context, state *parserState) (interface{}, bool) {
-	var ret interface{}
-	addParagraphIfNeeded := func() { // This is a bug source, I know it.
-		if state.where == "p" {
-			state.where = ""
-			ret = *state.paragraph
+func nextParagraph(ctx context.Context) (p blocks.Paragraph, done bool) {
+	line, done := nextLine(ctx)
+	p = blocks.Paragraph{blocks.MakeFormatted(line, hyphaNameFrom(ctx))}
+	if !nextLineIsSomething(ctx) {
+		return
+	}
+	for !done {
+		line, done = nextLine(ctx)
+		p.AddLine(line)
+		if !nextLineIsSomething(ctx) {
+			break
 		}
 	}
+	return
+}
+
+func nextLineIsSomething(ctx context.Context) bool {
+	prefices := []string{"=>", "<=", "```", "* ", "*. ", "*v ", "*x ", "# ", "## ", "### ", "#### ", "##### ", "###### ", ">", "----"}
+	for _, prefix := range prefices {
+		if isPrefixedBy(ctx, prefix) {
+			return true
+		}
+	}
+	return looksLikeList(ctx) || blocks.MatchesImg(inputFrom(ctx).String()) || blocks.MatchesTable(inputFrom(ctx).String()) || emptyLine(ctx)
+}
+
+func emptyLine(ctx context.Context) bool {
+	for _, b := range inputFrom(ctx).Bytes() {
+		switch b {
+		case '\n':
+			return true
+		case '\t', ' ':
+			continue
+		default:
+			break
+		}
+	}
+	return false
+}
+
+// Lex `line` in markup and maybe return a token.
+func nextToken(ctx context.Context) (interface{}, bool) {
 	switch {
-	case looksLikeList(ctx):
-		addParagraphIfNeeded()
+	case emptyLine(ctx):
+	case isPrefixedBy(ctx, "* "), isPrefixedBy(ctx, "*. "), isPrefixedBy(ctx, "*v "), isPrefixedBy(ctx, "*x"):
 		return nextList(ctx)
 	case blocks.MatchesImg(inputFrom(ctx).String()):
-		addParagraphIfNeeded()
 		return nextImg(ctx)
 	case blocks.MatchesTable(inputFrom(ctx).String()):
-		addParagraphIfNeeded()
 		return nextTable(ctx)
 	case isPrefixedBy(ctx, "```"):
-		addParagraphIfNeeded()
 		return nextCodeBlock(ctx)
 	case isPrefixedBy(ctx, "=>"):
-		addParagraphIfNeeded()
 		return nextLaunchPad(ctx)
 	case isPrefixedBy(ctx, "<="):
-		addParagraphIfNeeded()
 		line, done := nextLine(ctx)
 		return blocks.MakeTransclusion(line, hyphaNameFrom(ctx)), done
 	case isPrefixedBy(ctx, "----"):
-		addParagraphIfNeeded()
 		line, done := nextLine(ctx)
 		return blocks.MakeHorizontalLine(line), done
 
 	case isPrefixedBy(ctx, "###### "):
-		addParagraphIfNeeded()
 		line, done := nextLine(ctx)
 		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 6), done
 	case isPrefixedBy(ctx, "##### "):
-		addParagraphIfNeeded()
 		line, done := nextLine(ctx)
 		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 5), done
 	case isPrefixedBy(ctx, "#### "):
-		addParagraphIfNeeded()
 		line, done := nextLine(ctx)
 		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 4), done
 	case isPrefixedBy(ctx, "### "):
-		addParagraphIfNeeded()
 		line, done := nextLine(ctx)
 		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 3), done
 	case isPrefixedBy(ctx, "## "):
-		addParagraphIfNeeded()
 		line, done := nextLine(ctx)
 		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 2), done
 	case isPrefixedBy(ctx, "# "):
-		addParagraphIfNeeded()
 		line, done := nextLine(ctx)
 		return blocks.MakeHeading(line, hyphaNameFrom(ctx), 1), done
 
 	case isPrefixedBy(ctx, ">"): // TODO: implement proper fractal quotes
-		addParagraphIfNeeded()
 		line, done := nextLine(ctx)
 		return blocks.MakeQuote(line, hyphaNameFrom(ctx)), done
 	}
-
-	var line, done = nextLine(ctx)
-
-	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
-	// Note: the notice above is outdated, we can live without goto now.
-	switch state.where {
-	case "list":
-		goto listState
-	default: // "p" or ""
-		goto normalState
-	}
-
-listState:
-	if done := state.list.ProcessLine(line); done {
-		state.list.Finalize()
-		state.where = ""
-		goto normalState
-	}
-	goto end
-
-normalState:
-	switch {
-	case "" == strings.TrimSpace(line):
-		addParagraphIfNeeded()
-
-	case looksLikeList(context.WithValue(ctx, KeyInputBuffer, bytes.NewBufferString(line))): // FIXME:
-		addParagraphIfNeeded()
-		list, _ := blocks.MakeList(line, hyphaNameFrom(ctx))
-		state.where = "list"
-		state.list = list
-		ret = state.list
-
-	case state.where == "p":
-		state.paragraph.AddLine(line)
-	default:
-		state.where = "p"
-		p := blocks.MakeParagraph(line, hyphaNameFrom(ctx))
-		state.paragraph = &blocks.Paragraph{Formatted: p}
-	}
-
-end:
-	return ret, done
+	return nextParagraph(ctx)
 }
