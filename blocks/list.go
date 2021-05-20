@@ -6,81 +6,9 @@ import (
 	"strings"
 )
 
-func parseListItem(line string) (level int, offset int, ordered bool, err error) {
-	for line[level] == '*' {
-		level++
-	}
-
-	if line[level] == '.' {
-		ordered = true
-		offset = level + 2
-	} else {
-		ordered = false
-		offset = level + 1
-	}
-
-	if line[offset-1] != ' ' || len(line) < offset+2 || level < 1 || level > 6 {
-		err = errors.New("ill-formatted list item")
-	}
-	return
-}
-
-func MatchesList(line string) bool {
-	level, _, _, err := parseListItem(line)
-	return err == nil && level == 1
-}
-
-type listItem struct {
-	content  string
-	parent   *listItem
-	children []*listItem
-	depth    int
-}
-
-func newListItem(parent *listItem) *listItem {
-	depth := 0
-	if parent != nil {
-		depth = parent.depth + 1
-	}
-	return &listItem{
-		parent:   parent,
-		children: make([]*listItem, 0),
-		depth:    depth,
-	}
-}
-
-func (item *listItem) renderAsHtmlTo(b *strings.Builder, hyphaName string, ordered bool) {
-	if len(item.content) > 0 {
-		b.WriteString("<li>")
-		b.WriteString(ParagraphToHtml(hyphaName, item.content))
-	}
-
-	if len(item.children) > 0 {
-		if ordered {
-			b.WriteString("<ol>")
-		} else {
-			b.WriteString("<ul>")
-		}
-
-		for _, child := range item.children {
-			child.renderAsHtmlTo(b, hyphaName, ordered)
-		}
-
-		if ordered {
-			b.WriteString("</ol>")
-		} else {
-			b.WriteString("</ul>")
-		}
-	}
-
-	if len(item.content) > 0 {
-		b.WriteString("</li>")
-	}
-}
-
-// A structure representing ordered and unordered lists in the AST.
+// List is a nesting list, either ordered or unordered.
 type List struct {
-	curr      *listItem
+	curr      *ListItem
 	hyphaName string
 	ordered   bool
 	finalized bool
@@ -179,4 +107,77 @@ func (list *List) RenderAsHtml() (html string) {
 	list.curr.renderAsHtmlTo(b, list.hyphaName, list.ordered)
 
 	return "\n" + b.String()
+}
+
+func parseListItem(line string) (level int, offset int, ordered bool, err error) {
+	for line[level] == '*' {
+		level++
+	}
+
+	if line[level] == '.' {
+		ordered = true
+		offset = level + 2
+	} else {
+		ordered = false
+		offset = level + 1
+	}
+
+	if line[offset-1] != ' ' || len(line) < offset+2 || level < 1 || level > 6 {
+		err = errors.New("ill-formatted list item")
+	}
+	return
+}
+
+func MatchesList(line string) bool {
+	level, _, _, err := parseListItem(line)
+	return err == nil && level == 1
+}
+
+// ListItem is an entry in a List.
+type ListItem struct {
+	content  string
+	parent   *ListItem
+	children []*ListItem
+	depth    int
+}
+
+func newListItem(parent *ListItem) *ListItem {
+	depth := 0
+	if parent != nil {
+		depth = parent.depth + 1
+	}
+	return &ListItem{
+		parent:   parent,
+		children: make([]*ListItem, 0),
+		depth:    depth,
+	}
+}
+
+func (item *ListItem) renderAsHtmlTo(b *strings.Builder, hyphaName string, ordered bool) {
+	if len(item.content) > 0 {
+		b.WriteString("<li>")
+		b.WriteString(ParagraphToHtml(hyphaName, item.content))
+	}
+
+	if len(item.children) > 0 {
+		if ordered {
+			b.WriteString("<ol>")
+		} else {
+			b.WriteString("<ul>")
+		}
+
+		for _, child := range item.children {
+			child.renderAsHtmlTo(b, hyphaName, ordered)
+		}
+
+		if ordered {
+			b.WriteString("</ol>")
+		} else {
+			b.WriteString("</ul>")
+		}
+	}
+
+	if len(item.content) > 0 {
+		b.WriteString("</li>")
+	}
 }

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bytes"
 	"context"
 	"html"
 	"strings"
@@ -8,8 +9,8 @@ import (
 	"github.com/bouncepaw/mycomarkup/blocks"
 )
 
-// ParserState is used by markup parser to remember what is going on.
-type ParserState struct {
+// parserState is used by markup parser to remember what is going on.
+type parserState struct {
 	where string // "", "list", "pre", etc.
 	// Temporaries
 	list      *blocks.List
@@ -17,8 +18,7 @@ type ParserState struct {
 }
 
 func isPrefixedBy(ctx context.Context, s string) bool {
-	// TODO: make sure that String() does not make an allocation, and if it does, implement the function in a different way.
-	return strings.HasPrefix(inputFrom(ctx).String(), s)
+	return bytes.HasPrefix(inputFrom(ctx).Bytes(), []byte(s))
 }
 
 func nextLaunchPad(ctx context.Context) (blocks.LaunchPad, bool) {
@@ -35,7 +35,7 @@ func nextLaunchPad(ctx context.Context) (blocks.LaunchPad, bool) {
 	return launchPad, done
 }
 
-func nextImg(ctx context.Context, state *ParserState) (img blocks.Img, done bool) {
+func nextImg(ctx context.Context) (img blocks.Img, done bool) {
 	var b byte
 	line, done := nextLine(ctx)
 	img, imgDone := blocks.MakeImg(line, hyphaNameFrom(ctx))
@@ -83,7 +83,7 @@ func nextTable(ctx context.Context) (t blocks.Table, done bool) {
 }
 
 // Lex `line` in markup and maybe return a token.
-func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
+func nextToken(ctx context.Context, state *parserState) (interface{}, bool) {
 	var ret interface{}
 	addParagraphIfNeeded := func() { // This is a bug source, I know it.
 		if state.where == "p" {
@@ -94,7 +94,7 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 	switch {
 	case blocks.MatchesImg(inputFrom(ctx).String()):
 		addParagraphIfNeeded()
-		return nextImg(ctx, state)
+		return nextImg(ctx)
 	case blocks.MatchesTable(inputFrom(ctx).String()):
 		addParagraphIfNeeded()
 		return nextTable(ctx)
@@ -147,6 +147,7 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 	var line, done = nextLine(ctx)
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
+	// Note: the notice above is outdated, we can live without goto now.
 	switch state.where {
 	case "list":
 		goto listState
@@ -167,7 +168,7 @@ normalState:
 	case "" == strings.TrimSpace(line):
 		addParagraphIfNeeded()
 
-	case blocks.MatchesList(line):
+	case looksLikeList(context.WithValue(ctx, KeyInputBuffer, bytes.NewBufferString(line))): // FIXME:
 		addParagraphIfNeeded()
 		list, _ := blocks.MakeList(line, hyphaNameFrom(ctx))
 		state.where = "list"

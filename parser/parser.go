@@ -9,7 +9,7 @@ import (
 // Parse parses the Mycomarkup document in the given context. All parsed blocks are written to out.
 func Parse(ctx context.Context, out chan interface{}) {
 	var (
-		state = ParserState{}
+		state = parserState{}
 		token interface{}
 		done  bool
 	)
