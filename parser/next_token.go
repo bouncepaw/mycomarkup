@@ -35,20 +35,21 @@ func nextLaunchPad(ctx context.Context) (blocks.LaunchPad, bool) {
 	return launchPad, done
 }
 
-func nextImg(ctx context.Context, state *ParserState, line string, doneBefore bool) (img blocks.Img, doneAfter bool) {
+func nextImg(ctx context.Context, state *ParserState) (img blocks.Img, done bool) {
 	var b byte
+	line, done := nextLine(ctx)
 	img, imgDone := blocks.MakeImg(line, hyphaNameFrom(ctx))
 	if imgDone {
-		return img, doneBefore
+		return img, done
 	}
 
 	for !imgDone {
-		b, doneAfter = nextByte(ctx)
+		b, done = nextByte(ctx)
 		imgDone = img.ProcessRune(rune(b))
 	}
 
 	defer nextLine(ctx) // Characters after the final } of img are ignored.
-	return img, doneAfter
+	return img, done
 }
 
 func nextCodeBlock(ctx context.Context) (code blocks.CodeBlock, done bool) {
@@ -91,6 +92,9 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 		}
 	}
 	switch {
+	case blocks.MatchesImg(inputFrom(ctx).String()):
+		addParagraphIfNeeded()
+		return nextImg(ctx, state)
 	case blocks.MatchesTable(inputFrom(ctx).String()):
 		addParagraphIfNeeded()
 		return nextTable(ctx)
@@ -140,9 +144,7 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 		return blocks.MakeQuote(line, hyphaNameFrom(ctx)), done
 	}
 
-	var (
-		line, done = nextLine(ctx) // TODO: get rid of this abomination
-	)
+	var line, done = nextLine(ctx)
 
 	// Beware! Usage of goto. Some may say it is considered evil but in this case it helped to make a better-structured code.
 	switch state.where {
@@ -153,7 +155,7 @@ func nextToken(ctx context.Context, state *ParserState) (interface{}, bool) {
 	}
 
 listState:
-	if done := state.list.Parse(line); done {
+	if done := state.list.ProcessLine(line); done {
 		state.list.Finalize()
 		state.where = ""
 		goto normalState
@@ -167,13 +169,10 @@ normalState:
 
 	case blocks.MatchesList(line):
 		addParagraphIfNeeded()
-		list, _ := blocks.NewList(line, hyphaNameFrom(ctx))
+		list, _ := blocks.MakeList(line, hyphaNameFrom(ctx))
 		state.where = "list"
 		state.list = list
 		ret = state.list
-	case blocks.MatchesImg(line):
-		addParagraphIfNeeded()
-		return nextImg(ctx, state, line, done)
 
 	case state.where == "p":
 		state.paragraph.AddLine(line)

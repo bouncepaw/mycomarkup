@@ -12,6 +12,7 @@ ben ben || {
 
 * li 1
 * li 2
+
 text
 more text
 => Pear some link
@@ -23,5 +24,4 @@ text
 /\
 ```
 <= Apple : 1..3
-
 

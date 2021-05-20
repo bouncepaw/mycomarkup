@@ -2,6 +2,7 @@ package blocks
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 )
 
@@ -85,12 +86,12 @@ type List struct {
 	finalized bool
 }
 
-func NewList(line, hyphaName string) (*List, bool) {
+func MakeList(line, hyphaName string) (*List, bool) {
 	list := &List{
 		hyphaName: hyphaName,
 		curr:      newListItem(nil),
 	}
-	return list, list.Parse(line)
+	return list, list.ProcessLine(line)
 }
 
 func (list *List) pushItem() {
@@ -116,7 +117,17 @@ func (list *List) balance(level int) {
 	}
 }
 
-func (list *List) Parse(line string) (done bool) {
+var listRe = regexp.MustCompile(`^\*+\.? `)
+
+func okForList(line string) bool {
+	return listRe.MatchString(line)
+}
+
+func (list *List) ProcessLine(line string) (done bool) {
+	if !okForList(line) {
+		list.Finalize()
+		return true
+	}
 	level, offset, ordered, err := parseListItem(line)
 	if err != nil {
 		list.Finalize()
