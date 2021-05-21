@@ -3,7 +3,6 @@ package parser
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"sync"
 )
 
@@ -14,6 +13,7 @@ type List struct {
 
 // Call only if there is a list item on the line.
 func nextList(ctx context.Context) (list List, eof bool) {
+	var contents []interface{}
 	list = List{
 		Items: make([]ListItem, 0),
 	}
@@ -23,25 +23,25 @@ func nextList(ctx context.Context) (list List, eof bool) {
 			break
 		}
 
+		eatUntilSpace(ctx)
+		contents, eof = nextListItem(ctx)
 		item := ListItem{
-			Marker: marker,
-			Level:  level,
+			Marker:   marker,
+			Level:    level,
+			Contents: contents,
 		}
 
-		eatUntilSpace(ctx)
-		item.Contents, eof = nextListItem(ctx)
 		list.Items = append(list.Items, item)
 	}
 	list.Marker = list.Items[0].Marker // There should be at least one item!
 	return list, eof
 }
 
-func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
+func readNextListItemsContents(ctx context.Context) (text bytes.Buffer, eof bool) {
 	var (
 		onNewLine       = true
 		escaping        = false
 		curlyBracesOpen = 0
-		text            bytes.Buffer
 		b               byte
 	)
 walker: // Read all item's contents
@@ -84,13 +84,18 @@ walker: // Read all item's contents
 			text.WriteByte(b)
 		}
 	}
+	return text, eof
+}
 
+func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
 	// Parse the text as a separate mycodoc
 	var (
+		text     bytes.Buffer
 		blocksCh = make(chan interface{})
 		blocks   = make([]interface{}, 0)
 		wg       sync.WaitGroup
 	)
+	text, eof = readNextListItemsContents(ctx)
 
 	wg.Add(1)
 	go func() {
@@ -98,7 +103,6 @@ walker: // Read all item's contents
 		wg.Done()
 	}()
 	for block := range blocksCh {
-		fmt.Println("block!", block)
 		blocks = append(blocks, block)
 	}
 	wg.Wait()

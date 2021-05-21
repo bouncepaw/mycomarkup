@@ -80,6 +80,7 @@ func nextParagraph(ctx context.Context) (p blocks.Paragraph, done bool) {
 	if !nextLineIsSomething(ctx) {
 		return
 	}
+	// FIXME: multiline paragraphs do not work
 	for !done {
 		line, done = nextLine(ctx)
 		p.AddLine(line)
@@ -108,7 +109,7 @@ func emptyLine(ctx context.Context) bool {
 		case '\t', ' ':
 			continue
 		default:
-			break
+			return false
 		}
 	}
 	return false
@@ -118,7 +119,10 @@ func emptyLine(ctx context.Context) bool {
 func nextToken(ctx context.Context) (interface{}, bool) {
 	switch {
 	case emptyLine(ctx):
-	case isPrefixedBy(ctx, "* "), isPrefixedBy(ctx, "*. "), isPrefixedBy(ctx, "*v "), isPrefixedBy(ctx, "*x"):
+		_, done := nextLine(ctx)
+		return nil, done
+	case looksLikeList(ctx):
+		//case isPrefixedBy(ctx, "* "), isPrefixedBy(ctx, "*. "), isPrefixedBy(ctx, "*v "), isPrefixedBy(ctx, "*x "):
 		return nextList(ctx)
 	case blocks.MatchesImg(inputFrom(ctx).String()):
 		return nextImg(ctx)
