@@ -2,7 +2,6 @@ package doc
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/parser"
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/blocks"
@@ -18,7 +17,7 @@ func GenerateHTML(ast []interface{}, recursionLevel int) (html string) {
 	}
 	for _, line := range ast {
 		switch v := line.(type) {
-		case parser.List:
+		case blocks.List:
 			var ret string
 			for _, item := range v.Items {
 				ret += fmt.Sprintf(markerToTemplate(item.Marker), GenerateHTML(item.Contents, recursionLevel))
@@ -80,9 +79,9 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int) string {
 	return fmt.Sprintf(messageOK, xcl.Target, binaryHtml+xclText)
 }
 
-func listToTemplate(list parser.List) string {
+func listToTemplate(list blocks.List) string {
 	switch list.Marker {
-	case parser.MarkerOrdered:
+	case blocks.MarkerOrdered:
 		return `
 <ol>%s</ol>`
 	default:
@@ -91,18 +90,18 @@ func listToTemplate(list parser.List) string {
 	}
 }
 
-func markerToTemplate(m parser.ListMarker) string {
+func markerToTemplate(m blocks.ListMarker) string {
 	switch m {
-	case parser.MarkerUnordered:
+	case blocks.MarkerUnordered:
 		return `
 	<li class="item_unordered">%s</li>`
-	case parser.MarkerOrdered:
+	case blocks.MarkerOrdered:
 		return `
 	<li class="item_ordered">%s</li>`
-	case parser.MarkerTodoDone:
+	case blocks.MarkerTodoDone:
 		return `
 	<li class="item_todo item_todo-done"><input type="checkbox" disabled checked>%s</li>`
-	case parser.MarkerTodo:
+	case blocks.MarkerTodo:
 		return `
 	<li class="item_todo"><input type="checkbox" disabled>%s</li>`
 	}

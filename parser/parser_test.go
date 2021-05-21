@@ -1,6 +1,9 @@
 package parser
 
-import "testing"
+import (
+	"github.com/bouncepaw/mycomarkup/util"
+	"testing"
+)
 
 func TestIsPrefixedBy(t *testing.T) {
 	ctx, _ := ContextFromStringInput("test", "input input")
@@ -36,7 +39,7 @@ func TestLooksLikeList3(t *testing.T) {
 
 func TestList1(t *testing.T) {
 	ctx, _ := ContextFromStringInput("test", "* li")
-	eatUntilSpace(ctx)
+	util.EatUntilSpace(ctx)
 	text, _ := readNextListItemsContents(ctx)
 	if text.String() != "li" {
 		t.Errorf("wrong")
@@ -45,7 +48,7 @@ func TestList1(t *testing.T) {
 
 func TestList2(t *testing.T) {
 	ctx, _ := ContextFromStringInput("test", "* {dreamy\n   sky} ")
-	eatUntilSpace(ctx)
+	util.EatUntilSpace(ctx)
 	text, _ := readNextListItemsContents(ctx)
 	if text.String() != "dreamy\nsky " {
 		t.Errorf("wrong %q", text.String())

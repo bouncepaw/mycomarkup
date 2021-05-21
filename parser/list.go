@@ -3,19 +3,16 @@ package parser
 import (
 	"bytes"
 	"context"
+	"github.com/bouncepaw/mycomarkup/blocks"
+	"github.com/bouncepaw/mycomarkup/util"
 	"sync"
 )
 
-type List struct {
-	Items  []ListItem
-	Marker ListMarker
-}
-
 // Call only if there is a list item on the line.
-func nextList(ctx context.Context) (list List, eof bool) {
+func nextList(ctx context.Context) (list blocks.List, eof bool) {
 	var contents []interface{}
-	list = List{
-		Items: make([]ListItem, 0),
+	list = blocks.List{
+		Items: make([]blocks.ListItem, 0),
 	}
 	for !eof {
 		marker, level, found := markerOnNextLine(ctx)
@@ -23,9 +20,9 @@ func nextList(ctx context.Context) (list List, eof bool) {
 			break
 		}
 
-		eatUntilSpace(ctx)
+		util.EatUntilSpace(ctx)
 		contents, eof = nextListItem(ctx)
-		item := ListItem{
+		item := blocks.ListItem{
 			Marker:   marker,
 			Level:    level,
 			Contents: contents,
@@ -46,7 +43,7 @@ func readNextListItemsContents(ctx context.Context) (text bytes.Buffer, eof bool
 	)
 walker: // Read all item's contents
 	for !eof {
-		b, eof = nextByte(ctx)
+		b, eof = util.NextByte(ctx)
 	stateMachine: // I'm extremely sorry
 		switch {
 		case onNewLine && b != ' ':
@@ -99,7 +96,7 @@ func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
 
 	wg.Add(1)
 	go func() {
-		Parse(context.WithValue(ctx, KeyInputBuffer, &text), blocksCh)
+		Parse(context.WithValue(ctx, util.KeyInputBuffer, &text), blocksCh)
 		wg.Done()
 	}()
 	for block := range blocksCh {
@@ -110,43 +107,21 @@ func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
 	return blocks, eof
 }
 
-type ListItem struct {
-	Marker   ListMarker
-	Level    uint
-	Contents []interface{}
-}
-
-func eatUntilSpace(ctx context.Context) {
-	// We do not care what is read, therefore we drop the read line.
-	// We know that there //is// a space beforehand, therefore we drop the error.
-	_, _ = inputFrom(ctx).ReadString(' ')
-}
-
-// ListMarker is the type of marker the ListItem has.
-type ListMarker int
-
-const (
-	MarkerUnordered ListMarker = iota
-	MarkerOrdered
-	MarkerTodoDone
-	MarkerTodo
-)
-
 func looksLikeList(ctx context.Context) bool {
 	_, level, found := markerOnNextLine(ctx)
 	return found && level == 1
 }
 
-func markerOnNextLine(ctx context.Context) (m ListMarker, level uint, found bool) {
+func markerOnNextLine(ctx context.Context) (m blocks.ListMarker, level uint, found bool) {
 	var (
 		onStart            = true
 		onAsterisk         = false
 		onSpecialCharacter = false
 	)
-	for _, b := range inputFrom(ctx).Bytes() {
+	for _, b := range util.InputFrom(ctx).Bytes() {
 		switch {
 		case onStart && b != '*':
-			return MarkerUnordered, 0, false
+			return blocks.MarkerUnordered, 0, false
 		case onStart:
 			level = 1
 			onStart = false
@@ -161,26 +136,20 @@ func markerOnNextLine(ctx context.Context) (m ListMarker, level uint, found bool
 			onSpecialCharacter = true
 			switch b {
 			case 'v':
-				m = MarkerTodoDone
+				m = blocks.MarkerTodoDone
 			case 'x':
-				m = MarkerTodo
+				m = blocks.MarkerTodo
 			case '.':
-				m = MarkerOrdered
+				m = blocks.MarkerOrdered
 			}
 		case onAsterisk:
-			return MarkerUnordered, 0, false
+			return blocks.MarkerUnordered, 0, false
 
 		case onSpecialCharacter && b != ' ':
-			return MarkerUnordered, 0, false
+			return blocks.MarkerUnordered, 0, false
 		case onSpecialCharacter:
 			return m, level, true
 		}
 	}
-	return MarkerUnordered, 0, false
-}
-
-func (m1 ListMarker) sameAs(m2 ListMarker) bool {
-	return (m1 == m2) ||
-		((m1 == MarkerTodoDone) && (m2 == MarkerTodo)) ||
-		((m1 == MarkerTodo) && (m2 == MarkerTodoDone))
+	return blocks.MarkerUnordered, 0, false
 }

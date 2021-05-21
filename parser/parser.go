@@ -2,8 +2,9 @@
 package parser
 
 import (
+	"bytes"
 	"context"
-	"strings"
+	"github.com/bouncepaw/mycomarkup/util"
 )
 
 // Parse parses the Mycomarkup document in the given context. All parsed blocks are written to out.
@@ -26,28 +27,21 @@ func Parse(ctx context.Context, out chan interface{}) {
 	}
 }
 
-// nextByte returns the next byte in the inputFrom. The CR byte (\r) is never returned, if there is a CR in the inputFrom, the byte after it is returned. If there is no next byte, the NL byte (\n) is returned and done is true.
-func nextByte(ctx context.Context) (b byte, done bool) {
-	b, err := inputFrom(ctx).ReadByte()
-	if err != nil {
-		return '\n', true
-	}
-	if b == '\r' {
-		return nextByte(ctx)
-	}
-	return b, false
-}
-
-// nextLine returns the text in the inputFrom up to the next newline. The characters are gotten using nextByte.
-func nextLine(ctx context.Context) (line string, done bool) {
-	var (
-		lineBuffer strings.Builder
-		b          byte
+// ContextFromStringInput returns the context for the given inputFrom.
+func ContextFromStringInput(hyphaName, input string) (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(
+		context.WithValue(
+			context.WithValue(
+				context.WithValue(
+					context.Background(),
+					util.KeyHyphaName,
+					hyphaName),
+				util.KeyInputBuffer,
+				bytes.NewBufferString(input),
+			),
+			util.KeyRecursionLevel,
+			0,
+		),
 	)
-	b, done = nextByte(ctx)
-	for b != '\n' {
-		lineBuffer.WriteByte(b)
-		b, done = nextByte(ctx)
-	}
-	return lineBuffer.String(), done
+	return ctx, cancel
 }
