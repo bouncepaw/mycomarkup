@@ -77,14 +77,16 @@ func nextTable(ctx context.Context) (t blocks.Table, done bool) {
 func nextParagraph(ctx context.Context) (p blocks.Paragraph, done bool) {
 	line, done := nextLine(ctx)
 	p = blocks.Paragraph{blocks.MakeFormatted(line, hyphaNameFrom(ctx))}
-	if !nextLineIsSomething(ctx) {
+	if nextLineIsSomething(ctx) {
 		return
 	}
-	// FIXME: multiline paragraphs do not work
-	for !done {
+	for {
 		line, done = nextLine(ctx)
+		if done && line == "" {
+			break
+		}
 		p.AddLine(line)
-		if !nextLineIsSomething(ctx) {
+		if nextLineIsSomething(ctx) {
 			break
 		}
 	}
@@ -98,7 +100,7 @@ func nextLineIsSomething(ctx context.Context) bool {
 			return true
 		}
 	}
-	return looksLikeList(ctx) || blocks.MatchesImg(inputFrom(ctx).String()) || blocks.MatchesTable(inputFrom(ctx).String()) || emptyLine(ctx)
+	return emptyLine(ctx) || blocks.MatchesImg(inputFrom(ctx).String()) || blocks.MatchesTable(inputFrom(ctx).String())
 }
 
 func emptyLine(ctx context.Context) bool {
@@ -122,12 +124,8 @@ func nextToken(ctx context.Context) (interface{}, bool) {
 		_, done := nextLine(ctx)
 		return nil, done
 	case looksLikeList(ctx):
-		//case isPrefixedBy(ctx, "* "), isPrefixedBy(ctx, "*. "), isPrefixedBy(ctx, "*v "), isPrefixedBy(ctx, "*x "):
+		//case isPrefixedBy(ctx, "* "), isPrefixedBy(ctx, "*. "), isPrefixedBy(ctx, "*v "), isPrefixedBy(ctx, "*x "): — alternative way?
 		return nextList(ctx)
-	case blocks.MatchesImg(inputFrom(ctx).String()):
-		return nextImg(ctx)
-	case blocks.MatchesTable(inputFrom(ctx).String()):
-		return nextTable(ctx)
 	case isPrefixedBy(ctx, "```"):
 		return nextCodeBlock(ctx)
 	case isPrefixedBy(ctx, "=>"):
@@ -161,6 +159,10 @@ func nextToken(ctx context.Context) (interface{}, bool) {
 	case isPrefixedBy(ctx, ">"): // TODO: implement proper fractal quotes
 		line, done := nextLine(ctx)
 		return blocks.MakeQuote(line, hyphaNameFrom(ctx)), done
+	case blocks.MatchesImg(inputFrom(ctx).String()):
+		return nextImg(ctx)
+	case blocks.MatchesTable(inputFrom(ctx).String()):
+		return nextTable(ctx)
 	}
 	return nextParagraph(ctx)
 }
