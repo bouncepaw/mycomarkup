@@ -1,17 +1,17 @@
-package doc
+package mycomarkup
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/blocks"
-	"github.com/bouncepaw/mycomarkup/generator"
 	"github.com/bouncepaw/mycomarkup/globals"
 )
 
 const maxRecursionLevel = 3
 
-func GenerateHTML(ast []interface{}, recursionLevel int) (html string) {
+func generateHTML(ast []interface{}, recursionLevel int) (html string) {
 	if recursionLevel > maxRecursionLevel {
 		return "Transclusion depth limit"
 	}
@@ -20,13 +20,13 @@ func GenerateHTML(ast []interface{}, recursionLevel int) (html string) {
 		case blocks.List:
 			var ret string
 			for _, item := range v.Items {
-				ret += fmt.Sprintf(markerToTemplate(item.Marker), GenerateHTML(item.Contents, recursionLevel))
+				ret += fmt.Sprintf(markerToTemplate(item.Marker), generateHTML(item.Contents, recursionLevel))
 			}
 			html += fmt.Sprintf(listToTemplate(v), ret)
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel)
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
-			html += generator.BlockToHTML(v)
+			html += BlockToHTML(v)
 		case string:
 			html += v
 		default:
@@ -74,8 +74,9 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int) string {
 	if err != nil {
 		return fmt.Sprintf(messageNotExists, xcl.Target)
 	}
-	md := Doc(xcl.Target, rawText)
-	xclText := GenerateHTML(md.Lex(), recursionLevel+1)
+	ctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText)
+	ast := BlockTree(ctx)
+	xclText := generateHTML(ast, recursionLevel+1)
 	return fmt.Sprintf(messageOK, xcl.Target, binaryHtml+xclText)
 }
 

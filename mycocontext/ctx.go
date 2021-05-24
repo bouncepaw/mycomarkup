@@ -16,6 +16,8 @@ const (
 	keyInputBuffer
 	// KeyRecursionLevel stores current level of transclusion recursion.
 	keyRecursionLevel
+	//
+	keyWebSiteURL
 )
 
 // HyphaName retrieves current hypha name from the given context.
@@ -34,4 +36,8 @@ func (ctx *mycoContext) GetRecursionLevel() uint {
 
 func (ctx *mycoContext) WithIncrementedRecursionLevel() Context {
 	return &mycoContext{context.WithValue(ctx, keyRecursionLevel, ctx.GetRecursionLevel()+1)}
+}
+
+func (ctx *mycoContext) WebSiteURL() string {
+	return ctx.Value(keyWebSiteURL).(string)
 }

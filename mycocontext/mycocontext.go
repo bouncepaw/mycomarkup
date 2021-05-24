@@ -16,6 +16,8 @@ type Context interface {
 
 	GetRecursionLevel() uint
 	WithIncrementedRecursionLevel() Context
+
+	WebSiteURL() string
 }
 
 type CancelFunc context.CancelFunc

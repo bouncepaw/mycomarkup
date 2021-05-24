@@ -2,7 +2,6 @@ package mycomarkup
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/generator"
 	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"regexp"
 	"strings"
@@ -38,7 +37,7 @@ func openGraphImageAndDescription(ast []interface{}) (ogImage, ogDescription str
 		switch v := block.(type) {
 		case blocks.Paragraph:
 			if !foundDesc {
-				ogDescription = strings.TrimSpace(htmlTagRe.ReplaceAllString(generator.BlockToHTML(v), ""))
+				ogDescription = strings.TrimSpace(htmlTagRe.ReplaceAllString(BlockToHTML(v), ""))
 				foundDesc = true
 			}
 		case blocks.Img:

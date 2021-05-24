@@ -1,5 +1,5 @@
 // Package generator provides the HTML generator.
-package generator
+package mycomarkup
 
 import (
 	"fmt"
