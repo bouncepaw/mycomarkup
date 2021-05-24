@@ -1,9 +1,9 @@
 package mycomarkup
 
 import (
-	"context"
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/generator"
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"regexp"
 	"strings"
 
@@ -15,14 +15,14 @@ import (
 var htmlTagRe = regexp.MustCompile(`<.*?>`)
 
 // OpenGraphHTML returns an html representation of og: meta tags.
-func OpenGraphHTML(ctx context.Context, ast []interface{}) string {
+func OpenGraphHTML(ctx mycocontext.Context, ast []interface{}) string {
 	ogImage, ogDescription := openGraphImageAndDescription(ast)
 	return strings.Join([]string{
-		ogTag("title", util.BeautifulName(util.HyphaNameFrom(ctx))),
+		ogTag("title", util.BeautifulName(ctx.HyphaName())),
 		ogTag("type", "article"),
 		ogTag("image", ogImage),
 		// TODO: there should be a full URL ⤵︎. Requires a different API for the lib.
-		ogTag("url", "/hypha/"+util.BeautifulName(util.HyphaNameFrom(ctx))),
+		ogTag("url", "/hypha/"+util.BeautifulName(ctx.HyphaName())),
 		ogTag("determiner", ""),
 		ogTag("description", ogDescription),
 	}, "\n")

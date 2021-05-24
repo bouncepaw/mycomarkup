@@ -1,6 +1,7 @@
 package mycomarkup
 
 import (
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"strings"
 	"sync"
 	"testing"
@@ -22,7 +23,7 @@ I agree ✅`
 func TestOpenGraphHTML(t *testing.T) {
 	var (
 		blocks   = []interface{}{}
-		ctx, _   = parser.ContextFromStringInput("test", input)
+		ctx, _   = mycocontext.ContextFromStringInput("test", input)
 		wg       sync.WaitGroup
 		blocksCh = make(chan interface{})
 	)

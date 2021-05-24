@@ -1,12 +1,12 @@
 package parser
 
 import (
-	"github.com/bouncepaw/mycomarkup/util"
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"testing"
 )
 
 func TestIsPrefixedBy(t *testing.T) {
-	ctx, _ := ContextFromStringInput("test", "input input")
+	ctx, _ := mycocontext.ContextFromStringInput("test", "input input")
 	res := isPrefixedBy(ctx, "input")
 	if !res {
 		t.Errorf("wrong")
@@ -14,7 +14,7 @@ func TestIsPrefixedBy(t *testing.T) {
 }
 
 func TestLooksLikeList1(t *testing.T) {
-	ctx, _ := ContextFromStringInput("test", "* i got drip")
+	ctx, _ := mycocontext.ContextFromStringInput("test", "* i got drip")
 	res := looksLikeList(ctx)
 	if !res {
 		t.Errorf("wrong")
@@ -22,7 +22,7 @@ func TestLooksLikeList1(t *testing.T) {
 }
 
 func TestLooksLikeList2(t *testing.T) {
-	ctx, _ := ContextFromStringInput("test", "* { what you gonna do\n when they come for you }")
+	ctx, _ := mycocontext.ContextFromStringInput("test", "* { what you gonna do\n when they come for you }")
 	res := looksLikeList(ctx)
 	if !res {
 		t.Errorf("wrong")
@@ -30,7 +30,7 @@ func TestLooksLikeList2(t *testing.T) {
 }
 
 func TestLooksLikeList3(t *testing.T) {
-	ctx, _ := ContextFromStringInput("test", "*{ what you gonna do\n when they come for you }")
+	ctx, _ := mycocontext.ContextFromStringInput("test", "*{ what you gonna do\n when they come for you }")
 	res := looksLikeList(ctx)
 	if res {
 		t.Errorf("wrong")
@@ -38,8 +38,8 @@ func TestLooksLikeList3(t *testing.T) {
 }
 
 func TestList1(t *testing.T) {
-	ctx, _ := ContextFromStringInput("test", "* li")
-	util.EatUntilSpace(ctx)
+	ctx, _ := mycocontext.ContextFromStringInput("test", "* li")
+	mycocontext.EatUntilSpace(ctx)
 	text, _ := readNextListItemsContents(ctx)
 	if text.String() != "li" {
 		t.Errorf("wrong")
@@ -47,8 +47,8 @@ func TestList1(t *testing.T) {
 }
 
 func TestList2(t *testing.T) {
-	ctx, _ := ContextFromStringInput("test", "* {dreamy\n   sky} ")
-	util.EatUntilSpace(ctx)
+	ctx, _ := mycocontext.ContextFromStringInput("test", "* {dreamy\n   sky} ")
+	mycocontext.EatUntilSpace(ctx)
 	text, _ := readNextListItemsContents(ctx)
 	if text.String() != "dreamy\nsky " {
 		t.Errorf("wrong %q", text.String())
@@ -56,7 +56,7 @@ func TestList2(t *testing.T) {
 }
 
 func TestNextLineIsSomething1(t *testing.T) {
-	ctx, _ := ContextFromStringInput("test", "=> space")
+	ctx, _ := mycocontext.ContextFromStringInput("test", "=> space")
 	res := nextLineIsSomething(ctx)
 	if !res {
 		t.Errorf("wrong")
@@ -64,7 +64,7 @@ func TestNextLineIsSomething1(t *testing.T) {
 }
 
 func TestNextLineIsSomething2(t *testing.T) {
-	ctx, _ := ContextFromStringInput("test", "* line")
+	ctx, _ := mycocontext.ContextFromStringInput("test", "* line")
 	res := nextLineIsSomething(ctx)
 	if !res {
 		t.Errorf("wrong")

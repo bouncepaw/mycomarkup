@@ -2,15 +2,13 @@
 package parser
 
 import (
-	"bytes"
-	"context"
-	"github.com/bouncepaw/mycomarkup/util"
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 )
 
 // Parse parses the Mycomarkup document in the given context. All parsed blocks are written to out.
 //
 // TODO: decide whether using the channel is really a good idea 🤔
-func Parse(ctx context.Context, out chan interface{}) {
+func Parse(ctx mycocontext.Context, out chan interface{}) {
 	var (
 		token interface{}
 		done  bool
@@ -27,23 +25,4 @@ func Parse(ctx context.Context, out chan interface{}) {
 			}
 		}
 	}
-}
-
-// ContextFromStringInput returns the context for the given inputFrom.
-func ContextFromStringInput(hyphaName, input string) (context.Context, context.CancelFunc) {
-	ctx, cancel := context.WithCancel(
-		context.WithValue(
-			context.WithValue(
-				context.WithValue(
-					context.Background(),
-					util.KeyHyphaName,
-					hyphaName),
-				util.KeyInputBuffer,
-				bytes.NewBufferString(input),
-			),
-			util.KeyRecursionLevel,
-			0,
-		),
-	)
-	return ctx, cancel
 }

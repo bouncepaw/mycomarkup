@@ -2,7 +2,7 @@ run: build
 	./mycomarkup
 
 build:
-	go build .
+	go build ./cmd/mycomarkup
 
 test1: build
 	./mycomarkup -hypha-name "test doc" -filename "testdata/test1.myco"

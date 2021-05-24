@@ -2,14 +2,13 @@ package parser
 
 import (
 	"bytes"
-	"context"
 	"github.com/bouncepaw/mycomarkup/blocks"
-	"github.com/bouncepaw/mycomarkup/util"
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"sync"
 )
 
 // Call only if there is a list item on the line.
-func nextList(ctx context.Context) (list blocks.List, eof bool) {
+func nextList(ctx mycocontext.Context) (list blocks.List, eof bool) {
 	var contents []interface{}
 	list = blocks.List{
 		Items: make([]blocks.ListItem, 0),
@@ -20,7 +19,7 @@ func nextList(ctx context.Context) (list blocks.List, eof bool) {
 			break
 		}
 
-		util.EatUntilSpace(ctx)
+		mycocontext.EatUntilSpace(ctx)
 		contents, eof = nextListItem(ctx)
 		item := blocks.ListItem{
 			Marker:   marker,
@@ -34,7 +33,7 @@ func nextList(ctx context.Context) (list blocks.List, eof bool) {
 	return list, eof
 }
 
-func readNextListItemsContents(ctx context.Context) (text bytes.Buffer, eof bool) {
+func readNextListItemsContents(ctx mycocontext.Context) (text bytes.Buffer, eof bool) {
 	var (
 		onNewLine       = true
 		escaping        = false
@@ -43,7 +42,7 @@ func readNextListItemsContents(ctx context.Context) (text bytes.Buffer, eof bool
 	)
 walker: // Read all item's contents
 	for !eof {
-		b, eof = util.NextByte(ctx)
+		b, eof = mycocontext.NextByte(ctx)
 	stateMachine: // I'm extremely sorry
 		switch {
 		case onNewLine && b != ' ':
@@ -84,7 +83,7 @@ walker: // Read all item's contents
 	return text, eof
 }
 
-func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
+func nextListItem(ctx mycocontext.Context) (contents []interface{}, eof bool) {
 	// Parse the text as a separate mycodoc
 	var (
 		text     bytes.Buffer
@@ -96,7 +95,7 @@ func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
 
 	wg.Add(1)
 	go func() {
-		Parse(context.WithValue(ctx, util.KeyInputBuffer, &text), blocksCh)
+		Parse(mycocontext.WithBuffer(ctx, &text), blocksCh)
 		wg.Done()
 	}()
 	for block := range blocksCh {
@@ -107,18 +106,18 @@ func nextListItem(ctx context.Context) (contents []interface{}, eof bool) {
 	return blocks, eof
 }
 
-func looksLikeList(ctx context.Context) bool {
+func looksLikeList(ctx mycocontext.Context) bool {
 	_, level, found := markerOnNextLine(ctx)
 	return found && level == 1
 }
 
-func markerOnNextLine(ctx context.Context) (m blocks.ListMarker, level uint, found bool) {
+func markerOnNextLine(ctx mycocontext.Context) (m blocks.ListMarker, level uint, found bool) {
 	var (
 		onStart            = true
 		onAsterisk         = false
 		onSpecialCharacter = false
 	)
-	for _, b := range util.InputFrom(ctx).Bytes() {
+	for _, b := range ctx.Input().Bytes() {
 		switch {
 		case onStart && b != '*':
 			return blocks.MarkerUnordered, 0, false

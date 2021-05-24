@@ -2,6 +2,7 @@
 package doc
 
 import (
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"github.com/bouncepaw/mycomarkup/parser"
 	"sync"
 )
@@ -37,7 +38,7 @@ func Doc(hyphaName, contents string) *MycoDoc {
 
 func (md *MycoDoc) Lex() []interface{} {
 	var (
-		ctx, _ = parser.ContextFromStringInput(md.HyphaName, md.Contents)
+		ctx, _ = mycocontext.ContextFromStringInput(md.HyphaName, md.Contents)
 		tokens = make(chan interface{})
 		ast    = []interface{}{}
 		wg     sync.WaitGroup
