@@ -118,9 +118,9 @@ func (link *Link) Classes() (classes string) {
 			classes += " wikilink_new"
 		}
 	case LinkInterwiki:
-		classes += "wikilink_interwiki"
+		classes += " wikilink_interwiki"
 	case LinkExternal:
-		classes += fmt.Sprintf(" wikilink_external wikilink_%s", link.protocol)
+		classes += fmt.Sprintf(" wikilink_external wikilink_%s", strings.TrimSuffix(strings.TrimSuffix(link.protocol, "://"), ":"))
 	}
 	return classes
 }

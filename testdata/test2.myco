@@ -8,4 +8,5 @@ img {
 	https://tarot.cards
 }ignored text
 
-A paragraph for your delight
+A paragraph for your delight [[https://example.org]]
+=> gemini://transjovian.org
