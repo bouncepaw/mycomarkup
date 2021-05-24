@@ -1,10 +1,11 @@
-package main
+package mycomarkup
 
 import (
-	"github.com/bouncepaw/mycomarkup/parser"
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/bouncepaw/mycomarkup/parser"
 )
 
 const input = `What will you give me for this simple dimple?

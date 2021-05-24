@@ -37,15 +37,16 @@ type Link struct {
 	kind     LinkType
 	protocol string
 	// Settable stuff
-	DestinationUnknown bool
+	DestinationKnown bool
 }
 
+// From makes a link from the given source address and display text on the given hypha.
 func From(srcAddress, srcDisplay, srcHypha string) *Link {
 	link := Link{
-		srcAddress:         strings.TrimSpace(srcAddress),
-		srcDisplay:         strings.TrimSpace(srcDisplay),
-		srcHypha:           strings.TrimSpace(srcHypha),
-		DestinationUnknown: true,
+		srcAddress:       strings.TrimSpace(srcAddress),
+		srcDisplay:       strings.TrimSpace(srcDisplay),
+		srcHypha:         strings.TrimSpace(srcHypha),
+		DestinationKnown: false,
 	}
 	link.address = link.srcAddress
 
@@ -98,13 +99,14 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 	return &link
 }
 
+// Exists is true if the link should be blue, not red. Red links are links to hyphae that do not exist, all other links are blue.
 func (link *Link) Exists() bool {
-	return (link.OfKind(LinkExternal)) || (link.OfKind(LinkLocalRoot)) || (link.OfKind(LinkLocalHypha) && !link.DestinationUnknown)
+	return (link.OfKind(LinkExternal)) || (link.OfKind(LinkLocalRoot)) || (link.OfKind(LinkLocalHypha) && !link.DestinationKnown)
 }
 
 // ItExists notes that the destination makes sense, exists.
 func (link *Link) ItExists() *Link {
-	link.DestinationUnknown = false
+	link.DestinationKnown = true
 	return link
 }
 
@@ -114,7 +116,7 @@ func (link *Link) Classes() (classes string) {
 	switch link.kind {
 	case LinkLocalRoot, LinkLocalHypha:
 		classes += " wikilink_internal"
-		if link.DestinationUnknown {
+		if link.DestinationKnown {
 			classes += " wikilink_new"
 		}
 	case LinkInterwiki:

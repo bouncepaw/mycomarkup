@@ -167,7 +167,7 @@ func (img *Img) MarkExistenceOfSrcLinks() {
 	globals.HyphaIterate(func(hn string) {
 		for _, entry := range img.Entries {
 			if hn == entry.Srclink.Address() {
-				entry.Srclink.DestinationUnknown = false
+				entry.Srclink.DestinationKnown = false
 			}
 		}
 	})
