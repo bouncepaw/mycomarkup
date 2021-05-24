@@ -8,6 +8,8 @@ import (
 )
 
 // Parse parses the Mycomarkup document in the given context. All parsed blocks are written to out.
+//
+// TODO: decide whether using the channel is really a good idea 🤔
 func Parse(ctx context.Context, out chan interface{}) {
 	var (
 		token interface{}
