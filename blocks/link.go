@@ -36,7 +36,7 @@ func MakeRocketLink(line, hyphaName string) RocketLink {
 		// Address is text after => till first whitespace
 		addr = strings.Fields(line)[0]
 		// Display is what is left
-		display = strings.TrimPrefix(addr, addr)
+		display = strings.TrimPrefix(line, addr)
 		rl      = RocketLink{
 			IsEmpty: false,
 			Link:    *links.From(addr, display, hyphaName),
@@ -48,17 +48,4 @@ func MakeRocketLink(line, hyphaName string) RocketLink {
 	}
 
 	return rl
-}
-
-// LinkParts determines what href, text and class should resulting <a> have based on mycomarkup's addr, display and hypha Target.
-//
-// => addr display
-// [[addr|display]]
-// TODO: deprecate
-func LinkParts(addr, display, hyphaName string) (href, text, class string) {
-	l := links.From(addr, display, hyphaName)
-	if l.OfKind(links.LinkLocalHypha) && !globals.HyphaExists(l.Address()) {
-		l.DestinationUnknown = true
-	}
-	return l.Href(), l.Display(), l.Classes()
 }
