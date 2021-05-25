@@ -16,6 +16,8 @@ type Transclusion struct {
 	Selector string
 }
 
+func (t Transclusion) IsBlock() {}
+
 // TransclusionError is a value that means that the transclusion is wrong.
 const TransclusionError = "err"
 

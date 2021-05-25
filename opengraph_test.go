@@ -1,11 +1,12 @@
 package mycomarkup
 
 import (
-	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"strings"
 	"sync"
 	"testing"
 
+	"github.com/bouncepaw/mycomarkup/blocks"
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"github.com/bouncepaw/mycomarkup/parser"
 )
 
@@ -22,10 +23,10 @@ I agree ✅`
 
 func TestOpenGraphHTML(t *testing.T) {
 	var (
-		blocks   = []interface{}{}
+		ast      = []blocks.Block{}
 		ctx, _   = mycocontext.ContextFromStringInput("test", input)
 		wg       sync.WaitGroup
-		blocksCh = make(chan interface{})
+		blocksCh = make(chan blocks.Block)
 	)
 	wg.Add(1)
 	go func() {
@@ -33,11 +34,11 @@ func TestOpenGraphHTML(t *testing.T) {
 		wg.Done()
 	}()
 	for block := range blocksCh {
-		blocks = append(blocks, block)
+		ast = append(ast, block)
 	}
 	wg.Wait()
 
-	html := OpenGraphHTML(ctx, blocks)
+	html := OpenGraphHTML(ctx, ast)
 	if !strings.Contains(html, `<meta property="og:image" content="/binary/test/squish"/>`) || !strings.Contains(html, `<meta property="og:description" content="What will you give me for this simple dimple?"/>`) {
 		t.Errorf("Wrong output:\n%s\n", html)
 	}

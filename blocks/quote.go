@@ -7,6 +7,8 @@ type Quote struct {
 	contents string
 }
 
+func (q Quote) IsBlock() {}
+
 func MakeQuote(line, hyphaName string) Quote {
 	return Quote{
 		ParagraphToHtml(hyphaName, util.Remover(">")(line)),

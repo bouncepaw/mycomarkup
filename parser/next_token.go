@@ -118,7 +118,7 @@ func emptyLine(ctx mycocontext.Context) bool {
 }
 
 // Lex `line` in markup and maybe return a token.
-func nextToken(ctx mycocontext.Context) (interface{}, bool) {
+func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 	switch {
 	case emptyLine(ctx):
 		_, done := mycocontext.NextLine(ctx)

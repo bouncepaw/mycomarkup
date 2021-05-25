@@ -8,6 +8,8 @@ type List struct {
 	Marker ListMarker
 }
 
+func (l List) IsBlock() {}
+
 // ListItem is an entry in a List.
 type ListItem struct {
 	Marker ListMarker
@@ -16,8 +18,10 @@ type ListItem struct {
 	//     **.  -> Level = 2
 	Level uint
 	// Contents are Mycomarkup blocks. TODO: proper type.
-	Contents []interface{}
+	Contents []Block
 }
+
+func (l ListItem) IsBlock() {}
 
 // ListMarker is the type of a ListItem or a List.
 type ListMarker int

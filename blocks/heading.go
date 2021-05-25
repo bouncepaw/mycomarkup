@@ -10,6 +10,8 @@ type Heading struct {
 	src      string
 }
 
+func (h Heading) IsBlock() {}
+
 func MakeHeading(line, hyphaName string, level uint) Heading {
 	h := Heading{
 		Level:    level,

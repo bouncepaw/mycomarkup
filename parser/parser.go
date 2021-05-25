@@ -2,15 +2,16 @@
 package parser
 
 import (
+	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/mycocontext"
 )
 
 // Parse parses the Mycomarkup document in the given context. All parsed blocks are written to out.
 //
 // TODO: decide whether using the channel is really a good idea 🤔
-func Parse(ctx mycocontext.Context, out chan interface{}) {
+func Parse(ctx mycocontext.Context, out chan blocks.Block) {
 	var (
-		token interface{}
+		token blocks.Block
 		done  bool
 	)
 	defer close(out)

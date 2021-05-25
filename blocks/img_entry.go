@@ -16,6 +16,8 @@ type ImgEntry struct {
 	desc      strings.Builder
 }
 
+func (entry ImgEntry) IsBlock() {}
+
 func (entry *ImgEntry) Description() Formatted {
 	return MakeFormatted(entry.desc.String(), entry.hyphaName)
 }

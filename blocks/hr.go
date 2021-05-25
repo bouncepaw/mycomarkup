@@ -14,6 +14,8 @@ type HorizontalLine struct {
 	src string
 }
 
+func (h HorizontalLine) IsBlock() {}
+
 func MakeHorizontalLine(src string) HorizontalLine {
 	return HorizontalLine{
 		src: src,

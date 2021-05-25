@@ -21,6 +21,8 @@ type Table struct {
 	currCellBuilder strings.Builder
 }
 
+func (t Table) IsBlock() {}
+
 var tableRe = regexp.MustCompile(`^table\s*{`)
 
 func MatchesTable(line string) bool {
@@ -142,6 +144,8 @@ type TableRow struct {
 	Cells     []*TableCell
 }
 
+func (tr TableRow) IsBlock() {}
+
 // LooksLikeThead is true if the table row looks like it might as well be a thead row.
 //
 // Most likely, rows with more than two header cells are theads. I allow one extra datum cell for tables like this:
@@ -169,6 +173,8 @@ type TableCell struct {
 	Contents     Formatted
 	colspan      uint
 }
+
+func (tc TableCell) IsBlock() {}
 
 // ColspanAttribute returns either an empty string (if the cell doesn't have colspan) or a string in this format:
 //

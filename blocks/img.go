@@ -32,6 +32,8 @@ type Img struct {
 	state     imgState
 }
 
+func (img Img) IsBlock() {}
+
 // HasOneImage returns true if img has exactly one image and that images has no description.
 func (img *Img) HasOneImage() bool {
 	return len(img.Entries) == 1 && img.Entries[0].desc.Len() == 0

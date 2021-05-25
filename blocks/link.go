@@ -12,6 +12,8 @@ type LaunchPad struct {
 	Rockets []RocketLink
 }
 
+func (lp LaunchPad) IsBlock() {}
+
 func MakeLaunchPad() LaunchPad {
 	return LaunchPad{[]RocketLink{}}
 }
@@ -25,6 +27,8 @@ type RocketLink struct {
 	IsEmpty bool
 	links.Link
 }
+
+func (r RocketLink) IsBlock() {}
 
 func MakeRocketLink(line, hyphaName string) RocketLink {
 	line = strings.TrimSpace(line[2:])

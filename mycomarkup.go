@@ -2,16 +2,18 @@
 package mycomarkup
 
 import (
+	"sync"
+
+	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"github.com/bouncepaw/mycomarkup/parser"
-	"sync"
 )
 
 // BlockTree returns a slice of blocks parsed from the Mycomarkup document contained in ctx.
-func BlockTree(ctx mycocontext.Context) []interface{} {
+func BlockTree(ctx mycocontext.Context) []blocks.Block {
 	var (
-		tokens = make(chan interface{})
-		ast    = []interface{}{}
+		tokens = make(chan blocks.Block)
+		ast    = []blocks.Block{}
 		wg     sync.WaitGroup
 	)
 
@@ -30,6 +32,6 @@ func BlockTree(ctx mycocontext.Context) []interface{} {
 }
 
 // BlocksToHTML turns the blocks into their HTML representation.
-func BlocksToHTML(_ mycocontext.Context, blocks []interface{}) string {
+func BlocksToHTML(_ mycocontext.Context, blocks []blocks.Block) string {
 	return generateHTML(blocks, 0)
 }

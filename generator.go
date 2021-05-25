@@ -11,7 +11,7 @@ import (
 
 const maxRecursionLevel = 3
 
-func generateHTML(ast []interface{}, recursionLevel int) (html string) {
+func generateHTML(ast []blocks.Block, recursionLevel int) (html string) {
 	if recursionLevel > maxRecursionLevel {
 		return "Transclusion depth limit"
 	}
@@ -27,8 +27,6 @@ func generateHTML(ast []interface{}, recursionLevel int) (html string) {
 			html += transclusionToHTML(v, recursionLevel)
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
 			html += BlockToHTML(v)
-		case string:
-			html += v
 		default:
 			html += "<b class='error'>Unknown element.</b>"
 		}

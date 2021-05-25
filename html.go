@@ -6,7 +6,7 @@ import (
 )
 
 // BlockToHTML turns the given block into HTML. It supports only a subset of Mycomarkup.
-func BlockToHTML(block interface{}) string {
+func BlockToHTML(block blocks.Block) string {
 	switch b := block.(type) {
 	case blocks.Formatted:
 		return b.Html

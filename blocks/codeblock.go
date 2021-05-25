@@ -8,6 +8,8 @@ type CodeBlock struct {
 	contents string
 }
 
+func (cb CodeBlock) IsBlock() {}
+
 // MakeCodeBlock returns a code block with the given language and contents.
 func MakeCodeBlock(language, contents string) CodeBlock {
 	return CodeBlock{

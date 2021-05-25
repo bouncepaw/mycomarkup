@@ -14,7 +14,7 @@ import (
 var htmlTagRe = regexp.MustCompile(`<.*?>`)
 
 // OpenGraphHTML returns an html representation of og: meta tags.
-func OpenGraphHTML(ctx mycocontext.Context, ast []interface{}) string {
+func OpenGraphHTML(ctx mycocontext.Context, ast []blocks.Block) string {
 	ogImage, ogDescription := openGraphImageAndDescription(ast)
 	return strings.Join([]string{
 		ogTag("title", util.BeautifulName(ctx.HyphaName())),
@@ -28,7 +28,7 @@ func OpenGraphHTML(ctx mycocontext.Context, ast []interface{}) string {
 }
 
 // return image and description of the document for including in open graph.
-func openGraphImageAndDescription(ast []interface{}) (ogImage, ogDescription string) {
+func openGraphImageAndDescription(ast []blocks.Block) (ogImage, ogDescription string) {
 	// TODO: there should be a full URL ⤵︎
 	ogImage = "/favicon.ico"
 	foundDesc := false

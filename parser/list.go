@@ -9,7 +9,7 @@ import (
 
 // Call only if there is a list item on the line.
 func nextList(ctx mycocontext.Context) (list blocks.List, eof bool) {
-	var contents []interface{}
+	var contents []blocks.Block
 	list = blocks.List{
 		Items: make([]blocks.ListItem, 0),
 	}
@@ -83,12 +83,12 @@ walker: // Read all item's contents
 	return text, eof
 }
 
-func nextListItem(ctx mycocontext.Context) (contents []interface{}, eof bool) {
+func nextListItem(ctx mycocontext.Context) (contents []blocks.Block, eof bool) {
 	// Parse the text as a separate mycodoc
 	var (
 		text     bytes.Buffer
-		blocksCh = make(chan interface{})
-		blocks   = make([]interface{}, 0)
+		blocksCh = make(chan blocks.Block)
+		ast      = make([]blocks.Block, 0)
 		wg       sync.WaitGroup
 	)
 	text, eof = readNextListItemsContents(ctx)
@@ -99,11 +99,11 @@ func nextListItem(ctx mycocontext.Context) (contents []interface{}, eof bool) {
 		wg.Done()
 	}()
 	for block := range blocksCh {
-		blocks = append(blocks, block)
+		ast = append(ast, block)
 	}
 	wg.Wait()
 
-	return blocks, eof
+	return ast, eof
 }
 
 func looksLikeList(ctx mycocontext.Context) bool {

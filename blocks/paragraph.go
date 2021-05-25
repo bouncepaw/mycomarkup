@@ -13,6 +13,8 @@ type Paragraph struct {
 	Formatted
 }
 
+func (p Paragraph) IsBlock() {}
+
 type Formatted struct {
 	HyphaName string
 	Html      string
@@ -20,10 +22,12 @@ type Formatted struct {
 	spans []span
 }
 
+func (p Formatted) IsBlock() {}
+
 type spanTokenType int
 
 const (
-	spanTextNode = iota
+	_ = iota
 	spanItalic
 	spanBold
 	spanMono
