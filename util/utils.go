@@ -6,7 +6,7 @@ import (
 	"unicode"
 )
 
-// StringID sanitized the string and makes it more suitable for the id attribute in HTML.
+// StringID sanitizes the string and makes it more suitable for the id attribute in HTML.
 func StringID(s string) string {
 	var (
 		ret            strings.Builder
@@ -26,15 +26,21 @@ func StringID(s string) string {
 
 // BeautifulName makes the ugly name beautiful by replacing _ with spaces and using title case
 func BeautifulName(uglyName string) string {
+	// What other transformations can we apply for a better beautifying process?
 	if uglyName == "" {
 		return uglyName
 	}
 	return strings.Title(strings.ReplaceAll(uglyName, "_", " "))
 }
 
-// CanonicalName makes sure the `name` is canonical. A name is canonical if it is lowercase and all spaces are replaced with underscores.
+// CanonicalName returns the canonical form of the name. A name is canonical if it is lowercase, all left and right whitespace is trimmed and all spaces are replaced with underscores.
 func CanonicalName(name string) string {
-	return strings.ToLower(strings.ReplaceAll(name, " ", "_"))
+	return strings.ToLower(
+		strings.ReplaceAll(
+			strings.TrimRight(
+				strings.TrimLeft(name, "_"),
+				"_",
+			), " ", "_"))
 }
 
 // Remover returns a function that can strip prefix and trim whitespace when called.

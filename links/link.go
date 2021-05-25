@@ -1,3 +1,4 @@
+// Package links provides a data type for links.
 package links
 
 import (
@@ -20,7 +21,7 @@ const (
 	LinkLocalHypha
 	// LinkExternal is an external link with specified protocol.
 	LinkExternal
-	// LinkInterwiki is currently left unused.
+	// LinkInterwiki is currently left unused. In the future it will be used for interwiki links.
 	LinkInterwiki
 )
 
@@ -37,6 +38,7 @@ type Link struct {
 	kind     LinkType
 	protocol string
 	// Settable stuff
+
 	DestinationKnown bool
 }
 
@@ -127,7 +129,7 @@ func (link *Link) Classes() (classes string) {
 	return classes
 }
 
-// Href returns content for the href attrubite for hyperlink. You should always use it.
+// Href returns content for the href attrubute for hyperlink. You should always use it.
 func (link *Link) Href() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:

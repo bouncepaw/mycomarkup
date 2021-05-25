@@ -1,4 +1,3 @@
-// Package generator provides the HTML generator.
 package mycomarkup
 
 import (

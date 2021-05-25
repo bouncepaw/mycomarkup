@@ -60,7 +60,7 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int) string {
 	)
 
 	switch {
-	case globals.UseBatch:
+	case globals.CalledInShell:
 		return messageCLI
 	case xcl.Target == "":
 		return messageNoTarget

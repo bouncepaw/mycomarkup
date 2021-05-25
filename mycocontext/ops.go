@@ -2,7 +2,7 @@ package mycocontext
 
 import "strings"
 
-// EatUntilSpace reads characters until it encounters a non-space character.
+// EatUntilSpace reads characters until it encounters a non-space character. The read characters are forgotten forever.
 func EatUntilSpace(ctx Context) {
 	// We do not care what is read, therefore we drop the read line.
 	// We know that there //is// a space beforehand, therefore we drop the error.
