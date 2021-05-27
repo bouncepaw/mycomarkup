@@ -36,7 +36,11 @@ func BlockToHTML(block blocks.Block) string {
 	case blocks.CodeBlock:
 		return fmt.Sprintf("\n<pre class='codeblock'><code class='language-%s'>%s</code></pre>", b.Language(), b.Contents())
 	case blocks.Quote:
-		return fmt.Sprintf("\n<blockquote>%s</blockquote>", b.Contents())
+		var ret string
+		for _, b := range b.Contents() {
+			ret += BlockToHTML(b)
+		}
+		return fmt.Sprintf("\n<blockquote>%s\n</blockquote>", ret)
 	}
 	fmt.Printf("%q\n", block)
 	return "<b>UNKNOWN ELEMENT</b>"

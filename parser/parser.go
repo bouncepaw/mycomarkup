@@ -2,8 +2,10 @@
 package parser
 
 import (
+	"bytes"
 	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/mycocontext"
+	"sync"
 )
 
 // Parse parses the Mycomarkup document in the given context. All parsed blocks are written to out.
@@ -26,4 +28,20 @@ func Parse(ctx mycocontext.Context, out chan blocks.Block) {
 			}
 		}
 	}
+}
+
+func parseSubdocumentForEachBlock(ctx mycocontext.Context, buf *bytes.Buffer, f func(block blocks.Block)) {
+	var (
+		wg       sync.WaitGroup
+		blocksCh = make(chan blocks.Block)
+	)
+	wg.Add(1)
+	go func() {
+		Parse(mycocontext.WithBuffer(ctx, buf), blocksCh)
+		wg.Done()
+	}()
+	for block := range blocksCh {
+		f(block)
+	}
+	wg.Wait()
 }

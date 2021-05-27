@@ -1,20 +1,16 @@
 package blocks
 
-import "github.com/bouncepaw/mycomarkup/util"
-
 // Quote is the block representing a quote.
 type Quote struct {
-	contents string
+	contents []Block
 }
 
 func (q Quote) IsBlock() {}
 
-func MakeQuote(line, hyphaName string) Quote {
-	return Quote{
-		ParagraphToHtml(hyphaName, util.Remover(">")(line)),
-	}
+func (q *Quote) Contents() []Block {
+	return q.contents
 }
 
-func (q *Quote) Contents() string {
-	return q.contents
+func (q *Quote) AddBlock(block Block) {
+	q.contents = append(q.contents, block)
 }

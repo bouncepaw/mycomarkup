@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/mycocontext"
-	"sync"
 )
 
 // Call only if there is a list item on the line.
@@ -86,22 +85,14 @@ walker: // Read all item's contents
 func nextListItem(ctx mycocontext.Context) (contents []blocks.Block, eof bool) {
 	// Parse the text as a separate mycodoc
 	var (
-		text     bytes.Buffer
-		blocksCh = make(chan blocks.Block)
-		ast      = make([]blocks.Block, 0)
-		wg       sync.WaitGroup
+		text bytes.Buffer
+		ast  = make([]blocks.Block, 0)
 	)
 	text, eof = readNextListItemsContents(ctx)
 
-	wg.Add(1)
-	go func() {
-		Parse(mycocontext.WithBuffer(ctx, &text), blocksCh)
-		wg.Done()
-	}()
-	for block := range blocksCh {
+	parseSubdocumentForEachBlock(ctx, &text, func(block blocks.Block) {
 		ast = append(ast, block)
-	}
-	wg.Wait()
+	})
 
 	return ast, eof
 }

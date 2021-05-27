@@ -2,11 +2,10 @@ package parser
 
 import (
 	"bytes"
+	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"html"
 	"strings"
-
-	"github.com/bouncepaw/mycomarkup/blocks"
 )
 
 func isPrefixedBy(ctx mycocontext.Context, s string) bool { // This function has bugs in it!
@@ -93,6 +92,46 @@ func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
 	return
 }
 
+func linesForQuote(ctx mycocontext.Context) ([]string, bool) {
+	var (
+		line  string
+		lines []string
+		done  bool
+	)
+	for {
+		line, done = mycocontext.NextLine(ctx)
+		// Drop >, remove spaces, save this line
+		lines = append(lines, strings.TrimSpace(line[1:]))
+
+		// If the next line is not part of the same quote, we break.
+		if !isPrefixedBy(ctx, ">") {
+			break
+		}
+	}
+	return lines, done
+}
+
+func nextQuote(ctx mycocontext.Context) (blocks.Quote, bool) {
+	var (
+		quote       = blocks.Quote{}
+		lines, done = linesForQuote(ctx)
+		innerText   bytes.Buffer
+	)
+
+	for i, line := range lines {
+		if i > 0 {
+			innerText.WriteRune('\n')
+		}
+		innerText.WriteString(line)
+	}
+
+	parseSubdocumentForEachBlock(ctx, &innerText, func(block blocks.Block) {
+		quote.AddBlock(block)
+	})
+
+	return quote, done
+}
+
 func nextLineIsSomething(ctx mycocontext.Context) bool {
 	prefices := []string{"=>", "<=", "```", "* ", "*. ", "*v ", "*x ", "# ", "## ", "### ", "#### ", "##### ", "###### ", ">", "----"}
 	for _, prefix := range prefices {
@@ -117,7 +156,6 @@ func emptyLine(ctx mycocontext.Context) bool {
 	return false
 }
 
-// Lex `line` in markup and maybe return a token.
 func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 	switch {
 	case emptyLine(ctx):
@@ -130,6 +168,8 @@ func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 		return nextCodeBlock(ctx)
 	case isPrefixedBy(ctx, "=>"):
 		return nextLaunchPad(ctx)
+	case isPrefixedBy(ctx, ">"):
+		return nextQuote(ctx)
 	case isPrefixedBy(ctx, "<="):
 		line, done := mycocontext.NextLine(ctx)
 		return blocks.MakeTransclusion(line, ctx.HyphaName()), done
@@ -156,9 +196,6 @@ func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 		line, done := mycocontext.NextLine(ctx)
 		return blocks.MakeHeading(line, ctx.HyphaName(), 1), done
 
-	case isPrefixedBy(ctx, ">"): // TODO: implement proper fractal quotes
-		line, done := mycocontext.NextLine(ctx)
-		return blocks.MakeQuote(line, ctx.HyphaName()), done
 	case blocks.MatchesImg(ctx.Input().String()):
 		return nextImg(ctx)
 	case blocks.MatchesTable(ctx.Input().String()):
