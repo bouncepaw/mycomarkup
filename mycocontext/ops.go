@@ -21,6 +21,18 @@ func NextByte(ctx Context) (b byte, done bool) {
 	return b, false
 }
 
+// NextRune is like NextByte, but for runes.
+func NextRune(ctx Context) (r rune, done bool) {
+	r, _, err := ctx.Input().ReadRune()
+	if err != nil {
+		return '\n', true
+	}
+	if r == '\r' {
+		return NextRune(ctx)
+	}
+	return r, false
+}
+
 // NextLine returns the text in the inputFrom up to the next newline. The characters are gotten using nextByte.
 func NextLine(ctx Context) (line string, done bool) {
 	var (

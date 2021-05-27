@@ -28,7 +28,7 @@ func nextLaunchPad(ctx mycocontext.Context) (blocks.LaunchPad, bool) {
 }
 
 func nextImg(ctx mycocontext.Context) (img blocks.Img, done bool) {
-	var b byte
+	var r rune
 	line, done := mycocontext.NextLine(ctx)
 	img, imgDone := blocks.MakeImg(line, ctx.HyphaName())
 	if imgDone {
@@ -36,8 +36,8 @@ func nextImg(ctx mycocontext.Context) (img blocks.Img, done bool) {
 	}
 
 	for !imgDone {
-		b, done = mycocontext.NextByte(ctx)
-		imgDone = img.ProcessRune(rune(b))
+		r, done = mycocontext.NextRune(ctx)
+		imgDone = img.ProcessRune(r)
 	}
 
 	defer mycocontext.NextLine(ctx) // Characters after the final } of img are ignored.
