@@ -133,9 +133,9 @@ func ParagraphToHtml(hyphaName, input string) string {
 		case startsWith("`"):
 			ret.WriteString(tagFromState(spanMono, tagState, "code", "`"))
 			p.Next(1)
-		case startsWith("^"):
-			ret.WriteString(tagFromState(spanSuper, tagState, "sup", "^"))
-			p.Next(1)
+		case startsWith("^^"):
+			ret.WriteString(tagFromState(spanSuper, tagState, "sup", "^^"))
+			p.Next(2)
 		case startsWith(",,"):
 			ret.WriteString(tagFromState(spanSub, tagState, "sub", ",,"))
 			p.Next(2)
@@ -164,7 +164,7 @@ func ParagraphToHtml(hyphaName, input string) string {
 			case spanMono:
 				ret.WriteString(tagFromState(spanMono, tagState, "code", "`"))
 			case spanSuper:
-				ret.WriteString(tagFromState(spanSuper, tagState, "sup", "^"))
+				ret.WriteString(tagFromState(spanSuper, tagState, "sup", "^^"))
 			case spanSub:
 				ret.WriteString(tagFromState(spanSub, tagState, "sub", ",,"))
 			case spanMark:
