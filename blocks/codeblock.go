@@ -1,11 +1,19 @@
 package blocks
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // CodeBlock represents a block of preformatted text.
 type CodeBlock struct {
 	language string
 	contents string
+}
+
+func (cb CodeBlock) ID(counter *IDCounter) string {
+	counter.codeblocks++
+	return fmt.Sprintf("codeblock-%d", counter.codeblocks)
 }
 
 func (cb CodeBlock) IsBlock() {}

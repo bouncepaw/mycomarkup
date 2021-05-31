@@ -1,6 +1,7 @@
 package blocks
 
 import (
+	"fmt"
 	"github.com/bouncepaw/mycomarkup/links"
 	"strings"
 
@@ -14,6 +15,11 @@ type Transclusion struct {
 
 	// Selector specifies what parts of the hypha to transclude.
 	Selector string
+}
+
+func (t Transclusion) ID(counter *IDCounter) string {
+	counter.transclusions++
+	return fmt.Sprintf("transclusion-%d", counter.transclusions)
 }
 
 func (t Transclusion) IsBlock() {}
@@ -39,12 +45,4 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 		Target:   links.From(strings.TrimSpace(line), "", hyphaName).Address(),
 		Selector: "",
 	}
-}
-
-func (t *Transclusion) String() string {
-	panic("implement me")
-}
-
-func (t *Transclusion) ID() string {
-	panic("implement me")
 }

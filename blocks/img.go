@@ -34,6 +34,11 @@ type Img struct {
 
 func (img Img) IsBlock() {}
 
+func (img Img) ID(counter *IDCounter) string {
+	counter.imgs++
+	return fmt.Sprintf("img-%d", counter.imgs)
+}
+
 // HasOneImage returns true if img has exactly one image and that images has no description.
 func (img *Img) HasOneImage() bool {
 	return len(img.Entries) == 1 && img.Entries[0].desc.Len() == 0

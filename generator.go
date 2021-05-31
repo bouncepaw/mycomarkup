@@ -26,7 +26,7 @@ func generateHTML(ast []blocks.Block, recursionLevel int) (html string) {
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel)
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
-			html += BlockToHTML(v)
+			html += BlockToHTML(v, &blocks.IDCounter{})
 		default:
 			html += "<b class='error'>Unknown element.</b>"
 		}

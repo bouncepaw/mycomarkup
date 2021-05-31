@@ -16,6 +16,10 @@ type ImgEntry struct {
 	desc      strings.Builder
 }
 
+func (entry ImgEntry) ID(_ *IDCounter) string {
+	return ""
+}
+
 func (entry ImgEntry) IsBlock() {}
 
 func (entry *ImgEntry) Description() Formatted {

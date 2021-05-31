@@ -37,7 +37,7 @@ func openGraphImageAndDescription(ast []blocks.Block) (ogImage, ogDescription st
 		switch v := block.(type) {
 		case blocks.Paragraph:
 			if !foundDesc {
-				ogDescription = strings.TrimSpace(htmlTagRe.ReplaceAllString(BlockToHTML(v), ""))
+				ogDescription = strings.TrimSpace(htmlTagRe.ReplaceAllString(BlockToHTML(v, &blocks.IDCounter{}), ""))
 				foundDesc = true
 			}
 		case blocks.Img:

@@ -21,6 +21,11 @@ type Table struct {
 	currCellBuilder strings.Builder
 }
 
+func (t Table) ID(counter *IDCounter) string {
+	counter.tables++
+	return fmt.Sprintf("table-%d", counter.tables)
+}
+
 func (t Table) IsBlock() {}
 
 var tableRe = regexp.MustCompile(`^table\s*{`)
@@ -144,6 +149,10 @@ type TableRow struct {
 	Cells     []*TableCell
 }
 
+func (tr TableRow) ID(_ *IDCounter) string {
+	return ""
+}
+
 func (tr TableRow) IsBlock() {}
 
 // LooksLikeThead is true if the table row looks like it might as well be a thead row.
@@ -172,6 +181,10 @@ type TableCell struct {
 	IsHeaderCell bool
 	Contents     Formatted
 	colspan      uint
+}
+
+func (tc TableCell) ID(_ *IDCounter) string {
+	return ""
 }
 
 func (tc TableCell) IsBlock() {}

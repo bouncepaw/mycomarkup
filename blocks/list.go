@@ -1,11 +1,18 @@
 package blocks
 
+import "fmt"
+
 // List is the block representing a set of related elements. It must be the same as all ListItem.Marker.
 type List struct {
 	// Items are the entries of the List. There should be at least one.
 	Items []ListItem
 	// Marker is the type of the list. All entries have the same type. See SameAs for information about same types.
 	Marker ListMarker
+}
+
+func (l List) ID(counter *IDCounter) string {
+	counter.lists++
+	return fmt.Sprintf("list-%d", counter.lists)
 }
 
 func (l List) IsBlock() {}
@@ -22,6 +29,10 @@ type ListItem struct {
 }
 
 func (l ListItem) IsBlock() {}
+
+func (l ListItem) ID(_ *IDCounter) string {
+	return ""
+}
 
 // ListMarker is the type of a ListItem or a List.
 type ListMarker int

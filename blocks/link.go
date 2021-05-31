@@ -1,6 +1,7 @@
 package blocks
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/globals"
@@ -10,6 +11,11 @@ import (
 // LaunchPad is a container for RocketLinks.
 type LaunchPad struct {
 	Rockets []RocketLink
+}
+
+func (lp LaunchPad) ID(counter *IDCounter) string {
+	counter.launchpads++
+	return fmt.Sprintf("rocket-%d", counter.launchpads)
 }
 
 func (lp LaunchPad) IsBlock() {}
@@ -29,6 +35,10 @@ type RocketLink struct {
 }
 
 func (r RocketLink) IsBlock() {}
+
+func (r RocketLink) ID(_ *IDCounter) string {
+	return ""
+}
 
 func MakeRocketLink(line, hyphaName string) RocketLink {
 	line = strings.TrimSpace(line[2:])

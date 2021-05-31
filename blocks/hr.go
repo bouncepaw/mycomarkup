@@ -2,7 +2,6 @@ package blocks
 
 import (
 	"fmt"
-
 	"github.com/bouncepaw/mycomarkup/util"
 )
 
@@ -22,13 +21,10 @@ func MakeHorizontalLine(src string) HorizontalLine {
 	}
 }
 
-func (h *HorizontalLine) String() string {
-	return fmt.Sprintf(`HorizontalLine#%s;`, h.ID())
-}
-
-func (h *HorizontalLine) ID() string {
+func (h HorizontalLine) ID(counter *IDCounter) string {
+	counter.hrs++
 	if len(h.src) > 4 {
 		return util.StringID(h.src[4:])
 	}
-	return ""
+	return fmt.Sprintf("hr-%d", counter.hrs)
 }

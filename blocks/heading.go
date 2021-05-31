@@ -25,6 +25,6 @@ func (h *Heading) Contents() Formatted {
 	return h.contents
 }
 
-func (h *Heading) ID() string {
+func (h Heading) ID(_ *IDCounter) string {
 	return util.StringID(h.src[h.Level+1:])
 }

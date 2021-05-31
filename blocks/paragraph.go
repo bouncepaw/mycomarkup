@@ -13,7 +13,10 @@ type Paragraph struct {
 	Formatted
 }
 
-func (p Paragraph) IsBlock() {}
+func (p Paragraph) ID(counter *IDCounter) string {
+	counter.paragraphs++
+	return fmt.Sprintf("paragraph-%d", counter.paragraphs)
+}
 
 type Formatted struct {
 	HyphaName string
@@ -23,6 +26,10 @@ type Formatted struct {
 }
 
 func (p Formatted) IsBlock() {}
+
+func (p Formatted) ID(_ *IDCounter) string {
+	return ""
+}
 
 type spanTokenType int
 
