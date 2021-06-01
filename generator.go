@@ -11,7 +11,7 @@ import (
 
 const maxRecursionLevel = 3
 
-func generateHTML(ast []blocks.Block, recursionLevel int) (html string) {
+func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCounter) (html string) {
 	if recursionLevel > maxRecursionLevel {
 		return "Transclusion depth limit"
 	}
@@ -20,13 +20,13 @@ func generateHTML(ast []blocks.Block, recursionLevel int) (html string) {
 		case blocks.List:
 			var ret string
 			for _, item := range v.Items {
-				ret += fmt.Sprintf(markerToTemplate(item.Marker), generateHTML(item.Contents, recursionLevel))
+				ret += fmt.Sprintf(markerToTemplate(item.Marker), generateHTML(item.Contents, recursionLevel, counter.UnusableCopy()))
 			}
-			html += fmt.Sprintf(listToTemplate(v), ret)
+			html += fmt.Sprintf(listToTemplate(v), ret, idAttribute(v, counter))
 		case blocks.Transclusion:
-			html += transclusionToHTML(v, recursionLevel)
+			html += transclusionToHTML(v, recursionLevel, counter.UnusableCopy())
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
-			html += BlockToHTML(v, &blocks.IDCounter{})
+			html += BlockToHTML(v, counter)
 		default:
 			html += "<b class='error'>Unknown element.</b>"
 		}
@@ -34,7 +34,7 @@ func generateHTML(ast []blocks.Block, recursionLevel int) (html string) {
 	return html
 }
 
-func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int) string {
+func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *blocks.IDCounter) string {
 	var (
 		messageBase = `
 <section class="transclusion transclusion_%s">
@@ -74,7 +74,7 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int) string {
 	}
 	ctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText)
 	ast := BlockTree(ctx)
-	xclText := generateHTML(ast, recursionLevel+1)
+	xclText := generateHTML(ast, recursionLevel+1, counter)
 	return fmt.Sprintf(messageOK, xcl.Target, binaryHtml+xclText)
 }
 
@@ -82,10 +82,10 @@ func listToTemplate(list blocks.List) string {
 	switch list.Marker {
 	case blocks.MarkerOrdered:
 		return `
-<ol>%s</ol>`
+<ol%s>%s</ol>`
 	default:
 		return `
-<ul>%s</ul>`
+<ul%s>%s</ul>`
 	}
 }
 

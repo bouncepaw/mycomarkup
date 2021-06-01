@@ -11,13 +11,21 @@ type Block interface {
 }
 
 type IDCounter struct {
-	codeblocks    uint
-	hrs           uint
-	imgs          uint
-	launchpads    uint
-	lists         uint
-	paragraphs    uint
-	quotes        uint
-	tables        uint
-	transclusions uint
+	// In some cases using the results of counting is not needed because the IDs are not needed themselves. This variable is true when this is the case.
+	ShouldUseResults bool
+	codeblocks       uint
+	hrs              uint
+	imgs             uint
+	launchpads       uint
+	lists            uint
+	paragraphs       uint
+	quotes           uint
+	tables           uint
+	transclusions    uint
+}
+
+func (c IDCounter) UnusableCopy() *IDCounter {
+	copiedCounter := c
+	copiedCounter.ShouldUseResults = false
+	return &copiedCounter
 }

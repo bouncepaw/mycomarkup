@@ -11,7 +11,7 @@ func (q Quote) IsBlock() {}
 
 func (q Quote) ID(counter *IDCounter) string {
 	counter.quotes++
-	return fmt.Sprintf("quote-%d")
+	return fmt.Sprintf("quote-%d", counter.quotes)
 }
 
 func (q *Quote) Contents() []Block {

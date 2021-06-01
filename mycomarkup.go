@@ -32,6 +32,9 @@ func BlockTree(ctx mycocontext.Context) []blocks.Block {
 }
 
 // BlocksToHTML turns the blocks into their HTML representation.
-func BlocksToHTML(_ mycocontext.Context, blocks []blocks.Block) string {
-	return generateHTML(blocks, 0)
+func BlocksToHTML(_ mycocontext.Context, ast []blocks.Block) string {
+	counter := &blocks.IDCounter{
+		ShouldUseResults: true,
+	}
+	return generateHTML(ast, 0, counter)
 }

@@ -11,9 +11,9 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 	case blocks.Formatted:
 		return b.Html
 	case blocks.Paragraph:
-		return fmt.Sprintf("\n<p>%s</p>", b.Html)
+		return fmt.Sprintf("\n<p%s>%s</p>", idAttribute(b, counter), b.Html)
 	case blocks.HorizontalLine:
-		return fmt.Sprintf(`<hr id="%s"/>`, b.ID(counter))
+		return fmt.Sprintf(`<hr id="%s"/>`, idAttribute(b, counter))
 	case blocks.Img:
 		return imgToHTML(b, counter)
 	case blocks.ImgEntry:
@@ -22,11 +22,11 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 		return launchpadToHTML(b, counter)
 	case blocks.RocketLink:
 		return fmt.Sprintf(`
-	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), b.Display()) // FIXME: there seems to be a bug, run test1
+	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), b.Display())
 	case blocks.Heading:
 		return fmt.Sprintf(`
-<h%[1]d>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
-`, b.Level, BlockToHTML(b.Contents(), counter), b.ID(counter))
+<h%[1]d%[4]s>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
+`, b.Level, BlockToHTML(b.Contents(), counter), b.ID(counter), idAttribute(b, counter))
 	case blocks.Table:
 		return tableToHTML(b, counter)
 	case blocks.TableRow:
@@ -34,16 +34,25 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 	case blocks.TableCell:
 		return tableCellToHTML(b, counter)
 	case blocks.CodeBlock:
-		return fmt.Sprintf("\n<pre class='codeblock'><code class='language-%s'>%s</code></pre>", b.Language(), b.Contents())
+		return fmt.Sprintf("\n<pre class='codeblock'%s><code class='language-%s'>%s</code></pre>", idAttribute(b, counter), b.Language(), b.Contents())
 	case blocks.Quote:
 		var ret string
 		for _, b := range b.Contents() {
 			ret += BlockToHTML(b, counter)
 		}
-		return fmt.Sprintf("\n<blockquote>%s\n</blockquote>", ret)
+		return fmt.Sprintf("\n<blockquote%s>%s\n</blockquote>", idAttribute(b, counter.UnusableCopy()), ret)
 	}
 	fmt.Printf("%q\n", block)
 	return "<b>UNKNOWN ELEMENT</b>"
+}
+
+func idAttribute(b blocks.Block, counter *blocks.IDCounter) string {
+	switch id := b.ID(counter); {
+	case !counter.ShouldUseResults, id == "":
+		return ""
+	default:
+		return fmt.Sprintf(` id="%s"`, id)
+	}
 }
 
 func tableCellToHTML(tc blocks.TableCell, counter *blocks.IDCounter) string {
@@ -77,7 +86,7 @@ func tableToHTML(t blocks.Table, counter *blocks.IDCounter) string {
 		ret += BlockToHTML(*tr, counter)
 	}
 	return fmt.Sprintf(`
-<table>%s</tbody></table>`, ret)
+<table%s>%s</tbody></table>`, idAttribute(t, counter), ret)
 }
 
 func launchpadToHTML(lp blocks.LaunchPad, counter *blocks.IDCounter) string {
@@ -85,8 +94,8 @@ func launchpadToHTML(lp blocks.LaunchPad, counter *blocks.IDCounter) string {
 	for _, rocket := range lp.Rockets {
 		ret += BlockToHTML(rocket, counter)
 	}
-	return fmt.Sprintf(`<ul class="launchpad">%s
-</ul>`, ret)
+	return fmt.Sprintf(`<ul class="launchpad"%s>%s
+</ul>`, idAttribute(lp, counter), ret)
 }
 
 func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
@@ -118,7 +127,7 @@ func imgToHTML(img blocks.Img, counter *blocks.IDCounter) string {
 	for _, entry := range img.Entries {
 		ret += BlockToHTML(entry, counter)
 	}
-	return fmt.Sprintf(`<section class="img-gallery %s">
+	return fmt.Sprintf(`<section class="img-gallery %s"%s>
 %s</section>`,
 		func() string {
 			if img.HasOneImage() {
@@ -126,5 +135,6 @@ func imgToHTML(img blocks.Img, counter *blocks.IDCounter) string {
 			}
 			return "img-gallery_many-images"
 		}(),
+		idAttribute(img, counter),
 		ret)
 }
