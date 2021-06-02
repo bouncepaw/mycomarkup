@@ -147,13 +147,13 @@ func emptyLine(ctx mycocontext.Context) bool {
 		switch b {
 		case '\n':
 			return true
-		case '\t', ' ':
+		case '\t', ' ', '\r':
 			continue
 		default:
 			return false
 		}
 	}
-	return false
+	return true
 }
 
 func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
