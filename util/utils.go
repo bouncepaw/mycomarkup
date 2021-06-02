@@ -49,3 +49,11 @@ func Remover(prefix string) func(string) string {
 		return strings.TrimSpace(strings.TrimPrefix(l, prefix))
 	}
 }
+
+// DefaultString returns d if s is an empty string, s otherwise.
+func DefaultString(s, d string) string {
+	if s == "" {
+		return d
+	}
+	return s
+}

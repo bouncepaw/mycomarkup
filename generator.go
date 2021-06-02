@@ -46,7 +46,7 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 			`<p>Transclusion target not specified</p>`)
 		messageOldSyntax = fmt.Sprintf(messageBase, "failed",
 			`<p>This transclusion is using the old syntax. Please update it to the new one</p>`)
-		messageGenericError = fmt.Sprintf(messageBase, "failed",
+		_ = fmt.Sprintf(messageBase, "failed",
 			`<p>An error occured while transcluding</p>`)
 		messageNotExists = `<section class="transclusion transclusion_failed">
 	<p class="error">Hypha <a class="wikilink wikilink_new" href="/hypha/%[1]s">%[1]s</a> does not exist</p>
@@ -64,8 +64,6 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 		return messageNoTarget
 	case strings.Contains(xcl.Target, ":"):
 		return messageOldSyntax
-	case xcl.Selector == blocks.TransclusionError:
-		return messageGenericError
 	}
 
 	rawText, binaryHtml, err := globals.HyphaAccess(xcl.Target)
