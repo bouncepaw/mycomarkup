@@ -22,7 +22,7 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 			for _, item := range v.Items {
 				ret += fmt.Sprintf(markerToTemplate(item.Marker), generateHTML(item.Contents, recursionLevel, counter.UnusableCopy()))
 			}
-			html += fmt.Sprintf(listToTemplate(v), ret, idAttribute(v, counter))
+			html += fmt.Sprintf(listToTemplate(v), idAttribute(v, counter), ret)
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel, counter.UnusableCopy())
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
