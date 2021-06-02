@@ -2,7 +2,7 @@ package mycocontext
 
 import "testing"
 
-const input = "a\r\nsamantha\n"
+const input = "a\r\nsamantha\n\r\n"
 
 func TestNextByte(t *testing.T) {
 	var ctx, _ = ContextFromStringInput("🐙", input)
@@ -21,8 +21,18 @@ func TestNextByte(t *testing.T) {
 func TestNextLine(t *testing.T) {
 	var ctx, _ = ContextFromStringInput("🐙", input)
 
-	line, _ := NextLine(ctx)
-	if line != "a" {
-		t.Errorf("Expected a, got %q\n", line)
+	line1, _ := NextLine(ctx)
+	if line1 != "a" {
+		t.Errorf("Expected a, got %q\n", line1)
+	}
+
+	line2, _ := NextLine(ctx)
+	if line2 != "samantha" {
+		t.Errorf("Expected samantha, got %q\n", line2)
+	}
+
+	line3, _ := NextLine(ctx)
+	if line3 != "" {
+		t.Errorf("Expected empty line, got %q\n", line3)
 	}
 }

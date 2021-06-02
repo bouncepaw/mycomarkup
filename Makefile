@@ -19,7 +19,7 @@ test_list_examples: build
 test_quotes: build
 	./mycomarkup -hypha-name "test doc" -filename "testdata/test_quotes.myco"
 
-test_p_and_blank:
+test_p_and_blank: build
 	./mycomarkup -hypha-name "test doc" -filename "testdata/test_p_and_blank.myco"
 
 generate:
