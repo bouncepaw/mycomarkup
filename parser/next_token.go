@@ -61,18 +61,6 @@ func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, done bool) {
 	}
 }
 
-func nextTable(ctx mycocontext.Context) (t blocks.Table, done bool) {
-	line, done := mycocontext.NextLine(ctx)
-	t = blocks.TableFromFirstLine(line, ctx.HyphaName())
-	for {
-		line, done = mycocontext.NextLine(ctx)
-		if t.ProcessLine(line) {
-			break
-		}
-	}
-	return t, done
-}
-
 func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
 	line, done := mycocontext.NextLine(ctx)
 	p = blocks.Paragraph{blocks.MakeFormatted(line, ctx.HyphaName())}
@@ -139,7 +127,7 @@ func nextLineIsSomething(ctx mycocontext.Context) bool {
 			return true
 		}
 	}
-	return emptyLine(ctx) || blocks.MatchesImg(ctx.Input().String()) || blocks.MatchesTable(ctx.Input().String())
+	return emptyLine(ctx) || blocks.MatchesImg(ctx.Input().String()) || matchesTable(ctx)
 }
 
 func emptyLine(ctx mycocontext.Context) bool {
@@ -198,7 +186,7 @@ func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 
 	case blocks.MatchesImg(ctx.Input().String()):
 		return nextImg(ctx)
-	case blocks.MatchesTable(ctx.Input().String()):
+	case matchesTable(ctx):
 		return nextTable(ctx)
 	}
 	return nextParagraph(ctx)

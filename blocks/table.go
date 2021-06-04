@@ -2,9 +2,7 @@ package blocks
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
-	"unicode"
 )
 
 // Table is a table, which consists of several Rows and has a Caption.
@@ -14,11 +12,11 @@ type Table struct {
 	Caption   string
 	Rows      []*TableRow
 	// state
-	inMultiline bool
+	InMultiline bool
 	// tmp
-	currCellMarker  rune
-	currColspan     uint
-	currCellBuilder strings.Builder
+	CurrCellMarker  rune
+	CurrColspan     uint
+	CurrCellBuilder strings.Builder
 }
 
 func (t Table) ID(counter *IDCounter) string {
@@ -27,124 +25,6 @@ func (t Table) ID(counter *IDCounter) string {
 }
 
 func (t Table) IsBlock() {}
-
-var tableRe = regexp.MustCompile(`^table\s*{`)
-
-func MatchesTable(line string) bool {
-	return tableRe.MatchString(line)
-}
-
-func TableFromFirstLine(line, hyphaName string) Table {
-	return Table{
-		HyphaName: hyphaName,
-		Caption:   line[strings.IndexRune(line, '{')+1:],
-		Rows:      make([]*TableRow, 0),
-	}
-}
-
-type tableParserState struct {
-	skipNext           bool
-	escaping           bool
-	lookingForNonSpace bool
-	countingColspan    bool
-}
-
-func initialTableParserState() *tableParserState {
-	return &tableParserState{
-		skipNext:           false,
-		escaping:           false,
-		lookingForNonSpace: false,
-		countingColspan:    false,
-	}
-}
-
-func parseTableRune(t *Table, s *tableParserState, r rune) (done bool) {
-	switch {
-	case s.skipNext:
-		s.skipNext = false
-
-	case s.lookingForNonSpace && unicode.IsSpace(r):
-	case s.lookingForNonSpace && (r == '!' || r == '|'):
-		t.currCellMarker = r
-		t.currColspan = 1
-		s.lookingForNonSpace = false
-		s.countingColspan = true
-	case s.lookingForNonSpace:
-		t.currCellMarker = '^' // ^ represents implicit |, not part of syntax
-		t.currColspan = 1
-		s.lookingForNonSpace = false
-		t.currCellBuilder.WriteRune(r)
-
-	case s.escaping:
-		t.currCellBuilder.WriteRune(r)
-
-	case t.inMultiline && r == '}':
-		t.inMultiline = false
-	case t.inMultiline && r == '\n':
-		t.currCellBuilder.WriteRune(r)
-		t.currCellBuilder.WriteRune('\n')
-	case t.inMultiline:
-		t.currCellBuilder.WriteRune(r)
-
-		// Not in multiline:
-	case (r == '|' || r == '!') && !s.countingColspan:
-		t.pushCell()
-		t.currCellMarker = r
-		t.currColspan = 1
-		s.countingColspan = true
-	case r == t.currCellMarker && (r == '|' || r == '!') && s.countingColspan:
-		t.currColspan++
-	case r == '{':
-		t.inMultiline = true
-		s.countingColspan = false
-	case r == '\n':
-		t.pushCell()
-	default:
-		t.currCellBuilder.WriteRune(r)
-		s.countingColspan = false
-	}
-	return false
-}
-
-func (t *Table) ProcessLine(line string) (done bool) {
-	if strings.TrimSpace(line) == "}" && !t.inMultiline {
-		return true
-	}
-	if !t.inMultiline {
-		t.pushRow()
-	}
-	s := initialTableParserState()
-	s.lookingForNonSpace = !t.inMultiline
-	for _, r := range line {
-		parseTableRune(t, s, r)
-	}
-	parseTableRune(t, s, '\n')
-	return false
-}
-
-func (t *Table) pushRow() {
-	t.Rows = append(t.Rows, &TableRow{
-		HyphaName: t.HyphaName,
-		Cells:     []*TableCell{},
-	})
-}
-
-func (t *Table) pushCell() {
-	tc := &TableCell{
-		Contents: MakeFormatted(t.currCellBuilder.String(), t.HyphaName),
-		colspan:  t.currColspan,
-	}
-	switch t.currCellMarker {
-	case '|', '^':
-		tc.IsHeaderCell = false
-	case '!':
-		tc.IsHeaderCell = true
-	}
-	// We expect the table to have at least one row ready, so no nil-checking
-	tr := t.Rows[len(t.Rows)-1]
-	tr.Cells = append(tr.Cells, tc)
-	t.currCellBuilder = strings.Builder{}
-}
 
 // TableRow is a row in a table. Thus, it can only be nested inside a table.
 type TableRow struct {
@@ -183,7 +63,7 @@ func (tr *TableRow) LooksLikeThead() bool {
 type TableCell struct {
 	IsHeaderCell bool
 	Contents     Formatted
-	colspan      uint
+	Colspan      uint
 }
 
 func (tc TableCell) ID(_ *IDCounter) string {
@@ -196,10 +76,10 @@ func (tc TableCell) IsBlock() {}
 //
 //     colspan="<number here>"
 func (tc *TableCell) ColspanAttribute() string {
-	if tc.colspan <= 1 {
+	if tc.Colspan <= 1 {
 		return ""
 	}
-	return fmt.Sprintf(` colspan="%d"`, tc.colspan)
+	return fmt.Sprintf(` colspan="%d"`, tc.Colspan)
 }
 
 // TagName returns "th" if the cell is a header cell, "td" elsewise.
