@@ -20,6 +20,22 @@ func nextTable(ctx mycocontext.Context) (t blocks.Table, done bool) {
 	return t, done
 }
 
+func processTableLine(t *blocks.Table, line string) (done bool) {
+	if strings.HasPrefix(strings.TrimLeft(line, " \t"), "}") && !t.InMultiline {
+		return true
+	}
+	if !t.InMultiline {
+		pushTableRow(t)
+	}
+	s := initialTableParserState()
+	s.lookingForNonSpace = !t.InMultiline
+	for _, r := range line {
+		parseTableRune(t, s, r)
+	}
+	parseTableRune(t, s, '\n')
+	return false
+}
+
 var tableRe = regexp.MustCompile(`^table\s*{`)
 
 func matchesTable(ctx mycocontext.Context) bool {
@@ -95,22 +111,6 @@ func parseTableRune(t *blocks.Table, s *tableParserState, r rune) (done bool) {
 		t.CurrCellBuilder.WriteRune(r)
 		s.countingColspan = false
 	}
-	return false
-}
-
-func processTableLine(t *blocks.Table, line string) (done bool) {
-	if strings.TrimSpace(line) == "}" && !t.InMultiline {
-		return true
-	}
-	if !t.InMultiline {
-		pushTableRow(t)
-	}
-	s := initialTableParserState()
-	s.lookingForNonSpace = !t.InMultiline
-	for _, r := range line {
-		parseTableRune(t, s, r)
-	}
-	parseTableRune(t, s, '\n')
 	return false
 }
 
