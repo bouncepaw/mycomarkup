@@ -22,6 +22,10 @@ test_quotes: build
 test_p_and_blank: build
 	./mycomarkup -hypha-name "test doc" -filename "testdata/test_p_and_blank.myco"
 
+test_tables: build
+	./mycomarkup -hypha-name "test doc" -filename "testdata/tables.myco"
+
+
 generate:
 	# stringer -type=TokenKind -trimprefix Token ./parser
 

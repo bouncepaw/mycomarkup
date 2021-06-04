@@ -42,6 +42,70 @@ func TableFromFirstLine(line, hyphaName string) Table {
 	}
 }
 
+type tableParserState struct {
+	skipNext           bool
+	escaping           bool
+	lookingForNonSpace bool
+	countingColspan    bool
+}
+
+func initialTableParserState() *tableParserState {
+	return &tableParserState{
+		skipNext:           false,
+		escaping:           false,
+		lookingForNonSpace: false,
+		countingColspan:    false,
+	}
+}
+
+func parseTableRune(t *Table, s *tableParserState, r rune) (done bool) {
+	switch {
+	case s.skipNext:
+		s.skipNext = false
+
+	case s.lookingForNonSpace && unicode.IsSpace(r):
+	case s.lookingForNonSpace && (r == '!' || r == '|'):
+		t.currCellMarker = r
+		t.currColspan = 1
+		s.lookingForNonSpace = false
+		s.countingColspan = true
+	case s.lookingForNonSpace:
+		t.currCellMarker = '^' // ^ represents implicit |, not part of syntax
+		t.currColspan = 1
+		s.lookingForNonSpace = false
+		t.currCellBuilder.WriteRune(r)
+
+	case s.escaping:
+		t.currCellBuilder.WriteRune(r)
+
+	case t.inMultiline && r == '}':
+		t.inMultiline = false
+	case t.inMultiline && r == '\n':
+		t.currCellBuilder.WriteRune(r)
+		t.currCellBuilder.WriteRune('\n')
+	case t.inMultiline:
+		t.currCellBuilder.WriteRune(r)
+
+		// Not in multiline:
+	case (r == '|' || r == '!') && !s.countingColspan:
+		t.pushCell()
+		t.currCellMarker = r
+		t.currColspan = 1
+		s.countingColspan = true
+	case r == t.currCellMarker && (r == '|' || r == '!') && s.countingColspan:
+		t.currColspan++
+	case r == '{':
+		t.inMultiline = true
+		s.countingColspan = false
+	case r == '\n':
+		t.pushCell()
+	default:
+		t.currCellBuilder.WriteRune(r)
+		s.countingColspan = false
+	}
+	return false
+}
+
 func (t *Table) ProcessLine(line string) (done bool) {
 	if strings.TrimSpace(line) == "}" && !t.inMultiline {
 		return true
@@ -49,73 +113,12 @@ func (t *Table) ProcessLine(line string) (done bool) {
 	if !t.inMultiline {
 		t.pushRow()
 	}
-	var (
-		inLink             bool
-		skipNext           bool
-		escaping           bool
-		lookingForNonSpace = !t.inMultiline
-		countingColspan    bool
-	)
-	for i, r := range line {
-		switch {
-		case r == '\r':
-			continue
-		case skipNext:
-			skipNext = false
-			continue
-
-		case lookingForNonSpace && unicode.IsSpace(r):
-		case lookingForNonSpace && (r == '!' || r == '|'):
-			t.currCellMarker = r
-			t.currColspan = 1
-			lookingForNonSpace = false
-			countingColspan = true
-		case lookingForNonSpace:
-			t.currCellMarker = '^' // ^ represents implicit |, not part of syntax
-			t.currColspan = 1
-			lookingForNonSpace = false
-			t.currCellBuilder.WriteRune(r)
-
-		case escaping:
-			t.currCellBuilder.WriteRune(r)
-		case inLink && r == ']' && len(line)-1 > i && line[i+1] == ']':
-			t.currCellBuilder.WriteString("]]")
-			inLink = false
-			skipNext = true
-		case inLink:
-			t.currCellBuilder.WriteRune(r)
-
-		case t.inMultiline && r == '}':
-			t.inMultiline = false
-		case t.inMultiline && i == len(line)-1:
-			t.currCellBuilder.WriteRune(r)
-			t.currCellBuilder.WriteRune('\n')
-		case t.inMultiline:
-			t.currCellBuilder.WriteRune(r)
-
-			// Not in multiline:
-		case (r == '|' || r == '!') && !countingColspan:
-			t.pushCell()
-			t.currCellMarker = r
-			t.currColspan = 1
-			countingColspan = true
-		case r == t.currCellMarker && (r == '|' || r == '!') && countingColspan:
-			t.currColspan++
-		case r == '{':
-			t.inMultiline = true
-			countingColspan = false
-		case r == '[' && len(line)-1 > i && line[i+1] == '[':
-			t.currCellBuilder.WriteString("[[")
-			inLink = true
-			skipNext = true
-		case i == len(line)-1:
-			t.currCellBuilder.WriteRune(r)
-			t.pushCell()
-		default:
-			t.currCellBuilder.WriteRune(r)
-			countingColspan = false
-		}
+	s := initialTableParserState()
+	s.lookingForNonSpace = !t.inMultiline
+	for _, r := range line {
+		parseTableRune(t, s, r)
 	}
+	parseTableRune(t, s, '\n')
 	return false
 }
 
