@@ -10,7 +10,10 @@ import (
 
 func nextTable(ctx mycocontext.Context) (t blocks.Table, done bool) {
 	line, done := mycocontext.NextLine(ctx)
-	t = tableFromFirstLine(line, ctx.HyphaName())
+	t, tableDone := tableFromFirstLine(line, ctx.HyphaName())
+	if tableDone {
+		return t, done
+	}
 	for {
 		line, done = mycocontext.NextLine(ctx)
 		if processTableLine(&t, line) {
@@ -42,12 +45,20 @@ func matchesTable(ctx mycocontext.Context) bool {
 	return tableRe.Match(ctx.Input().Bytes())
 }
 
-func tableFromFirstLine(line, hyphaName string) blocks.Table {
+func tableFromFirstLine(line, hyphaName string) (t blocks.Table, done bool) {
+	var (
+		caption       = line[strings.IndexRune(line, '{')+1:]
+		closeBracePos = strings.IndexRune(caption, '}')
+		isClosed      = closeBracePos != -1
+	)
+	if isClosed {
+		caption = caption[:closeBracePos]
+	}
 	return blocks.Table{
 		HyphaName: hyphaName,
-		Caption:   line[strings.IndexRune(line, '{')+1:],
+		Caption:   caption,
 		Rows:      make([]*blocks.TableRow, 0),
-	}
+	}, isClosed
 }
 
 type tableParserState struct {
@@ -123,14 +134,9 @@ func pushTableRow(t *blocks.Table) {
 
 func pushTableCell(t *blocks.Table) {
 	tc := &blocks.TableCell{
-		Contents: blocks.MakeFormatted(t.CurrCellBuilder.String(), t.HyphaName),
-		Colspan:  t.CurrColspan,
-	}
-	switch t.CurrCellMarker {
-	case '|', '^':
-		tc.IsHeaderCell = false
-	case '!':
-		tc.IsHeaderCell = true
+		Contents:     blocks.MakeFormatted(t.CurrCellBuilder.String(), t.HyphaName),
+		Colspan:      t.CurrColspan,
+		IsHeaderCell: t.CurrCellMarker == '!',
 	}
 	// We expect the table to have at least one row ready, so no nil-checking
 	tr := t.Rows[len(t.Rows)-1]
