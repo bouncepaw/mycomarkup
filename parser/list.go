@@ -9,12 +9,14 @@ import (
 // Call only if there is a list item on the line.
 func nextList(ctx mycocontext.Context) (list blocks.List, eof bool) {
 	var contents []blocks.Block
+	marker, rootLevel, _ := markerOnNextLine(ctx)
 	list = blocks.List{
-		Items: make([]blocks.ListItem, 0),
+		Items:  make([]blocks.ListItem, 0),
+		Marker: marker,
 	}
 	for !eof {
 		marker, level, found := markerOnNextLine(ctx)
-		if !found {
+		if !found || (!marker.SameAs(list.Marker) && rootLevel == level) {
 			break
 		}
 
@@ -28,7 +30,6 @@ func nextList(ctx mycocontext.Context) (list blocks.List, eof bool) {
 
 		list.Items = append(list.Items, item)
 	}
-	list.Marker = list.Items[0].Marker // There should be at least one item!
 	return list, eof
 }
 
