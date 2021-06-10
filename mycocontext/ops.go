@@ -2,11 +2,12 @@ package mycocontext
 
 import "strings"
 
-// EatUntilSpace reads characters until it encounters a non-space character. The read characters are forgotten forever.
-func EatUntilSpace(ctx Context) {
+// EatUntilSpace reads characters until it encounters a non-space character. The read characters are returned. No errors are reported even if there are any, be bold.
+func EatUntilSpace(ctx Context) (line string) {
 	// We do not care what is read, therefore we drop the read line.
 	// We know that there //is// a space beforehand, therefore we drop the error.
-	_, _ = ctx.Input().ReadString(' ')
+	line, _ = ctx.Input().ReadString(' ')
+	return line
 }
 
 // NextByte returns the next byte in the inputFrom. The CR byte (\r) is never returned, if there is a CR in the inputFrom, the byte after it is returned. If there is no next byte, the NL byte (\n) is returned and done is true.
