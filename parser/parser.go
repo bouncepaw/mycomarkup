@@ -9,9 +9,8 @@ import (
 )
 
 // Parse parses the Mycomarkup document in the given context. All parsed blocks are written to out.
-//
-// TODO: decide whether using the channel is really a good idea 🤔
 func Parse(ctx mycocontext.Context, out chan blocks.Block) {
+	// Using a channel seems like a good idea. The downside is that using this function is harder. But does it matter in this case? Not really. Channel supremacy all the way down.
 	var (
 		token blocks.Block
 		done  bool
@@ -30,6 +29,7 @@ func Parse(ctx mycocontext.Context, out chan blocks.Block) {
 	}
 }
 
+// parseSubdocumentForEachBlock replaces the buffer in the given context and parses the document contained in the buffer. The function is called on every block.
 func parseSubdocumentForEachBlock(ctx mycocontext.Context, buf *bytes.Buffer, f func(block blocks.Block)) {
 	var (
 		wg       sync.WaitGroup

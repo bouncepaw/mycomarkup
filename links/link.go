@@ -13,10 +13,8 @@ import (
 type LinkType int
 
 const (
-	// LinkInvalid is an error state for LinkType.
-	LinkInvalid LinkType = iota
 	// LinkLocalRoot is a link like "/list", "/user-list", etc.
-	LinkLocalRoot
+	LinkLocalRoot LinkType = iota
 	// LinkLocalHypha is a link like "test", "../test", etc.
 	LinkLocalHypha
 	// LinkExternal is an external link with specified protocol.

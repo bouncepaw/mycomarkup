@@ -10,21 +10,6 @@ import (
 	"github.com/bouncepaw/mycomarkup/globals"
 )
 
-func text() string {
-	return `# I am an internet
-Why the life is so rough with me?, I wonder.
-=> link
-=> link_link display
-=> link\ link display
-=> [[link]]
-=> [[link|display]]
-=> [[link|]]
-=> [[]]
-=> [[|]]
-=>
-`
-}
-
 func main() {
 	hyphaName, filename := parseFlags()
 	contents, err := ioutil.ReadFile(filename)

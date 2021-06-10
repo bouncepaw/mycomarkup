@@ -11,6 +11,7 @@ import (
 
 var imgRe = regexp.MustCompile(`^img {`)
 
+// MatchesImg is true if the line starts with img {.
 func MatchesImg(line string) bool {
 	return imgRe.MatchString(line)
 }
@@ -25,6 +26,7 @@ const (
 	inDescription
 )
 
+// Img is an image gallery, consisting of zero or more images.
 type Img struct {
 	Entries   []ImgEntry
 	currEntry ImgEntry
@@ -32,8 +34,9 @@ type Img struct {
 	state     imgState
 }
 
-func (img Img) IsBlock() {}
+func (img Img) isBlock() {}
 
+// ID returns the gallery's id which is img- and a number.
 func (img Img) ID(counter *IDCounter) string {
 	counter.imgs++
 	return fmt.Sprintf("img-%d", counter.imgs)
@@ -54,7 +57,8 @@ func (img *Img) pushEntry() {
 	}
 }
 
-func (img *Img) ProcessLine(line string) (shouldGoBackToNormal bool) {
+// ProcessLine parses the line and tells if the gallery is finished.
+func (img *Img) ProcessLine(line string) (imgFinished bool) {
 	for _, r := range line {
 		if shouldReturnTrue := img.ProcessRune(r); shouldReturnTrue {
 			return true
@@ -66,7 +70,9 @@ func (img *Img) ProcessLine(line string) (shouldGoBackToNormal bool) {
 	return false
 }
 
+// ProcessRune parses the rune.
 func (img *Img) ProcessRune(r rune) (done bool) {
+	// TODO: move to the parser module.
 	if r == '\r' {
 		return false
 	}
@@ -147,7 +153,7 @@ func (img *Img) processInDimensionsW(r rune) (shouldReturnTrue bool) {
 	return false
 }
 
-func (img *Img) processInDimensionsH(r rune) (shouldGoBackToNormal bool) {
+func (img *Img) processInDimensionsH(r rune) (imgFinished bool) {
 	switch r {
 	case '}':
 		img.pushEntry()
@@ -161,7 +167,8 @@ func (img *Img) processInDimensionsH(r rune) (shouldGoBackToNormal bool) {
 	return false
 }
 
-func MakeImg(line, hyphaName string) (img Img, shouldGoBackToNormal bool) {
+// MakeImg parses the image gallery on the line and returns it. It also tells if the gallery is finished or not.
+func MakeImg(line, hyphaName string) (img Img, imgFinished bool) {
 	img = Img{
 		hyphaName: hyphaName,
 		Entries:   make([]ImgEntry, 0),
@@ -170,11 +177,12 @@ func MakeImg(line, hyphaName string) (img Img, shouldGoBackToNormal bool) {
 	return img, img.ProcessLine(line)
 }
 
+// MarkExistenceOfSrcLinks effectively checks if the links in the gallery are blue or red.
 func (img *Img) MarkExistenceOfSrcLinks() {
 	globals.HyphaIterate(func(hn string) {
 		for _, entry := range img.Entries {
 			if hn == entry.Srclink.Address() {
-				entry.Srclink.DestinationKnown = false
+				entry.Srclink.DestinationKnown = true
 			}
 		}
 	})

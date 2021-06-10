@@ -9,6 +9,7 @@ import (
 )
 
 // Transclusion is the block representing an extract from a different document.
+// TODO: visitors for transclusion.
 type Transclusion struct {
 	// Target is the name of the hypha to be transcluded.
 	Target string
@@ -16,18 +17,18 @@ type Transclusion struct {
 	Selector TransclusionSelector
 }
 
+// ID returns the transclusion's id which is transclusion- and a number.
 func (t Transclusion) ID(counter *IDCounter) string {
 	counter.transclusions++
 	return fmt.Sprintf("transclusion-%d", counter.transclusions)
 }
 
-func (t Transclusion) IsBlock() {}
+func (t Transclusion) isBlock() {}
 
-// TransclusionError is a value that means that the transclusion is wrong.
-const TransclusionError = "err"
-
+// MakeTransclusion parses the line and returns a transclusion block.
 func MakeTransclusion(line, hyphaName string) Transclusion {
-	line = strings.TrimSpace(util.Remover("<=")(line))
+	// TODO: move to the parser module.
+	line = strings.TrimSpace(line[2:])
 	if line == "" {
 		return Transclusion{"", DefaultSelector()}
 	}
@@ -46,14 +47,16 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 	}
 }
 
+// TransclusionSelector is the thing that specifies what parts of the document shall be transcluded.
 type TransclusionSelector struct {
 	bound1      string
 	dotsPresent bool
 	bound2      string
 }
 
+// DefaultSelector returns the default selector which is start..description.
 func DefaultSelector() TransclusionSelector {
-	return TransclusionSelector{"", true, "1"}
+	return TransclusionSelector{"start", true, "description"}
 }
 
 // ParseSelector parses the selector according to the following rules.

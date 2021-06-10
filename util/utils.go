@@ -43,13 +43,6 @@ func CanonicalName(name string) string {
 			), " ", "_"))
 }
 
-// Remover returns a function that can strip prefix and trim whitespace when called.
-func Remover(prefix string) func(string) string {
-	return func(l string) string {
-		return strings.TrimSpace(strings.TrimPrefix(l, prefix))
-	}
-}
-
 // DefaultString returns d if s is an empty string, s otherwise.
 func DefaultString(s, d string) string {
 	if s == "" {

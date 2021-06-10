@@ -14,7 +14,6 @@ import (
 // Pass visitors. Visitors are functions (usually closures) that are called on every found block.
 //
 // Visitors included with mycomarkup can be gotten from OpenGraphVisitors. More visitors coming soon.
-// TODO: visitors for transclusion.
 func BlockTree(ctx mycocontext.Context, visitors ...func(block blocks.Block)) []blocks.Block {
 	var (
 		tokens = make(chan blocks.Block)

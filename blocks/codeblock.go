@@ -11,12 +11,13 @@ type CodeBlock struct {
 	contents string
 }
 
+// ID returns the codeblock's id which is codeblock- and a number.
 func (cb CodeBlock) ID(counter *IDCounter) string {
 	counter.codeblocks++
 	return fmt.Sprintf("codeblock-%d", counter.codeblocks)
 }
 
-func (cb CodeBlock) IsBlock() {}
+func (cb CodeBlock) isBlock() {}
 
 // MakeCodeBlock returns a code block with the given language and contents.
 func MakeCodeBlock(language, contents string) CodeBlock {

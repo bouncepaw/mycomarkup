@@ -9,15 +9,18 @@ import (
 	"unicode"
 )
 
+// Paragraph is a block of formatted text.
 type Paragraph struct {
 	Formatted
 }
 
+// ID returns the paragraphs's id which is paragraph- and a number.
 func (p Paragraph) ID(counter *IDCounter) string {
 	counter.paragraphs++
 	return fmt.Sprintf("paragraph-%d", counter.paragraphs)
 }
 
+// Formatted is a piece of formatted text.
 type Formatted struct {
 	HyphaName string
 	Html      string
@@ -25,8 +28,9 @@ type Formatted struct {
 	spans []span
 }
 
-func (p Formatted) IsBlock() {}
+func (p Formatted) isBlock() {}
 
+// ID returns an empty string because Formatted is always part of a bigger block.
 func (p Formatted) ID(_ *IDCounter) string {
 	return ""
 }
@@ -91,18 +95,20 @@ func getLinkNode(input *Formatted, hyphaName string, isBracketedLink bool) strin
 	return fmt.Sprintf(`<a href="%s" class="%s">%s</a>`, href, class, text)
 }
 
+// AddLine adds a line to the block. The line is prepended with <br>.
 func (p *Formatted) AddLine(line string) {
-	p.Html += `<br>` + ParagraphToHtml(p.HyphaName, line)
+	p.Html += `<br>` + paragraphToHtml(p.HyphaName, line)
 }
 
+// MakeFormatted parses the formatted text in the input and returns it.
 func MakeFormatted(input, hyphaName string) Formatted {
 	return Formatted{
 		HyphaName: hyphaName,
-		Html:      ParagraphToHtml(hyphaName, input),
+		Html:      paragraphToHtml(hyphaName, input),
 	}
 }
 
-func ParagraphToHtml(hyphaName, input string) string {
+func paragraphToHtml(hyphaName, input string) string {
 	var (
 		p = &Formatted{
 			hyphaName,

@@ -19,12 +19,13 @@ type Table struct {
 	CurrCellBuilder strings.Builder
 }
 
+// ID returns table's id which is table- and its number.
 func (t Table) ID(counter *IDCounter) string {
 	counter.tables++
 	return fmt.Sprintf("table-%d", counter.tables)
 }
 
-func (t Table) IsBlock() {}
+func (t Table) isBlock() {}
 
 // TableRow is a row in a table. Thus, it can only be nested inside a table.
 type TableRow struct {
@@ -32,11 +33,12 @@ type TableRow struct {
 	Cells     []*TableCell
 }
 
+// ID returns and empty string because table rows do not have ids.
 func (tr TableRow) ID(_ *IDCounter) string {
 	return ""
 }
 
-func (tr TableRow) IsBlock() {}
+func (tr TableRow) isBlock() {}
 
 // LooksLikeThead is true if the table row looks like it might as well be a thead row.
 //
@@ -66,11 +68,12 @@ type TableCell struct {
 	Colspan      uint
 }
 
+// ID returns and empty string because table cells do not have ids.
 func (tc TableCell) ID(_ *IDCounter) string {
 	return ""
 }
 
-func (tc TableCell) IsBlock() {}
+func (tc TableCell) isBlock() {}
 
 // ColspanAttribute returns either an empty string (if the cell doesn't have colspan) or a string in this format:
 //

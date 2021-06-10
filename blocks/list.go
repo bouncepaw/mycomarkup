@@ -10,12 +10,13 @@ type List struct {
 	Marker ListMarker
 }
 
+// ID returns this list's id. It is list- and the list's number.
 func (l List) ID(counter *IDCounter) string {
 	counter.lists++
 	return fmt.Sprintf("list-%d", counter.lists)
 }
 
-func (l List) IsBlock() {}
+func (l List) isBlock() {}
 
 // ListItem is an entry in a List.
 type ListItem struct {
@@ -24,12 +25,13 @@ type ListItem struct {
 	//     *    -> Level = 1
 	//     **.  -> Level = 2
 	Level uint
-	// Contents are Mycomarkup blocks. TODO: proper type.
+	// Contents are Mycomarkup blocks contained in this list item.
 	Contents []Block
 }
 
-func (l ListItem) IsBlock() {}
+func (l ListItem) isBlock() {}
 
+// ID returns an empty string because list items don't have ids.
 func (l ListItem) ID(_ *IDCounter) string {
 	return ""
 }
