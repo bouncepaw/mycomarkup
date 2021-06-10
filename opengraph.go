@@ -10,49 +10,61 @@ import (
 	"github.com/bouncepaw/mycomarkup/util"
 )
 
-// Used to clear opengraph description from html tags. This method is usually bad because of dangers of malformed HTML, but I'm going to use it only for Mycorrhiza-generated HTML, so it's okay. The question mark is required; without it the whole string is eaten away.
-var htmlTagRe = regexp.MustCompile(`<.*?>`)
+// OpenGraphVisitors returns visitors you should pass to BlockTree. They will figure out what should go to the final opengraph. Call resultHTML to get that result.
+func OpenGraphVisitors(ctx mycocontext.Context) (
+	resultHTML func() string,
+	descVisitor func(blocks.Block),
+	imgVisitor func(blocks.Block),
+) {
+	var (
+		imageUrl    = "/favicon.ico"
+		description = ""
 
-// OpenGraphHTML returns an html representation of og: meta tags.
-func OpenGraphHTML(ctx mycocontext.Context, ast []blocks.Block) string {
-	ogImage, ogDescription := openGraphImageAndDescription(ast)
-	return strings.Join([]string{
-		ogTag("title", util.BeautifulName(ctx.HyphaName())),
-		ogTag("type", "article"),
-		ogTag("image", ogImage),
-		// TODO: there should be a full URL ⤵︎. Requires a different API for the lib.
-		ogTag("url", "/hypha/"+util.BeautifulName(ctx.HyphaName())),
-		ogTag("determiner", ""),
-		ogTag("description", ogDescription),
-	}, "\n")
-}
+		foundImg              = false
+		foundSomethingTextual = false // Let's have at least something if there is no paragraph.
+		foundProperParagraph  = false
+	)
 
-// return image and description of the document for including in open graph.
-func openGraphImageAndDescription(ast []blocks.Block) (ogImage, ogDescription string) {
-	// TODO: there should be a full URL ⤵︎
-	ogImage = "/favicon.ico"
-	foundDesc := false
-	foundImg := false
-	for _, block := range ast {
-		switch v := block.(type) {
-		case blocks.Paragraph:
-			if !foundDesc {
-				ogDescription = strings.TrimSpace(htmlTagRe.ReplaceAllString(BlockToHTML(v, &blocks.IDCounter{}), ""))
-				foundDesc = true
+	return func() string {
+			return strings.Join([]string{
+				ogTag("title", util.BeautifulName(ctx.HyphaName())),
+				ogTag("type", "article"),
+				ogTag("image", imageUrl),
+				// TODO: there should be a full URL ⤵︎. Requires a different API for the lib.
+				ogTag("url", "/hypha/"+util.BeautifulName(ctx.HyphaName())),
+				ogTag("determiner", ""),
+				ogTag("description", htmlTagRe.ReplaceAllString(description, "")),
+			}, "\n")
+		}, func(block blocks.Block) {
+			if foundProperParagraph { // Won't find anything better.
+				return
 			}
-		case blocks.Img:
-			if !foundImg && len(v.Entries) > 0 {
-				ogImage = v.Entries[0].Srclink.ImgSrc()
-				/*if !v.Entries[0].Srclink.OfKind(links.LinkExternal) {
-					// TODO: there should be a full URL ⤵︎
-					ogImage = doc.cfg.URL + ogImage
-				}*/
-				foundImg = true
+			switch block := block.(type) {
+			case blocks.Paragraph:
+				foundSomethingTextual, foundProperParagraph = true, true
+				description = BlockToHTML(block, &blocks.IDCounter{ShouldUseResults: false})
+			case blocks.Heading, blocks.CodeBlock: // These two seem alright. Primitive enough.
+				if !foundSomethingTextual {
+					foundSomethingTextual = true
+					description = BlockToHTML(block, &blocks.IDCounter{ShouldUseResults: false})
+				}
+			}
+		}, func(block blocks.Block) {
+			if foundImg { // No need for a second image
+				return
+			}
+			switch block := block.(type) {
+			case blocks.Img:
+				if len(block.Entries) > 0 {
+					// TODO: absolute URL
+					imageUrl = block.Entries[0].Srclink.ImgSrc()
+				}
 			}
 		}
-	}
-	return ogImage, ogDescription
 }
+
+// Used to clear opengraph description from html tags. This method is usually bad because of dangers of malformed HTML, but I'm going to use it only for Mycorrhiza-generated HTML, so it's okay. The question mark is required; without it the whole string is eaten away.
+var htmlTagRe = regexp.MustCompile(`<.*?>`)
 
 func ogTag(property, content string) string {
 	return fmt.Sprintf(`<meta property="og:%s" content="%s"/>`, property, content)
