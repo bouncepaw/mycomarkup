@@ -57,7 +57,7 @@ func MakeRocketLink(line, hyphaName string) RocketLink {
 		}
 	)
 
-	if rl.OfKind(links.LinkLocalHypha) && globals.HyphaExists(rl.Address()) {
+	if rl.OfKind(links.LinkLocalHypha) && !globals.HyphaExists(rl.Address()) {
 		rl.DestinationKnown = false
 	}
 
