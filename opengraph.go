@@ -30,8 +30,7 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 				ogTag("title", util.BeautifulName(ctx.HyphaName())),
 				ogTag("type", "article"),
 				ogTag("image", imageUrl),
-				// TODO: there should be a full URL ⤵︎. Requires a different API for the lib.
-				ogTag("url", "/hypha/"+util.BeautifulName(ctx.HyphaName())),
+				ogTag("url", ctx.WebSiteURL()+"/hypha/"+util.BeautifulName(ctx.HyphaName())),
 				ogTag("determiner", ""),
 				ogTag("description", htmlTagRe.ReplaceAllString(description, "")),
 			}, "\n")
@@ -56,8 +55,7 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 			switch block := block.(type) {
 			case blocks.Img:
 				if len(block.Entries) > 0 {
-					// TODO: absolute URL
-					imageUrl = block.Entries[0].Srclink.ImgSrc()
+					imageUrl = ctx.WebSiteURL() + block.Entries[0].Srclink.ImgSrc()
 				}
 			}
 		}
