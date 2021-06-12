@@ -100,7 +100,7 @@ func launchpadToHTML(lp blocks.LaunchPad, counter *blocks.IDCounter) string {
 
 func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 	var ret string
-	if entry.Srclink.Exists() {
+	if entry.Srclink.IsBlueLink() {
 		ret += fmt.Sprintf(
 			`<a href="%s"><img src="%s" %s %s></a>`,
 			entry.Srclink.Href(),
@@ -112,7 +112,7 @@ func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 			`<a class="%s" href="%s">Hypha <i>%s</i> does not exist</a>`,
 			entry.Srclink.Classes(),
 			entry.Srclink.Href(),
-			entry.Srclink.Address())
+			entry.Srclink.TargetHypha())
 	}
 	return fmt.Sprintf(`<figure class="img-gallery__entry">
 	%s

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bouncepaw/mycomarkup/globals"
 	"github.com/bouncepaw/mycomarkup/links"
 )
 
@@ -61,10 +60,6 @@ func MakeRocketLink(line, hyphaName string) RocketLink {
 			Link:    *links.From(addr, display, hyphaName),
 		}
 	)
-
-	if rl.OfKind(links.LinkLocalHypha) && !globals.HyphaExists(rl.Address()) {
-		rl.DestinationKnown = false
-	}
 
 	return rl
 }

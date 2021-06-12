@@ -26,18 +26,17 @@ const (
 // Link is an abstraction for universal representation of links, be they links in mycomarkup links or whatever.
 type Link struct {
 	// Known stuff
-	srcAddress string
-	srcDisplay string
-	srcHypha   string
+	srcAddress string // Before |
+	srcDisplay string // After |
+	srcHypha   string // The hypha where it all happened
 	// Parsed stuff
-	anchor   string
-	address  string
+	anchor   string // # and everything after it
+	address  string //
 	display  string
 	kind     LinkType
 	protocol string
 	// Settable stuff
-
-	DestinationKnown bool
+	destinationKnown bool // set to true when you have //checked// that the target hypha exists. It might be false for non-hypha links.
 }
 
 // From makes a link from the given source address and display text on the given hypha.
@@ -46,7 +45,7 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 		srcAddress:       strings.TrimSpace(srcAddress),
 		srcDisplay:       strings.TrimSpace(srcDisplay),
 		srcHypha:         strings.TrimSpace(srcHypha),
-		DestinationKnown: false,
+		destinationKnown: false,
 	}
 	link.address = link.srcAddress
 
@@ -69,44 +68,47 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 			link.protocol += "//"
 			link.address = link.address[2:]
 		}
+		link.display = link.address + link.anchor
 	case strings.HasPrefix(link.address, "/"):
 		link.kind = LinkLocalRoot
+		link.display = link.address + link.anchor
 	case strings.HasPrefix(link.address, "./"):
 		link.kind = LinkLocalHypha
+		link.display = link.address + link.anchor
 		link.address = util.CanonicalName(path.Join(link.srcHypha, link.address[2:]))
 	case link.address == "..":
 		link.address = util.CanonicalName(path.Dir(link.srcHypha))
+		link.display = ".."
 	case strings.HasPrefix(link.address, "../"):
 		link.kind = LinkLocalHypha
+		link.display = link.address + link.anchor
 		link.address = util.CanonicalName(path.Join(path.Dir(link.srcHypha), link.address[3:]))
 	case strings.HasPrefix(link.address, "#"):
 		link.kind = LinkLocalHypha
 		link.anchor = link.address
 		link.address = util.CanonicalName(link.srcHypha)
+		link.display = link.anchor
 	default:
 		link.kind = LinkLocalHypha
+		link.display = link.address
 		link.address = util.CanonicalName(link.address)
 	}
 
-	// If no display text is given, copy the address there.
-	if link.srcDisplay == "" {
-		// Drop the protocol if there is any.
-		link.display = strings.TrimPrefix(link.srcAddress, link.protocol)
-	} else {
-		link.display = link.srcDisplay
+	if srcDisplay != "" {
+		link.display = srcDisplay
 	}
 
 	return &link
 }
 
-// Exists is true if the link should be blue, not red. Red links are links to hyphae that do not exist, all other links are blue.
-func (link *Link) Exists() bool {
-	return (link.OfKind(LinkExternal)) || (link.OfKind(LinkLocalRoot)) || (link.OfKind(LinkLocalHypha) && !link.DestinationKnown)
+// IsBlueLink is true if the link should be blue, not red. Red links are links to hyphae that do not exist, all other links are blue.
+func (link *Link) IsBlueLink() bool {
+	return !(link.OfKind(LinkLocalHypha) && link.destinationKnown)
 }
 
-// ItExists notes that the destination makes sense, exists.
-func (link *Link) ItExists() *Link {
-	link.DestinationKnown = true
+// MarkAsExisting notes that the hypha does exist.
+func (link *Link) MarkAsExisting() *Link {
+	link.destinationKnown = true
 	return link
 }
 
@@ -116,7 +118,7 @@ func (link *Link) Classes() (classes string) {
 	switch link.kind {
 	case LinkLocalRoot, LinkLocalHypha:
 		classes += " wikilink_internal"
-		if link.DestinationKnown {
+		if !link.destinationKnown {
 			classes += " wikilink_new"
 		}
 	case LinkInterwiki:
@@ -127,7 +129,7 @@ func (link *Link) Classes() (classes string) {
 	return classes
 }
 
-// Href returns content for the href attrubute for hyperlink. You should always use it.
+// Href returns content for the href attribute for hyperlink. You should always use it.
 func (link *Link) Href() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:
@@ -147,18 +149,13 @@ func (link *Link) ImgSrc() string {
 	}
 }
 
-// String returns a debugging string representation of the given link.
-func (link *Link) String() string {
-	return fmt.Sprintf(`Link("%s", "%s", "%s")`, link.Href(), link.Display(), link.srcHypha)
-}
-
 // Display returns the display text of the given link.
 func (link *Link) Display() string {
 	return link.display
 }
 
-// Address returns the address of the given link. Why would you need that?
-func (link *Link) Address() string {
+// TargetHypha returns the name of the target hypha. Use for hypha links.
+func (link *Link) TargetHypha() string {
 	return link.address
 }
 

@@ -181,8 +181,8 @@ func MakeImg(line, hyphaName string) (img Img, imgFinished bool) {
 func (img *Img) MarkExistenceOfSrcLinks() {
 	globals.HyphaIterate(func(hn string) {
 		for _, entry := range img.Entries {
-			if hn == entry.Srclink.Address() {
-				entry.Srclink.DestinationKnown = true
+			if hn == entry.Srclink.TargetHypha() {
+				entry.Srclink.MarkAsExisting()
 			}
 		}
 	})

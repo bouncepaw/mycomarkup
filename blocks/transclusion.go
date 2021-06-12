@@ -36,13 +36,13 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 	if strings.ContainsRune(line, '|') {
 		parts := strings.SplitN(line, "|", 2)
 		return Transclusion{
-			Target:   links.From(strings.TrimSpace(parts[0]), "", hyphaName).Address(),
+			Target:   links.From(strings.TrimSpace(parts[0]), "", hyphaName).TargetHypha(),
 			Selector: ParseSelector(parts[1]),
 		}
 	}
 
 	return Transclusion{
-		Target:   links.From(strings.TrimSpace(line), "", hyphaName).Address(),
+		Target:   links.From(strings.TrimSpace(line), "", hyphaName).TargetHypha(),
 		Selector: DefaultSelector(),
 	}
 }
