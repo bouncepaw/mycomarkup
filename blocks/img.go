@@ -3,6 +3,7 @@ package blocks
 import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/globals"
+	"github.com/bouncepaw/mycomarkup/util"
 	"regexp"
 	"strings"
 
@@ -181,7 +182,7 @@ func MakeImg(line, hyphaName string) (img Img, imgFinished bool) {
 func (img *Img) MarkExistenceOfSrcLinks() {
 	globals.HyphaIterate(func(hn string) {
 		for _, entry := range img.Entries {
-			if hn == entry.Srclink.TargetHypha() {
+			if hn == util.CanonicalName(entry.Srclink.TargetHypha()) {
 				entry.Srclink.MarkAsExisting()
 			}
 		}

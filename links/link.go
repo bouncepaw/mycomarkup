@@ -103,7 +103,7 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 
 // IsBlueLink is true if the link should be blue, not red. Red links are links to hyphae that do not exist, all other links are blue.
 func (link *Link) IsBlueLink() bool {
-	return !(link.OfKind(LinkLocalHypha) && link.destinationKnown)
+	return !(link.OfKind(LinkLocalHypha) && !link.destinationKnown)
 }
 
 // MarkAsExisting notes that the hypha does exist.

@@ -35,11 +35,12 @@ func (lp *LaunchPad) AddRocket(rl RocketLink) {
 // ColorRockets marks links to existing hyphae as existing.
 func (lp *LaunchPad) ColorRockets() {
 	globals.HyphaIterate(func(hyphaName string) {
-		for _, rocket := range lp.Rockets {
+		for i, rocket := range lp.Rockets {
 			// TODO: do not canonize every time
 			if util.CanonicalName(rocket.TargetHypha()) == hyphaName {
 				rocket.Link.MarkAsExisting()
 			}
+			lp.Rockets[i] = rocket
 		}
 	})
 }
