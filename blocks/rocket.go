@@ -2,6 +2,8 @@ package blocks
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/globals"
+	"github.com/bouncepaw/mycomarkup/util"
 	"strings"
 
 	"github.com/bouncepaw/mycomarkup/links"
@@ -28,6 +30,18 @@ func MakeLaunchPad() LaunchPad {
 // AddRocket stores the rocket link in the launchpad.
 func (lp *LaunchPad) AddRocket(rl RocketLink) {
 	lp.Rockets = append(lp.Rockets, rl)
+}
+
+// ColorRockets marks links to existing hyphae as existing.
+func (lp *LaunchPad) ColorRockets() {
+	globals.HyphaIterate(func(hyphaName string) {
+		for _, rocket := range lp.Rockets {
+			// TODO: do not canonize every time
+			if util.CanonicalName(rocket.TargetHypha()) == hyphaName {
+				rocket.Link.MarkAsExisting()
+			}
+		}
+	})
 }
 
 // RocketLink is a rocket link which is meant to be nested inside LaunchPad.

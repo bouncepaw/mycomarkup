@@ -3,7 +3,9 @@ package blocks
 import (
 	"bytes"
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/globals"
 	"github.com/bouncepaw/mycomarkup/links"
+	"github.com/bouncepaw/mycomarkup/util"
 	"html"
 	"strings"
 	"unicode"
@@ -91,6 +93,9 @@ func getLinkNode(input *Formatted, hyphaName string, isBracketedLink bool) strin
 	}
 
 	link := links.From(addrBuf.String(), displayBuf.String(), hyphaName)
+	if globals.HyphaExists(util.CanonicalName(link.TargetHypha())) {
+		link.MarkAsExisting()
+	}
 	href, text, class := link.Href(), html.EscapeString(link.Display()), html.EscapeString(link.Classes())
 	return fmt.Sprintf(`<a href="%s" class="%s">%s</a>`, href, class, text)
 }

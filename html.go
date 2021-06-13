@@ -90,6 +90,7 @@ func tableToHTML(t blocks.Table, counter *blocks.IDCounter) string {
 }
 
 func launchpadToHTML(lp blocks.LaunchPad, counter *blocks.IDCounter) string {
+	lp.ColorRockets()
 	var ret string
 	for _, rocket := range lp.Rockets {
 		ret += BlockToHTML(rocket, counter)
