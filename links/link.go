@@ -90,7 +90,7 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 		link.display = link.anchor
 	default:
 		link.kind = LinkLocalHypha
-		link.display = link.address
+		link.display = link.address + link.anchor
 		link.address = util.CanonicalName(link.address)
 	}
 
