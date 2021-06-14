@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bytes"
 	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"regexp"
@@ -36,9 +37,9 @@ func nextTableRow(ctx mycocontext.Context) (row *blocks.TableRow, tableDone bool
 		currColspan    uint = 0
 		currCellMarker rune
 
-		cellContents string
-		r            rune
-		eof          bool
+		cellText *bytes.Buffer
+		r        rune
+		eof      bool
 
 		cells []*blocks.TableCell
 	)
@@ -71,10 +72,14 @@ runeWalker:
 
 		case !cleaningLeadingWhitespace && !countingColspan, countingColspan:
 			mycocontext.UnreadRune(ctx)
-			cellContents, tableDone = nextTableCellContents(ctx)
+			var contents []blocks.Block
+			cellText, tableDone = nextTableCellContents(ctx)
+			parseSubdocumentForEachBlock(ctx, cellText, func(block blocks.Block) {
+				contents = append(contents, block)
+			})
 			cell := &blocks.TableCell{
 				IsHeaderCell: currCellMarker == '!',
-				Contents:     blocks.MakeFormatted(cellContents, ctx.HyphaName()),
+				Contents:     contents,
 				Colspan:      currColspan,
 			}
 			cells = append(cells, cell)
@@ -105,11 +110,11 @@ runeWalker:
 func nextTableCellContents(
 	ctx mycocontext.Context,
 ) (
-	contents string,
+	contents *bytes.Buffer,
 	tableDone bool,
 ) {
 	var (
-		contentsBuilder strings.Builder
+		contentsBuilder bytes.Buffer
 		escaping        = false
 		inLink          = false
 	)
@@ -156,7 +161,7 @@ runeWalker:
 			contentsBuilder.WriteRune(r)
 		}
 	}
-	return contentsBuilder.String(), tableDone
+	return &contentsBuilder, tableDone
 }
 
 // return text until the next unmatched unescaped } (exclusively).

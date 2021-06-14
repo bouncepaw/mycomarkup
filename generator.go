@@ -23,9 +23,29 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 				ret += fmt.Sprintf(markerToTemplate(item.Marker), generateHTML(item.Contents, recursionLevel, counter.UnusableCopy()))
 			}
 			html += fmt.Sprintf(listToTemplate(v), idAttribute(v, counter), ret)
+		case blocks.Table:
+			t := v
+			var ret string
+			if t.Caption != "" {
+				ret = fmt.Sprintf("<caption>%s</caption>", t.Caption)
+			}
+			ret += "<tbody>\n"
+			for _, tr := range t.Rows {
+				ret += "<tr>"
+				for _, tc := range tr.Cells {
+					ret += fmt.Sprintf(
+						"\n\t<%[1]s>%[2]s</%[1]s>",
+						tc.TagName(),
+						generateHTML(tc.Contents, recursionLevel, counter.UnusableCopy()),
+					)
+				}
+				ret += "</tr>\n"
+			}
+			html += fmt.Sprintf(`
+<table%s>%s</tbody></table>`, idAttribute(t, counter), ret)
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel, counter.UnusableCopy())
-		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.Table, blocks.TableRow, blocks.CodeBlock, blocks.Quote:
+		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.CodeBlock, blocks.Quote:
 			html += BlockToHTML(v, counter)
 		default:
 			html += "<b class='error'>Unknown element.</b>"

@@ -57,7 +57,7 @@ func (tr *TableRow) LooksLikeThead() bool {
 // TableCell is a cell in TableRow.
 type TableCell struct {
 	IsHeaderCell bool
-	Contents     Formatted
+	Contents     []Block
 	Colspan      uint
 }
 

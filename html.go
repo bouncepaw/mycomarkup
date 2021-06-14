@@ -27,12 +27,6 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 		return fmt.Sprintf(`
 <h%[1]d%[4]s>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
 `, b.Level, BlockToHTML(b.Contents(), counter), b.ID(counter), idAttribute(b, counter))
-	case blocks.Table:
-		return tableToHTML(b, counter)
-	case blocks.TableRow:
-		return tableRowToHTML(b, counter)
-	case blocks.TableCell:
-		return tableCellToHTML(b, counter)
 	case blocks.CodeBlock:
 		return fmt.Sprintf("\n<pre class='codeblock'%s><code class='language-%s'>%s</code></pre>", idAttribute(b, counter), b.Language(), b.Contents())
 	case blocks.Quote:
@@ -53,40 +47,6 @@ func idAttribute(b blocks.Block, counter *blocks.IDCounter) string {
 	default:
 		return fmt.Sprintf(` id="%s"`, id)
 	}
-}
-
-func tableCellToHTML(tc blocks.TableCell, counter *blocks.IDCounter) string {
-	return fmt.Sprintf(
-		"\n\t<%[1]s%[2]s>%[3]s</%[1]s>",
-		tc.TagName(),
-		tc.ColspanAttribute(),
-		BlockToHTML(tc.Contents, counter),
-	)
-}
-
-func tableRowToHTML(tr blocks.TableRow, counter *blocks.IDCounter) string {
-	var ret string
-	for _, tc := range tr.Cells {
-		ret += BlockToHTML(*tc, counter)
-	}
-	return fmt.Sprintf("<tr>%s</tr>", ret)
-}
-
-func tableToHTML(t blocks.Table, counter *blocks.IDCounter) string {
-	var ret string
-	if t.Caption != "" {
-		ret = fmt.Sprintf("<caption>%s</caption>", t.Caption)
-	}
-	if len(t.Rows) > 0 && t.Rows[0].LooksLikeThead() {
-		ret += fmt.Sprintf("<thead>%s</thead>", BlockToHTML(*t.Rows[0], counter))
-		t.Rows = t.Rows[1:]
-	}
-	ret += "\n<tbody>\n"
-	for _, tr := range t.Rows {
-		ret += BlockToHTML(*tr, counter)
-	}
-	return fmt.Sprintf(`
-<table%s>%s</tbody></table>`, idAttribute(t, counter), ret)
 }
 
 func launchpadToHTML(lp blocks.LaunchPad, counter *blocks.IDCounter) string {
