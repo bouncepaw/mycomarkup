@@ -118,7 +118,7 @@ func (link *Link) Classes() (classes string) {
 	switch link.kind {
 	case LinkLocalRoot, LinkLocalHypha:
 		classes += " wikilink_internal"
-		if !link.destinationKnown {
+		if !link.IsBlueLink() {
 			classes += " wikilink_new"
 		}
 	case LinkInterwiki:
