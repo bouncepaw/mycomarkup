@@ -165,11 +165,11 @@ runeWalker:
 }
 
 // return text until the next unmatched unescaped } (exclusively).
-// TODO: ignore leading whitespace
 func nextTableMultiline(ctx mycocontext.Context) string {
 	var (
 		curlyCount = 1 // 1 is the initial state: multiline open. When it is 0, done.
 		escaping   = false
+		onNewLine  = true
 		r          rune
 		eof        bool
 		ret        strings.Builder
@@ -179,9 +179,17 @@ func nextTableMultiline(ctx mycocontext.Context) string {
 		if eof {
 			break
 		}
+	automaton:
 		switch {
+		case r == '\n':
+			onNewLine = true
 		case escaping:
 			escaping = false
+		case onNewLine && unicode.IsSpace(r):
+			continue
+		case onNewLine:
+			onNewLine = false
+			goto automaton
 		case r == '\\':
 			escaping = true
 		case r == '{':

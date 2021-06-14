@@ -24,13 +24,12 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 			}
 			html += fmt.Sprintf(listToTemplate(v), idAttribute(v, counter), ret)
 		case blocks.Table:
-			t := v
 			var ret string
-			if t.Caption != "" {
-				ret = fmt.Sprintf("<caption>%s</caption>", t.Caption)
+			if v.Caption != "" {
+				ret = fmt.Sprintf("<caption>%s</caption>", v.Caption)
 			}
 			ret += "<tbody>\n"
-			for _, tr := range t.Rows {
+			for _, tr := range v.Rows {
 				ret += "<tr>"
 				for _, tc := range tr.Cells {
 					ret += fmt.Sprintf(
@@ -42,7 +41,7 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 				ret += "</tr>\n"
 			}
 			html += fmt.Sprintf(`
-<table%s>%s</tbody></table>`, idAttribute(t, counter), ret)
+<table%s>%s</tbody></table>`, idAttribute(v, counter), ret)
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel, counter.UnusableCopy())
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.CodeBlock, blocks.Quote:
