@@ -77,6 +77,7 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 		link.display = link.address + link.anchor
 		link.address = util.CanonicalName(path.Join(link.srcHypha, link.address[2:]))
 	case link.address == "..":
+		link.kind = LinkLocalHypha
 		link.address = util.CanonicalName(path.Dir(link.srcHypha))
 		link.display = ".."
 	case strings.HasPrefix(link.address, "../"):
