@@ -8,35 +8,188 @@ import (
 	"unicode"
 )
 
-func nextTable(ctx mycocontext.Context) (t blocks.Table, done bool) {
-	line, done := mycocontext.NextLine(ctx)
+func nextTable(ctx mycocontext.Context) (t blocks.Table, eof bool) {
+	line, eof := mycocontext.NextLine(ctx)
 	t, tableDone := tableFromFirstLine(line, ctx.HyphaName())
 	if tableDone {
-		return t, done
+		return t, eof
 	}
 	for {
-		line, done = mycocontext.NextLine(ctx)
-		if processTableLine(&t, line) {
+		row, tableDone := nextTableRow(ctx)
+		if row != nil {
+			t.Rows = append(t.Rows, row)
+		}
+		if tableDone {
 			break
 		}
 	}
-	return t, done
+	_, eof = mycocontext.NextLine(ctx) // Ignore text after }
+	return t, eof
 }
 
-func processTableLine(t *blocks.Table, line string) (done bool) {
-	if strings.HasPrefix(strings.TrimLeft(line, " \t"), "}") && !t.InMultiline {
-		return true
+// row might be nil
+func nextTableRow(ctx mycocontext.Context) (row *blocks.TableRow, tableDone bool) {
+	var (
+		cleaningLeadingWhitespace = true
+		countingColspan           = false
+
+		currColspan    uint = 0
+		currCellMarker rune
+
+		cellContents string
+		r            rune
+		eof          bool
+
+		cells []*blocks.TableCell
+	)
+runeWalker:
+	for {
+		r, eof = mycocontext.NextRune(ctx)
+		if eof {
+			break
+		}
+	automaton:
+		switch {
+		case r == '\n':
+			break runeWalker
+		case cleaningLeadingWhitespace && unicode.IsSpace(r):
+			continue
+		case cleaningLeadingWhitespace: // When non-space rune, try again
+			cleaningLeadingWhitespace = false
+			goto automaton // The next and the nextnext case-clauses might trigger
+
+		case (!cleaningLeadingWhitespace && !countingColspan) && r == '}':
+			tableDone = true
+			break runeWalker
+		case (!cleaningLeadingWhitespace && !countingColspan) && (r == '|' || r == '!'):
+			// Proper cell marker, great! Let's start counting colspan then
+			currCellMarker = r
+			currColspan = 1
+			countingColspan = true
+		case countingColspan && r == currCellMarker:
+			currColspan++
+
+		case !cleaningLeadingWhitespace && !countingColspan, countingColspan:
+			mycocontext.UnreadRune(ctx)
+			cellContents, tableDone = nextTableCellContents(ctx)
+			cell := &blocks.TableCell{
+				IsHeaderCell: currCellMarker == '!',
+				Contents:     blocks.MakeFormatted(cellContents, ctx.HyphaName()),
+				Colspan:      currColspan,
+			}
+			cells = append(cells, cell)
+			if tableDone {
+				break runeWalker
+			}
+
+			// Reset state
+			countingColspan = false
+			currColspan = 0
+			currCellMarker = 0
+		case r == '}':
+			tableDone = true
+			break runeWalker
+		}
 	}
-	if !t.InMultiline {
-		pushTableRow(t)
+
+	if len(cells) == 0 {
+		return nil, tableDone
 	}
-	s := initialTableParserState()
-	s.lookingForNonSpace = !t.InMultiline
-	for _, r := range line {
-		parseTableRune(t, s, r)
+
+	return &blocks.TableRow{
+		HyphaName: ctx.HyphaName(),
+		Cells:     cells,
+	}, tableDone
+}
+
+func nextTableCellContents(
+	ctx mycocontext.Context,
+) (
+	contents string,
+	tableDone bool,
+) {
+	var (
+		contentsBuilder strings.Builder
+		escaping        = false
+		inLink          = false
+	)
+runeWalker:
+	for {
+		r, eof := mycocontext.NextRune(ctx)
+		if eof {
+			tableDone = true
+			break
+		}
+		switch {
+		case r == '\n':
+			mycocontext.UnreadRune(ctx)
+			break runeWalker
+		case escaping:
+			contentsBuilder.WriteRune(r)
+			escaping = false
+		case r == '\\':
+			contentsBuilder.WriteRune('\\')
+			escaping = true
+		case r == '[':
+			contentsBuilder.WriteRune('[')
+			r, eof = mycocontext.NextRune(ctx)
+			if r == '[' {
+				inLink = true
+			}
+			contentsBuilder.WriteRune(r)
+		case inLink && r == ']':
+			contentsBuilder.WriteRune(']')
+			r, eof = mycocontext.NextRune(ctx)
+			if r == ']' {
+				inLink = false
+			}
+			contentsBuilder.WriteRune(r)
+		case !inLink && r == '|', r == '!': // looks like a new cell
+			mycocontext.UnreadRune(ctx)
+			break runeWalker
+		case !inLink && r == '{':
+			contentsBuilder.WriteString(nextTableMultiline(ctx))
+
+		case r == '}':
+			tableDone = true
+		default:
+			contentsBuilder.WriteRune(r)
+		}
 	}
-	parseTableRune(t, s, '\n')
-	return false
+	return contentsBuilder.String(), tableDone
+}
+
+// return text until the next unmatched unescaped } (exclusively).
+// TODO: ignore leading whitespace
+func nextTableMultiline(ctx mycocontext.Context) string {
+	var (
+		curlyCount = 1 // 1 is the initial state: multiline open. When it is 0, done.
+		escaping   = false
+		r          rune
+		eof        bool
+		ret        strings.Builder
+	)
+	for {
+		r, eof = mycocontext.NextRune(ctx)
+		if eof {
+			break
+		}
+		switch {
+		case escaping:
+			escaping = false
+		case r == '\\':
+			escaping = true
+		case r == '{':
+			curlyCount++
+		case r == '}':
+			curlyCount--
+		}
+		if curlyCount == 0 {
+			break
+		}
+		ret.WriteRune(r)
+	}
+	return ret.String()
 }
 
 var tableRe = regexp.MustCompile(`^table\s*{`)
@@ -59,87 +212,4 @@ func tableFromFirstLine(line, hyphaName string) (t blocks.Table, done bool) {
 		Caption:   caption,
 		Rows:      make([]*blocks.TableRow, 0),
 	}, isClosed
-}
-
-type tableParserState struct {
-	skipNext           bool
-	escaping           bool
-	lookingForNonSpace bool
-	countingColspan    bool
-}
-
-func initialTableParserState() *tableParserState {
-	return &tableParserState{
-		skipNext:           false,
-		escaping:           false,
-		lookingForNonSpace: false,
-		countingColspan:    false,
-	}
-}
-
-func parseTableRune(t *blocks.Table, s *tableParserState, r rune) (done bool) {
-	switch {
-	case s.skipNext:
-		s.skipNext = false
-
-	case s.lookingForNonSpace && unicode.IsSpace(r):
-	case s.lookingForNonSpace && (r == '!' || r == '|'):
-		t.CurrCellMarker = r
-		t.CurrColspan = 1
-		s.lookingForNonSpace = false
-		s.countingColspan = true
-	case s.lookingForNonSpace:
-		t.CurrCellMarker = '^' // ^ represents implicit |, not part of syntax
-		t.CurrColspan = 1
-		s.lookingForNonSpace = false
-		t.CurrCellBuilder.WriteRune(r)
-
-	case s.escaping:
-		t.CurrCellBuilder.WriteRune(r)
-
-	case t.InMultiline && r == '}':
-		t.InMultiline = false
-	case t.InMultiline && r == '\n':
-		t.CurrCellBuilder.WriteRune(r)
-		t.CurrCellBuilder.WriteRune('\n')
-	case t.InMultiline:
-		t.CurrCellBuilder.WriteRune(r)
-
-		// Not in multiline:
-	case (r == '|' || r == '!') && !s.countingColspan:
-		pushTableCell(t)
-		t.CurrCellMarker = r
-		t.CurrColspan = 1
-		s.countingColspan = true
-	case r == t.CurrCellMarker && (r == '|' || r == '!') && s.countingColspan:
-		t.CurrColspan++
-	case r == '{':
-		t.InMultiline = true
-		s.countingColspan = false
-	case r == '\n':
-		pushTableCell(t)
-	default:
-		t.CurrCellBuilder.WriteRune(r)
-		s.countingColspan = false
-	}
-	return false
-}
-
-func pushTableRow(t *blocks.Table) {
-	t.Rows = append(t.Rows, &blocks.TableRow{
-		HyphaName: t.HyphaName,
-		Cells:     []*blocks.TableCell{},
-	})
-}
-
-func pushTableCell(t *blocks.Table) {
-	tc := &blocks.TableCell{
-		Contents:     blocks.MakeFormatted(t.CurrCellBuilder.String(), t.HyphaName),
-		Colspan:      t.CurrColspan,
-		IsHeaderCell: t.CurrCellMarker == '!',
-	}
-	// We expect the table to have at least one row ready, so no nil-checking
-	tr := t.Rows[len(t.Rows)-1]
-	tr.Cells = append(tr.Cells, tc)
-	t.CurrCellBuilder = strings.Builder{}
 }

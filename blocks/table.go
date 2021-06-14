@@ -2,7 +2,6 @@ package blocks
 
 import (
 	"fmt"
-	"strings"
 )
 
 // Table is a table, which consists of several Rows and has a Caption.
@@ -11,12 +10,6 @@ type Table struct {
 	HyphaName string
 	Caption   string
 	Rows      []*TableRow
-	// state
-	InMultiline bool
-	// tmp
-	CurrCellMarker  rune
-	CurrColspan     uint
-	CurrCellBuilder strings.Builder
 }
 
 // ID returns table's id which is table- and its number.

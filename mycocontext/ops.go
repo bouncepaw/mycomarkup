@@ -22,6 +22,11 @@ func NextByte(ctx Context) (b byte, done bool) {
 	return b, false
 }
 
+// UnreadRune unreads the previous rune. Pray so it doesn't throw any errors, because they are ignored.
+func UnreadRune(ctx Context) {
+	_ = ctx.Input().UnreadRune()
+}
+
 // NextRune is like NextByte, but for runes.
 func NextRune(ctx Context) (r rune, done bool) {
 	r, _, err := ctx.Input().ReadRune()
