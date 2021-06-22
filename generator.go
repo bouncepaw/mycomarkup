@@ -70,7 +70,7 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 		messageNotExists = `<section class="transclusion transclusion_failed">
 	<p class="error">Hypha <a class="wikilink wikilink_new" href="/hypha/%[1]s">%[1]s</a> does not exist</p>
 </section>`
-		messageOK = `<section class="transclusion transclusion_ok">
+		messageOK = `<section class="transclusion transclusion_ok%[3]s">
 	<a class="transclusion__link" href="/hypha/%[1]s">%[1]s</a>
 	<div class="transclusion__content">%[2]s</div>
 </section>`
@@ -92,7 +92,12 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 	ctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText)
 	ast := BlockTree(ctx)
 	xclText := generateHTML(ast, recursionLevel+1, counter)
-	return fmt.Sprintf(messageOK, xcl.Target, binaryHtml+xclText)
+	return fmt.Sprintf(messageOK, xcl.Target, binaryHtml+xclText, func() string {
+		if xcl.Blend {
+			return " transclusion_blend"
+		}
+		return " transclusion_stand-out"
+	}())
 }
 
 func listToTemplate(list blocks.List) string {
