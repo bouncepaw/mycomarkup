@@ -4,16 +4,14 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/links"
 	"strings"
-
-	"github.com/bouncepaw/mycomarkup/util"
 )
 
 // Transclusion is the block representing an extract from a different document.
 // TODO: visitors for transclusion.
 type Transclusion struct {
 	// Target is the name of the hypha to be transcluded.
-	Target string
-
+	Target   string
+	Blend    bool
 	Selector TransclusionSelector
 }
 
@@ -30,68 +28,57 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 	// TODO: move to the parser module.
 	line = strings.TrimSpace(line[2:])
 	if line == "" {
-		return Transclusion{"", DefaultSelector()}
+		return Transclusion{"", false, SelectorOverview}
 	}
 
 	if strings.ContainsRune(line, '|') {
 		parts := strings.SplitN(line, "|", 2)
 		return Transclusion{
 			Target:   links.From(strings.TrimSpace(parts[0]), "", hyphaName).TargetHypha(),
-			Selector: ParseSelector(parts[1]),
+			Blend:    strings.Contains(parts[1], "blend"),
+			Selector: selectorFrom(parts[1]),
 		}
 	}
 
 	return Transclusion{
 		Target:   links.From(strings.TrimSpace(line), "", hyphaName).TargetHypha(),
-		Selector: DefaultSelector(),
+		Blend:    false,
+		Selector: SelectorOverview,
 	}
 }
 
 // TransclusionSelector is the thing that specifies what parts of the document shall be transcluded.
-type TransclusionSelector struct {
-	bound1      string
-	dotsPresent bool
-	bound2      string
-}
+type TransclusionSelector int
 
-// DefaultSelector returns the default selector which is start..description.
-func DefaultSelector() TransclusionSelector {
-	return TransclusionSelector{"start", true, "description"}
-}
+const (
+	// SelectorOverview is SelectorAttachment and SelectorDescription combined.
+	SelectorOverview TransclusionSelector = iota
+	// SelectorAttachment selects the attachment of the target hypha.
+	SelectorAttachment
+	// SelectorDescription selects the description of the target hypha. The first paragraph of the text part of the hypha is considered its description.
+	SelectorDescription
+	// SelectorText selects all of the text in the hypha, but not the attachment.
+	SelectorText
+	// SelectorFull selects everything in the hypha, including the attachment.
+	SelectorFull
+)
 
-// ParseSelector parses the selector according to the following rules.
-//
-// If the selector is empty, we think of it as of selector start..description and try again.
-//
-// If there is no .. in the selector, the selector selects just one block with the matching id.
-//
-// If there is a .. in selector, there are two bounds: left and right. Both bounds are ids of some blocks.
-//
-// Special bounds:
-//
-//     attachment: hypha's attachment.
-//     start: hypha's text's first block.
-//     description: hypha's text's first paragraph.
-//     end: hypha's last block.
-//
-// If the left bound is empty, it is set to start. If the right bound is empty, it is set to end.
-func ParseSelector(selector string) TransclusionSelector {
-	selector = strings.TrimSpace(selector)
-	if selector == "" {
-		return ParseSelector("start..description")
-	}
-
-	if parts := strings.SplitN(selector, "..", 2); len(parts) == 2 {
-		return TransclusionSelector{
-			util.DefaultString(strings.TrimRight(parts[0], " "), "start"),
-			true,
-			util.DefaultString(strings.TrimLeft(parts[1], " "), "end"),
+func selectorFrom(s string) TransclusionSelector {
+	switch {
+	case strings.Contains(s, "full"):
+		return SelectorFull
+	case strings.Contains(s, "text"):
+		return SelectorText
+	case strings.Contains(s, "overview"):
+		return SelectorOverview
+	case strings.Contains(s, "description"):
+		if strings.Contains(s, "attachment") {
+			return SelectorOverview
 		}
-	}
-
-	return TransclusionSelector{
-		selector,
-		false,
-		"",
+		return SelectorDescription
+	case strings.Contains(s, "attachment"):
+		return SelectorAttachment
+	default:
+		return SelectorOverview
 	}
 }
