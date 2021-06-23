@@ -2,11 +2,9 @@ package mycomarkup
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/mycocontext"
-	"strings"
-
 	"github.com/bouncepaw/mycomarkup/blocks"
 	"github.com/bouncepaw/mycomarkup/globals"
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 )
 
 const maxRecursionLevel = 3
@@ -74,7 +72,7 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 		_ = fmt.Sprintf(messageBase, "failed",
 			`<p>An error occured while transcluding</p>`)
 		messageNotExists = `<section class="transclusion transclusion_failed">
-	<p class="error">Hypha <a class="wikilink wikilink_new" href="/hypha/%[1]s">%[1]s</a> does not exist</p>
+	<p class="error">Cannot transclude hypha <a class="wikilink wikilink_new" href="/hypha/%[1]s">%[1]s</a> because it does not exist</p>
 </section>`
 		messageOK = `<section class="transclusion transclusion_ok%[3]s">
 	<a class="transclusion__link" href="/hypha/%[1]s">%[1]s</a>
@@ -82,28 +80,38 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 </section>`
 	)
 
-	switch {
-	case globals.CalledInShell:
-		return messageCLI
-	case xcl.Target == "":
+	// Nonthing will match if there is no error:
+	switch xcl.TransclusionError.Reason {
+	case blocks.TransclusionErrorNotExists:
+		return fmt.Sprintf(messageNotExists, xcl.Target)
+	case blocks.TransclusionErrorNoTarget:
 		return messageNoTarget
-	case strings.Contains(xcl.Target, ":"):
+	case blocks.TransclusionInTerminal:
+		return messageCLI
+	case blocks.TransclusionErrorOldSyntax:
 		return messageOldSyntax
 	}
 
+	// Now, to real transclusion:
 	rawText, binaryHtml, err := globals.HyphaAccess(xcl.Target)
 	if err != nil {
 		return fmt.Sprintf(messageNotExists, xcl.Target)
 	}
-	ctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText)
-	ast := BlockTree(ctx)
-	xclText := generateHTML(ast, recursionLevel+1, counter)
-	return fmt.Sprintf(messageOK, xcl.Target, binaryHtml+xclText, func() string {
-		if xcl.Blend {
-			return " transclusion_blend"
-		}
-		return " transclusion_stand-out"
-	}())
+	ctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText) // FIXME: it will bite us one day
+	ast := BlockTree(ctx)                                             // TODO: inject transclusion visitors here
+	xclText := generateHTML(ast, recursionLevel+1, counter.UnusableCopy())
+
+	return fmt.Sprintf(
+		messageOK,
+		xcl.Target,
+		binaryHtml+xclText,
+		func() string {
+			if xcl.Blend {
+				return " transclusion_blend"
+			}
+			return " transclusion_stand-out"
+		}(),
+	)
 }
 
 func listToTemplate(list blocks.List) string {

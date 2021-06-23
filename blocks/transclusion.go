@@ -2,6 +2,7 @@ package blocks
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/globals"
 	"github.com/bouncepaw/mycomarkup/links"
 	"strings"
 )
@@ -13,6 +14,7 @@ type Transclusion struct {
 	Target   string
 	Blend    bool
 	Selector TransclusionSelector
+	TransclusionError
 }
 
 // ID returns the transclusion's id which is transclusion- and a number.
@@ -24,17 +26,51 @@ func (t Transclusion) ID(counter *IDCounter) string {
 func (t Transclusion) isBlock() {}
 
 // MakeTransclusion parses the line and returns a transclusion block.
+//
+// TODO: move to the parser module.
 func MakeTransclusion(line, hyphaName string) Transclusion {
-	// TODO: move to the parser module.
+	if globals.CalledInShell {
+		return Transclusion{
+			"",
+			false,
+			SelectorOverview,
+			TransclusionError{TransclusionInTerminal},
+		}
+	}
 	line = strings.TrimSpace(line[2:])
-	if line == "" {
-		return Transclusion{"", false, SelectorOverview}
+	// The second operand matches transclusion like <= | tututu or <= |
+	if line == "" || strings.HasPrefix(line, "|") {
+		return Transclusion{
+			"",
+			false,
+			SelectorOverview,
+			TransclusionError{TransclusionErrorNoTarget},
+		}
 	}
 
 	if strings.ContainsRune(line, '|') {
-		parts := strings.SplitN(line, "|", 2)
+		var (
+			parts       = strings.SplitN(line, "|", 2)
+			targetHypha = strings.TrimSpace(parts[0])
+		)
+		if strings.ContainsRune(targetHypha, ':') {
+			return Transclusion{
+				Target:            targetHypha,
+				Blend:             false,
+				Selector:          SelectorOverview,
+				TransclusionError: TransclusionError{TransclusionErrorOldSyntax},
+			}
+		}
+		if !globals.HyphaExists(targetHypha) {
+			return Transclusion{
+				Target:            targetHypha,
+				Blend:             false,
+				Selector:          SelectorOverview,
+				TransclusionError: TransclusionError{TransclusionErrorNotExists},
+			}
+		}
 		return Transclusion{
-			Target:   links.From(strings.TrimSpace(parts[0]), "", hyphaName).TargetHypha(),
+			Target:   links.From(targetHypha, "", hyphaName).TargetHypha(),
 			Blend:    strings.Contains(parts[1], "blend"),
 			Selector: selectorFrom(parts[1]),
 		}
@@ -45,6 +81,32 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 		Blend:    false,
 		Selector: SelectorOverview,
 	}
+}
+
+// TransclusionErrorReason is the reason why the transclusion failed during parsing.
+type TransclusionErrorReason int
+
+const (
+	// TransclusionNoError means there is no error.
+	TransclusionNoError TransclusionErrorReason = iota
+	// TransclusionInTerminal means that Mycomarkup CLI is used. Transclusion is not supported in it.
+	TransclusionInTerminal
+	// TransclusionErrorNoTarget means that no target hypha was specified.
+	TransclusionErrorNoTarget
+	// TransclusionErrorOldSyntax means : was found in the target.
+	TransclusionErrorOldSyntax
+	// TransclusionErrorNotExists means the target hypha does not exist.
+	TransclusionErrorNotExists
+)
+
+// TransclusionError is the error that occured during transclusion.
+type TransclusionError struct {
+	Reason TransclusionErrorReason
+}
+
+// HasError is true if there is indeed an error.
+func (te *TransclusionError) HasError() bool {
+	return te.Reason != TransclusionNoError
 }
 
 // TransclusionSelector is the thing that specifies what parts of the document shall be transcluded.
