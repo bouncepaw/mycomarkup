@@ -95,8 +95,8 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 		link.address = util.CanonicalName(link.address)
 	}
 
-	if srcDisplay != "" {
-		link.display = srcDisplay
+	if link.srcDisplay != "" {
+		link.display = link.srcDisplay
 	}
 
 	return &link
