@@ -17,6 +17,12 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 	}
 	for _, line := range ast {
 		switch v := line.(type) {
+		case blocks.Quote:
+			html += fmt.Sprintf(
+				"\n<blockquote%s>%s\n</blockquote>",
+				idAttribute(v, counter.UnusableCopy()),
+				generateHTML(v.Contents(), recursionLevel, counter.UnusableCopy()),
+			)
 		case blocks.List:
 			var ret string
 			for _, item := range v.Items {
@@ -44,10 +50,10 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 <table%s>%s</tbody></table>`, idAttribute(v, counter), ret)
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel, counter.UnusableCopy())
-		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.CodeBlock, blocks.Quote:
+		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.CodeBlock:
 			html += BlockToHTML(v, counter)
 		default:
-			html += "<b class='error'>Unknown element.</b>"
+			html += "<v class='error'>Unknown element.</v>"
 		}
 	}
 	return html

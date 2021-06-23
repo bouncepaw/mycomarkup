@@ -29,12 +29,6 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 `, b.Level, BlockToHTML(b.Contents(), counter), b.ID(counter), idAttribute(b, counter))
 	case blocks.CodeBlock:
 		return fmt.Sprintf("\n<pre class='codeblock'%s><code class='language-%s'>%s</code></pre>", idAttribute(b, counter), b.Language(), b.Contents())
-	case blocks.Quote:
-		var ret string
-		for _, b := range b.Contents() {
-			ret += BlockToHTML(b, counter)
-		}
-		return fmt.Sprintf("\n<blockquote%s>%s\n</blockquote>", idAttribute(b, counter.UnusableCopy()), ret)
 	}
 	fmt.Printf("%q\n", block)
 	return "<b>UNKNOWN ELEMENT</b>"
