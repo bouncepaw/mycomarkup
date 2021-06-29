@@ -157,7 +157,7 @@ func (link *Link) Display() string {
 
 // TargetHypha returns the name of the target hypha. Use for hypha links.
 func (link *Link) TargetHypha() string {
-	return link.address
+	return util.CanonicalName(link.address)
 }
 
 // OfKind returns if the given link is of the given kind.

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/globals"
 	"github.com/bouncepaw/mycomarkup/links"
+	"github.com/bouncepaw/mycomarkup/util"
 	"strings"
 )
 
@@ -51,7 +52,7 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 	if strings.ContainsRune(line, '|') {
 		var (
 			parts       = strings.SplitN(line, "|", 2)
-			targetHypha = strings.TrimSpace(parts[0])
+			targetHypha = util.CanonicalName(strings.TrimSpace(parts[0]))
 		)
 		if strings.ContainsRune(targetHypha, ':') {
 			return Transclusion{

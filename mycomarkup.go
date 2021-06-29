@@ -47,3 +47,35 @@ func BlocksToHTML(_ mycocontext.Context, ast []blocks.Block) string {
 	}
 	return generateHTML(ast, 0, counter)
 }
+
+// transclusionVisitor returns a visitor to pass to BlockTree and a function
+func transclusionVisitor(xcl blocks.Transclusion) (
+	visitor func(block blocks.Block),
+	result func() []blocks.Block,
+) {
+	var (
+		collected             []blocks.Block
+		metDescriptionAlready = false
+	)
+	visitor = func(block blocks.Block) {
+		switch xcl.Selector {
+		case blocks.SelectorAttachment:
+			// We don't need any of that when we only transclude attachments.
+		case blocks.SelectorText, blocks.SelectorFull:
+			collected = append(collected, block)
+		case blocks.SelectorOverview, blocks.SelectorDescription:
+			switch block.(type) {
+			case blocks.Paragraph:
+				if metDescriptionAlready {
+					break
+				}
+				metDescriptionAlready = true
+				collected = append(collected, block)
+			}
+		}
+	}
+	result = func() []blocks.Block {
+		return collected
+	}
+	return
+}

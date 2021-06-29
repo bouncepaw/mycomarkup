@@ -97,14 +97,18 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 	if err != nil {
 		return fmt.Sprintf(messageNotExists, xcl.Target)
 	}
+	xclVisistor, result := transclusionVisitor(xcl)
 	ctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText) // FIXME: it will bite us one day
-	ast := BlockTree(ctx)                                             // TODO: inject transclusion visitors here
-	xclText := generateHTML(ast, recursionLevel+1, counter.UnusableCopy())
+	_ = BlockTree(ctx, xclVisistor)                                   // TODO: inject transclusion visitors here
+	xclText := generateHTML(result(), recursionLevel+1, counter.UnusableCopy())
 
+	if xcl.Selector == blocks.SelectorAttachment || xcl.Selector == blocks.SelectorFull || xcl.Selector == blocks.SelectorOverview {
+		xclText = binaryHtml + xclText
+	}
 	return fmt.Sprintf(
 		messageOK,
 		xcl.Target,
-		binaryHtml+xclText,
+		xclText,
 		func() string {
 			if xcl.Blend {
 				return " transclusion_blend"
