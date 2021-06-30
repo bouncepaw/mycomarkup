@@ -113,6 +113,18 @@ func MakeFormatted(input, hyphaName string) Formatted {
 	}
 }
 
+const (
+	tokenSpanItalic    = "//"
+	tokenSpanBold      = "**"
+	tokenSpanMono      = "`"
+	tokenSpanSuper     = "^^"
+	tokenSpanSub       = ",,"
+	tokenSpanMark      = "++"
+	tokenSpanStrike    = "~~"
+	tokenSpanLinkOpen  = "[["
+	tokenSpanLinkClose = "]]"
+)
+
 func paragraphToHtml(hyphaName, input string) string {
 	var (
 		p = &Formatted{
@@ -130,6 +142,7 @@ func paragraphToHtml(hyphaName, input string) string {
 			spanSuper:  false,
 			spanSub:    false,
 			spanMark:   false,
+			spanStrike: false,
 			spanLink:   false,
 		}
 		startsWith = func(t string) bool {
@@ -142,28 +155,28 @@ func paragraphToHtml(hyphaName, input string) string {
 
 	for p.Len() != 0 {
 		switch {
-		case startsWith("//"):
-			ret.WriteString(tagFromState(spanItalic, tagState, "em", "//"))
+		case startsWith(tokenSpanItalic):
+			ret.WriteString(tagFromState(spanItalic, tagState, "em", tokenSpanItalic))
 			p.Next(2)
-		case startsWith("**"):
-			ret.WriteString(tagFromState(spanBold, tagState, "strong", "**"))
+		case startsWith(tokenSpanBold):
+			ret.WriteString(tagFromState(spanBold, tagState, "strong", tokenSpanBold))
 			p.Next(2)
-		case startsWith("`"):
-			ret.WriteString(tagFromState(spanMono, tagState, "code", "`"))
+		case startsWith(tokenSpanMono):
+			ret.WriteString(tagFromState(spanMono, tagState, "code", tokenSpanMono))
 			p.Next(1)
-		case startsWith("^^"):
-			ret.WriteString(tagFromState(spanSuper, tagState, "sup", "^^"))
+		case startsWith(tokenSpanSuper):
+			ret.WriteString(tagFromState(spanSuper, tagState, "sup", tokenSpanSuper))
 			p.Next(2)
-		case startsWith(",,"):
-			ret.WriteString(tagFromState(spanSub, tagState, "sub", ",,"))
+		case startsWith(tokenSpanSub):
+			ret.WriteString(tagFromState(spanSub, tagState, "sub", tokenSpanSub))
 			p.Next(2)
-		case startsWith("!!"):
-			ret.WriteString(tagFromState(spanMark, tagState, "mark", "!!"))
+		case startsWith(tokenSpanMark):
+			ret.WriteString(tagFromState(spanMark, tagState, "mark", tokenSpanMark))
 			p.Next(2)
-		case startsWith("~~"):
-			ret.WriteString(tagFromState(spanMark, tagState, "s", "~~"))
+		case startsWith(tokenSpanStrike):
+			ret.WriteString(tagFromState(spanMark, tagState, "s", tokenSpanStrike))
 			p.Next(2)
-		case startsWith("[["):
+		case startsWith(tokenSpanLinkOpen):
 			ret.WriteString(getLinkNode(p, hyphaName, true))
 		case (startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")) && noTagsActive():
 			ret.WriteString(getLinkNode(p, hyphaName, false))
@@ -176,21 +189,21 @@ func paragraphToHtml(hyphaName, input string) string {
 		if open {
 			switch stt {
 			case spanItalic:
-				ret.WriteString(tagFromState(spanItalic, tagState, "em", "//"))
+				ret.WriteString(tagFromState(spanItalic, tagState, "em", tokenSpanItalic))
 			case spanBold:
-				ret.WriteString(tagFromState(spanBold, tagState, "strong", "**"))
+				ret.WriteString(tagFromState(spanBold, tagState, "strong", tokenSpanBold))
 			case spanMono:
-				ret.WriteString(tagFromState(spanMono, tagState, "code", "`"))
+				ret.WriteString(tagFromState(spanMono, tagState, "code", tokenSpanMono))
 			case spanSuper:
-				ret.WriteString(tagFromState(spanSuper, tagState, "sup", "^^"))
+				ret.WriteString(tagFromState(spanSuper, tagState, "sup", tokenSpanSuper))
 			case spanSub:
-				ret.WriteString(tagFromState(spanSub, tagState, "sub", ",,"))
+				ret.WriteString(tagFromState(spanSub, tagState, "sub", tokenSpanSub))
 			case spanMark:
-				ret.WriteString(tagFromState(spanMark, tagState, "mark", "!!"))
+				ret.WriteString(tagFromState(spanMark, tagState, "mark", tokenSpanMark))
 			case spanStrike:
-				ret.WriteString(tagFromState(spanMark, tagState, "s", "~~"))
+				ret.WriteString(tagFromState(spanMark, tagState, "s", tokenSpanStrike))
 			case spanLink:
-				ret.WriteString(tagFromState(spanLink, tagState, "a", "[["))
+				ret.WriteString(tagFromState(spanLink, tagState, "a", tokenSpanLinkOpen))
 			}
 		}
 	}

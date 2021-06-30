@@ -47,7 +47,7 @@ func getSpanText(p *Formatted) spanText {
 			escaping = false
 		} else if ch == '\\' {
 			escaping = true
-		} else if strings.IndexByte("/*`^,![~", ch) >= 0 {
+		} else if strings.IndexByte("/*`^,+[~", ch) >= 0 {
 			p.UnreadByte()
 			break
 		} else if couldBeLinkStart() {

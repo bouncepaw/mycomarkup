@@ -13,6 +13,9 @@ test2: build
 test3: build
 	./mycomarkup -hypha-name "test doc" -filename "testdata/test3.myco"
 
+test4: build
+	./mycomarkup -hypha-name "test doc" -filename "testdata/test4.myco"
+
 test_list_examples: build
 	./mycomarkup -hypha-name "test doc" -filename "testdata/list_examples.myco"
 
