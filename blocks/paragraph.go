@@ -48,6 +48,7 @@ const (
 	spanSub
 	spanMark
 	spanStrike
+	spanUnderline
 	spanLink
 )
 
@@ -121,6 +122,7 @@ const (
 	tokenSpanSub       = ",,"
 	tokenSpanMark      = "++"
 	tokenSpanStrike    = "~~"
+	tokenSpanUnderline = "__"
 	tokenSpanLinkOpen  = "[["
 	tokenSpanLinkClose = "]]"
 )
@@ -136,14 +138,15 @@ func paragraphToHtml(hyphaName, input string) string {
 		ret strings.Builder
 		// true = tag is opened, false = tag is not opened
 		tagState = map[spanTokenType]bool{
-			spanItalic: false,
-			spanBold:   false,
-			spanMono:   false,
-			spanSuper:  false,
-			spanSub:    false,
-			spanMark:   false,
-			spanStrike: false,
-			spanLink:   false,
+			spanItalic:    false,
+			spanBold:      false,
+			spanMono:      false,
+			spanSuper:     false,
+			spanSub:       false,
+			spanMark:      false,
+			spanStrike:    false,
+			spanUnderline: false,
+			spanLink:      false,
 		}
 		startsWith = func(t string) bool {
 			return bytes.HasPrefix(p.Bytes(), []byte(t))
@@ -176,6 +179,9 @@ func paragraphToHtml(hyphaName, input string) string {
 		case startsWith(tokenSpanStrike):
 			ret.WriteString(tagFromState(spanMark, tagState, "s", tokenSpanStrike))
 			p.Next(2)
+		case startsWith(tokenSpanUnderline):
+			ret.WriteString(tagFromState(spanUnderline, tagState, "u", tokenSpanUnderline))
+			p.Next(2)
 		case startsWith(tokenSpanLinkOpen):
 			ret.WriteString(getLinkNode(p, hyphaName, true))
 		case (startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")) && noTagsActive():
@@ -201,7 +207,9 @@ func paragraphToHtml(hyphaName, input string) string {
 			case spanMark:
 				ret.WriteString(tagFromState(spanMark, tagState, "mark", tokenSpanMark))
 			case spanStrike:
-				ret.WriteString(tagFromState(spanMark, tagState, "s", tokenSpanStrike))
+				ret.WriteString(tagFromState(spanStrike, tagState, "s", tokenSpanStrike))
+			case spanUnderline:
+				ret.WriteString(tagFromState(spanUnderline, tagState, "u", tokenSpanUnderline))
 			case spanLink:
 				ret.WriteString(tagFromState(spanLink, tagState, "a", tokenSpanLinkOpen))
 			}
