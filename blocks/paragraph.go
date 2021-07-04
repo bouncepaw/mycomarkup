@@ -53,9 +53,6 @@ const (
 )
 
 func tagFromState(stt spanTokenType, tagState map[spanTokenType]bool, tagName, originalForm string) string {
-	if tagState[spanMono] && (stt != spanMono) {
-		return originalForm
-	}
 	if tagState[stt] {
 		tagState[stt] = false
 		return fmt.Sprintf("</%s>", tagName)
