@@ -62,6 +62,8 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 				TransclusionError: TransclusionError{TransclusionErrorOldSyntax},
 			}
 		}
+		// Sorry for party rocking
+		targetHypha = links.From(targetHypha, "", hyphaName).TargetHypha()
 		if !globals.HyphaExists(targetHypha) {
 			return Transclusion{
 				Target:            targetHypha,
