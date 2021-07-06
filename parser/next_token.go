@@ -34,7 +34,7 @@ func nextImg(ctx mycocontext.Context) (img blocks.Img, done bool) {
 		return img, done
 	}
 
-	for !imgDone {
+	for !imgDone && !done {
 		r, done = mycocontext.NextRune(ctx)
 		imgDone = img.ProcessRune(r)
 	}

@@ -28,6 +28,8 @@ test_p_and_blank: build
 test_tables: build
 	./mycomarkup -hypha-name "test doc" -filename "testdata/tables.myco"
 
+test_death: build
+	./mycomarkup -hypha-name "test doc" -filename "testdata/death.myco"
 
 generate:
 	# stringer -type=TokenKind -trimprefix Token ./parser

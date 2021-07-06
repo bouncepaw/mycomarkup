@@ -12,7 +12,7 @@ import (
 func nextTable(ctx mycocontext.Context) (t blocks.Table, eof bool) {
 	line, eof := mycocontext.NextLine(ctx)
 	t, tableDone := tableFromFirstLine(line, ctx.HyphaName())
-	if tableDone {
+	if tableDone || eof {
 		return t, eof
 	}
 	for {
@@ -47,6 +47,7 @@ runeWalker:
 	for {
 		r, eof = mycocontext.NextRune(ctx)
 		if eof {
+			tableDone = true
 			break
 		}
 	automaton:
