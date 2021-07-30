@@ -2,6 +2,7 @@
 package util
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -24,8 +25,15 @@ func StringID(s string) string {
 	return strings.Trim(ret.String(), "_")
 }
 
+var badCharactersRe = regexp.MustCompile(`[?!:#@<>*|'"&%{}\\]`)
+
+func SanitizeName(unsafeName string) string {
+	return badCharactersRe.ReplaceAllString(unsafeName, "")
+}
+
 // BeautifulName makes the ugly name beautiful by replacing _ with spaces and using title case
 func BeautifulName(uglyName string) string {
+	uglyName = SanitizeName(uglyName)
 	// What other transformations can we apply for a better beautifying process?
 	if uglyName == "" {
 		return uglyName
@@ -38,7 +46,10 @@ func CanonicalName(name string) string {
 	return strings.ToLower(
 		strings.ReplaceAll(
 			strings.TrimRight(
-				strings.TrimLeft(name, "_"),
+				strings.TrimLeft(
+					SanitizeName(name),
+					"_",
+				),
 				"_",
 			), " ", "_"))
 }

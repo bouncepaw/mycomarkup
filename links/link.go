@@ -3,6 +3,7 @@ package links
 
 import (
 	"fmt"
+	"html"
 	"path"
 	"strings"
 
@@ -134,9 +135,9 @@ func (link *Link) Classes() (classes string) {
 func (link *Link) Href() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:
-		return link.protocol + link.address + link.anchor
+		return link.protocol + html.EscapeString(link.address+link.anchor)
 	default:
-		return "/hypha/" + link.address + link.anchor
+		return "/hypha/" + html.EscapeString(link.address+link.anchor)
 	}
 }
 
@@ -144,15 +145,15 @@ func (link *Link) Href() string {
 func (link *Link) ImgSrc() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:
-		return link.protocol + link.address + link.anchor
+		return link.protocol + html.EscapeString(link.address+link.anchor)
 	default:
-		return "/binary/" + link.address
+		return "/binary/" + html.EscapeString(link.address)
 	}
 }
 
 // Display returns the display text of the given link.
 func (link *Link) Display() string {
-	return link.display
+	return html.EscapeString(link.display)
 }
 
 // TargetHypha returns the name of the target hypha. Use for hypha links.
