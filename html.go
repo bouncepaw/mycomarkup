@@ -3,6 +3,7 @@ package mycomarkup
 import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/blocks"
+	"html"
 )
 
 // BlockToHTML turns the given block into HTML. It supports only a subset of Mycomarkup.
@@ -22,7 +23,7 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 		return launchpadToHTML(b, counter)
 	case blocks.RocketLink:
 		return fmt.Sprintf(`
-	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), b.Display())
+	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), html.EscapeString(b.Display()))
 	case blocks.Heading:
 		return fmt.Sprintf(`
 <h%[1]d%[4]s>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>

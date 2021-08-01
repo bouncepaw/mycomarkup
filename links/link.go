@@ -131,17 +131,17 @@ func (link *Link) Classes() (classes string) {
 	return classes
 }
 
-// Href returns content for the href attribute for hyperlink. You should always use it.
+// Href returns escaped content for the href attribute for hyperlink. You should always use it.
 func (link *Link) Href() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:
-		return link.protocol + html.EscapeString(link.address+link.anchor)
+		return html.EscapeString(link.protocol + link.address + link.anchor)
 	default:
 		return "/hypha/" + html.EscapeString(link.address+link.anchor)
 	}
 }
 
-// ImgSrc returns content for src attribute of img tag. Used with `img{}`.
+// ImgSrc returns escaped content for src attribute of img tag. Used with `img{}`.
 func (link *Link) ImgSrc() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:
@@ -151,12 +151,12 @@ func (link *Link) ImgSrc() string {
 	}
 }
 
-// Display returns the display text of the given link.
+// Display returns the display text of the given link. It is not escaped, escape by yourself.
 func (link *Link) Display() string {
-	return html.EscapeString(link.display)
+	return link.display
 }
 
-// TargetHypha returns the name of the target hypha. Use for hypha links.
+// TargetHypha returns the canonical name of the target hypha. Use for hypha links.
 func (link *Link) TargetHypha() string {
 	return util.CanonicalName(link.address)
 }
