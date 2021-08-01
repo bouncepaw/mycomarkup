@@ -60,3 +60,40 @@ func getSpanText(p *Formatted) spanText {
 
 	return st
 }
+
+type spanStyle struct {
+	kind spanTokenType
+}
+
+type spanTableEntry struct {
+	kind        spanTokenType
+	token       string
+	tokenLength int
+	htmlTagName string
+}
+
+// cool table for cool kids
+var spanTable = []spanTableEntry{
+	{spanItalic, "//", 2, "em"},
+	{spanBold, "**", 2, "strong"},
+	{spanMono, "`", 1, "code"},
+	{spanSuper, "^^", 2, "sup"},
+	{spanSub, ",,", 2, "sub"},
+	{spanMark, "++", 2, "mark"},
+	{spanStrike, "~~", 2, "s"},
+	{spanUnderline, "__", 2, "u"},
+}
+
+func entryForSpan(kind spanTokenType) spanTableEntry {
+	for _, entry := range spanTable {
+		if entry.kind == kind {
+			return entry
+		}
+	}
+	// unreachable state, supposedly
+	panic("unknown kind of span")
+}
+
+func tagNameForSpan(kind spanTokenType) string {
+	return entryForSpan(kind).htmlTagName
+}

@@ -16,7 +16,7 @@ type Paragraph struct {
 	Formatted
 }
 
-// ID returns the paragraphs's id which is paragraph- and a number.
+// ID returns the paragraph's id which is paragraph- and a number.
 func (p Paragraph) ID(counter *IDCounter) string {
 	counter.paragraphs++
 	return fmt.Sprintf("paragraph-%d", counter.paragraphs)
@@ -27,7 +27,7 @@ type Formatted struct {
 	HyphaName string
 	Html      string
 	*bytes.Buffer
-	spans []span
+	spans []interface{} // Forgive me, for I have sinned
 }
 
 func (p Formatted) isBlock() {}
@@ -52,7 +52,13 @@ const (
 	spanLink
 )
 
-func tagFromState(stt spanTokenType, tagState map[spanTokenType]bool, tagName, originalForm string) string {
+func tagFromState(stt spanTokenType, tagState map[spanTokenType]bool) string {
+	var tagName string
+	if stt == spanLink {
+		tagName = "a"
+	} else {
+		tagName = tagNameForSpan(stt)
+	}
 	if tagState[stt] {
 		tagState[stt] = false
 		return fmt.Sprintf("</%s>", tagName)
@@ -111,26 +117,13 @@ func MakeFormatted(input, hyphaName string) Formatted {
 	}
 }
 
-const (
-	tokenSpanItalic    = "//"
-	tokenSpanBold      = "**"
-	tokenSpanMono      = "`"
-	tokenSpanSuper     = "^^"
-	tokenSpanSub       = ",,"
-	tokenSpanMark      = "++"
-	tokenSpanStrike    = "~~"
-	tokenSpanUnderline = "__"
-	tokenSpanLinkOpen  = "[["
-	tokenSpanLinkClose = "]]"
-)
-
 func paragraphToHtml(hyphaName, input string) string {
 	var (
 		p = &Formatted{
 			hyphaName,
 			"",
 			bytes.NewBufferString(input),
-			make([]span, 0),
+			make([]interface{}, 0),
 		}
 		ret strings.Builder
 		// true = tag is opened, false = tag is not opened
@@ -154,64 +147,41 @@ func paragraphToHtml(hyphaName, input string) string {
 	)
 
 	for p.Len() != 0 {
+		for _, entry := range spanTable {
+			if startsWith(entry.token) {
+				p.spans = append(p.spans, entry)
+				p.Next(entry.tokenLength)
+				continue
+			}
+		}
 		switch {
-		case startsWith(tokenSpanItalic):
-			ret.WriteString(tagFromState(spanItalic, tagState, "em", tokenSpanItalic))
-			p.Next(2)
-		case startsWith(tokenSpanBold):
-			ret.WriteString(tagFromState(spanBold, tagState, "strong", tokenSpanBold))
-			p.Next(2)
-		case startsWith(tokenSpanMono):
-			ret.WriteString(tagFromState(spanMono, tagState, "code", tokenSpanMono))
-			p.Next(1)
-		case startsWith(tokenSpanSuper):
-			ret.WriteString(tagFromState(spanSuper, tagState, "sup", tokenSpanSuper))
-			p.Next(2)
-		case startsWith(tokenSpanSub):
-			ret.WriteString(tagFromState(spanSub, tagState, "sub", tokenSpanSub))
-			p.Next(2)
-		case startsWith(tokenSpanMark):
-			ret.WriteString(tagFromState(spanMark, tagState, "mark", tokenSpanMark))
-			p.Next(2)
-		case startsWith(tokenSpanStrike):
-			ret.WriteString(tagFromState(spanMark, tagState, "s", tokenSpanStrike))
-			p.Next(2)
-		case startsWith(tokenSpanUnderline):
-			ret.WriteString(tagFromState(spanUnderline, tagState, "u", tokenSpanUnderline))
-			p.Next(2)
-		case startsWith(tokenSpanLinkOpen):
-			ret.WriteString(getLinkNode(p, hyphaName, true))
+		case startsWith("[["):
+			p.spans = append(p.spans, getLinkNode(p, hyphaName, true))
 		case (startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")) && noTagsActive():
-			ret.WriteString(getLinkNode(p, hyphaName, false))
+			p.spans = append(p.spans, getLinkNode(p, hyphaName, false))
 		default:
-			ret.WriteString(html.EscapeString(getSpanText(p).htmlWithState(tagState)))
+			p.spans = append(p.spans, getSpanText(p).htmlWithState(tagState))
+		}
+	}
+
+	for _, span := range p.spans {
+		switch s := span.(type) {
+		case spanTableEntry:
+			ret.WriteString(tagFromState(s.kind, tagState))
+		case string:
+			ret.WriteString(s)
+		default:
+			panic("unknown span kind... What do you expect from me?")
 		}
 	}
 
 	for stt, open := range tagState {
 		if open {
-			switch stt {
-			case spanItalic:
-				ret.WriteString(tagFromState(spanItalic, tagState, "em", tokenSpanItalic))
-			case spanBold:
-				ret.WriteString(tagFromState(spanBold, tagState, "strong", tokenSpanBold))
-			case spanMono:
-				ret.WriteString(tagFromState(spanMono, tagState, "code", tokenSpanMono))
-			case spanSuper:
-				ret.WriteString(tagFromState(spanSuper, tagState, "sup", tokenSpanSuper))
-			case spanSub:
-				ret.WriteString(tagFromState(spanSub, tagState, "sub", tokenSpanSub))
-			case spanMark:
-				ret.WriteString(tagFromState(spanMark, tagState, "mark", tokenSpanMark))
-			case spanStrike:
-				ret.WriteString(tagFromState(spanStrike, tagState, "s", tokenSpanStrike))
-			case spanUnderline:
-				ret.WriteString(tagFromState(spanUnderline, tagState, "u", tokenSpanUnderline))
-			case spanLink:
-				ret.WriteString(tagFromState(spanLink, tagState, "a", tokenSpanLinkOpen))
-			}
+			ret.WriteString(tagFromState(stt, tagState))
 		}
 	}
 
 	return ret.String()
 }
+
+// TODO: test for HTML injections thoroughly
