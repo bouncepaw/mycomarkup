@@ -3,6 +3,7 @@ package mycomarkup
 import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/blocks"
+	"github.com/bouncepaw/mycomarkup/parser"
 	"html"
 )
 
@@ -27,7 +28,7 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 	case blocks.Heading:
 		return fmt.Sprintf(`
 <h%[1]d%[4]s>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
-`, b.Level, BlockToHTML(b.Contents(), counter), b.ID(counter), idAttribute(b, counter))
+`, b.Level, BlockToHTML(b.GetContents(), counter), b.ID(counter), idAttribute(b, counter))
 	case blocks.CodeBlock:
 		return fmt.Sprintf("\n<pre class='codeblock'%s><code class='language-%s'>%s</code></pre>", idAttribute(b, counter), b.Language(), b.Contents())
 	}
@@ -74,7 +75,7 @@ func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 	%s
 	<figcaption>%s</figcaption>
 </figure>
-`, ret, BlockToHTML(entry.Description(), counter))
+`, ret, BlockToHTML(parser.MakeFormatted(entry.Desc.String(), entry.HyphaName), counter))
 }
 
 func imgToHTML(img blocks.Img, counter *blocks.IDCounter) string {

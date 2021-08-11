@@ -45,7 +45,7 @@ func (img Img) ID(counter *IDCounter) string {
 
 // HasOneImage returns true if img has exactly one image and that images has no description.
 func (img *Img) HasOneImage() bool {
-	return len(img.Entries) == 1 && img.Entries[0].desc.Len() == 0
+	return len(img.Entries) == 1 && img.Entries[0].Desc.Len() == 0
 }
 
 func (img *Img) pushEntry() {
@@ -53,7 +53,7 @@ func (img *Img) pushEntry() {
 		img.currEntry.Srclink = links.From(img.currEntry.path.String(), "", img.hyphaName)
 		// img.currEntry.Srclink.DoubtExistence()
 		img.Entries = append(img.Entries, img.currEntry)
-		img.currEntry = ImgEntry{hyphaName: img.hyphaName}
+		img.currEntry = ImgEntry{HyphaName: img.hyphaName}
 		img.currEntry.path.Reset()
 	}
 }
@@ -98,7 +98,7 @@ func (img *Img) processInDescription(r rune) (shouldReturnTrue bool) {
 	case '}':
 		img.state = inName
 	default:
-		img.currEntry.desc.WriteRune(r)
+		img.currEntry.Desc.WriteRune(r)
 	}
 	return false
 }

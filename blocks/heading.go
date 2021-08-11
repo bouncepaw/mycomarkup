@@ -8,30 +8,18 @@ import (
 type Heading struct {
 	// Level is a number between 1 and 6.
 	Level    uint
-	contents Formatted
-	src      string
+	Contents Formatted
+	Src      string
 }
 
 func (h Heading) isBlock() {}
 
-// MakeHeading parses the heading on the given line and returns it. Set its level by yourself though.
-func MakeHeading(line, hyphaName string, level uint) Heading {
-	// TODO: figure out the level here.
-	// TODO: move to the parser module.
-	h := Heading{
-		Level:    level,
-		contents: MakeFormatted(line[level+1:], hyphaName),
-		src:      line,
-	}
-	return h
-}
-
-// Contents returns the heading's contents.
-func (h *Heading) Contents() Formatted {
-	return h.contents
+// GetContents returns the heading's contents.
+func (h *Heading) GetContents() Formatted {
+	return h.Contents
 }
 
 // ID returns the heading's id which is basically a stripped version of its contents. See util.StringID.
 func (h Heading) ID(_ *IDCounter) string {
-	return util.StringID(h.src[h.Level+1:])
+	return util.StringID(h.Src[h.Level+1:])
 }

@@ -61,25 +61,6 @@ func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, done bool) {
 	}
 }
 
-func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
-	line, done := mycocontext.NextLine(ctx)
-	p = blocks.Paragraph{blocks.MakeFormatted(line, ctx.HyphaName())}
-	if nextLineIsSomething(ctx) {
-		return
-	}
-	for {
-		line, done = mycocontext.NextLine(ctx)
-		if done && line == "" {
-			break
-		}
-		p.AddLine(line)
-		if nextLineIsSomething(ctx) {
-			break
-		}
-	}
-	return
-}
-
 func linesForQuote(ctx mycocontext.Context) ([]string, bool) {
 	var (
 		line  string
@@ -167,22 +148,22 @@ func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 
 	case isPrefixedBy(ctx, "###### "):
 		line, done := mycocontext.NextLine(ctx)
-		return blocks.MakeHeading(line, ctx.HyphaName(), 6), done
+		return MakeHeading(line, ctx.HyphaName(), 6), done
 	case isPrefixedBy(ctx, "##### "):
 		line, done := mycocontext.NextLine(ctx)
-		return blocks.MakeHeading(line, ctx.HyphaName(), 5), done
+		return MakeHeading(line, ctx.HyphaName(), 5), done
 	case isPrefixedBy(ctx, "#### "):
 		line, done := mycocontext.NextLine(ctx)
-		return blocks.MakeHeading(line, ctx.HyphaName(), 4), done
+		return MakeHeading(line, ctx.HyphaName(), 4), done
 	case isPrefixedBy(ctx, "### "):
 		line, done := mycocontext.NextLine(ctx)
-		return blocks.MakeHeading(line, ctx.HyphaName(), 3), done
+		return MakeHeading(line, ctx.HyphaName(), 3), done
 	case isPrefixedBy(ctx, "## "):
 		line, done := mycocontext.NextLine(ctx)
-		return blocks.MakeHeading(line, ctx.HyphaName(), 2), done
+		return MakeHeading(line, ctx.HyphaName(), 2), done
 	case isPrefixedBy(ctx, "# "):
 		line, done := mycocontext.NextLine(ctx)
-		return blocks.MakeHeading(line, ctx.HyphaName(), 1), done
+		return MakeHeading(line, ctx.HyphaName(), 1), done
 
 	case blocks.MatchesImg(ctx.Input().String()):
 		return nextImg(ctx)
