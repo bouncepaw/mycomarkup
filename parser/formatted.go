@@ -25,7 +25,7 @@ func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
 		if done && line == "" {
 			break
 		}
-		parseOneMoreFormattedLine(&p.Formatted, line)
+		p.AddLine(line)
 		if nextLineIsSomething(ctx) {
 			break
 		}
@@ -33,17 +33,13 @@ func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
 	return
 }
 
-// parseOneMoreFormattedLine adds a line to the block. The line is prepended with <br>.
-func parseOneMoreFormattedLine(p *blocks.Formatted, line string) {
-	p.Html += `<br>` + ParagraphToHtml(p.HyphaName, line)
-}
-
+// TagFromState returns an appropriate tag half (<left> or </right>) depending on tagState and also mutates it.
 func TagFromState(stt blocks.SpanKind, tagState map[blocks.SpanKind]bool) string {
 	var tagName string
 	if stt == blocks.SpanLink {
 		tagName = "a"
 	} else {
-		tagName = blocks.TagNameForSpan(stt)
+		tagName = blocks.TagNameForStyleSpan(stt)
 	}
 	if tagState[stt] {
 		tagState[stt] = false
@@ -54,7 +50,10 @@ func TagFromState(stt blocks.SpanKind, tagState map[blocks.SpanKind]bool) string
 	}
 }
 
-func GetLinkNode(input *blocks.Formatted, hyphaName string, isBracketedLink bool) string {
+// GetLinkNode returns an HTML representation of the next link in the input. Set isBracketedLink if the input starts with [[.
+//
+// TODO: return something bearable, not HTML.
+func GetLinkNode(input *bytes.Buffer, hyphaName string, isBracketedLink bool) string {
 	if isBracketedLink {
 		input.Next(2) // drop those [[
 	}
@@ -91,10 +90,10 @@ func GetLinkNode(input *blocks.Formatted, hyphaName string, isBracketedLink bool
 }
 
 // MakeFormatted parses the formatted text in the input and returns it.
-func MakeFormatted(input, hyphaName string) blocks.Formatted {
+func MakeFormatted(firstLine, hyphaName string) blocks.Formatted {
 	return blocks.Formatted{
 		HyphaName: hyphaName,
-		Html:      ParagraphToHtml(hyphaName, input),
+		Lines:     []string{firstLine},
 	}
 }
 
@@ -114,13 +113,16 @@ func stateAtNewLine() map[blocks.SpanKind]bool {
 	}
 }
 
+// ParagraphToHtml turns the given line of formatted text into HTML by lexing and parsing it in place.
+//
+// TODO: separate all these steps.
 func ParagraphToHtml(hyphaName, input string) string {
 	var (
 		p = &blocks.Formatted{
-			hyphaName,
-			"",
-			bytes.NewBufferString(input),
-			make([]interface{}, 0),
+			HyphaName: hyphaName,
+			Lines:     []string{},
+			Buffer:    bytes.NewBufferString(input),
+			Spans:     make([]interface{}, 0),
 		}
 		ret strings.Builder
 		// true = tag is opened, false = tag is not opened
@@ -129,7 +131,14 @@ func ParagraphToHtml(hyphaName, input string) string {
 			return bytes.HasPrefix(p.Bytes(), []byte(t))
 		}
 		noTagsActive = func() bool {
-			return !(tagState[blocks.SpanItalic] || tagState[blocks.SpanBold] || tagState[blocks.SpanMono] || tagState[blocks.SpanSuper] || tagState[blocks.SpanSub] || tagState[blocks.SpanMark] || tagState[blocks.SpanLink])
+			// This function used to be one boolean expression. I changed it to a loop so it is harder to forger 💀 any span kinds.
+			for _, entry := range blocks.SpanTable {
+				if tagState[entry.Kind] { // If span is open
+					return false
+				}
+			}
+			// All other spans are closed, let's check for link finally.
+			return !tagState[blocks.SpanLink]
 		}
 	)
 
@@ -138,17 +147,17 @@ runeWalker:
 		for _, entry := range blocks.SpanTable {
 			if startsWith(entry.Token) {
 				p.Spans = append(p.Spans, entry)
-				p.Next(entry.TokenLength)
+				p.Next(len(entry.Token))
 				continue runeWalker
 			}
 		}
 		switch {
 		case startsWith("[["):
-			p.Spans = append(p.Spans, GetLinkNode(p, hyphaName, true))
+			p.Spans = append(p.Spans, GetLinkNode(p.Buffer, hyphaName, true))
 		case (startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")) && noTagsActive():
-			p.Spans = append(p.Spans, GetLinkNode(p, hyphaName, false))
+			p.Spans = append(p.Spans, GetLinkNode(p.Buffer, hyphaName, false))
 		default:
-			p.Spans = append(p.Spans, GetSpanText(p).HTMLWithState(tagState))
+			p.Spans = append(p.Spans, GetSpanText(p.Buffer).HTMLWithState(tagState))
 		}
 	}
 
@@ -172,29 +181,21 @@ runeWalker:
 	return ret.String()
 }
 
-type Span interface {
-	TagName() string
-	HTMLWithState(map[blocks.SpanKind]bool) string
-}
-
 type SpanText struct {
 	bytes.Buffer
-}
-
-func (s SpanText) TagName() string {
-	return "p"
 }
 
 func (s SpanText) HTMLWithState(_ map[blocks.SpanKind]bool) string {
 	return s.String()
 }
 
-func GetSpanText(p *blocks.Formatted) SpanText {
+// GetSpanText returns the next SpanText there is in input.
+func GetSpanText(input *bytes.Buffer) SpanText {
 	var (
 		st         = SpanText{}
 		escaping   = false
 		startsWith = func(t string) bool {
-			return bytes.HasPrefix(p.Bytes(), []byte(t))
+			return bytes.HasPrefix(input.Bytes(), []byte(t))
 		}
 		couldBeLinkStart = func() bool {
 			return startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")
@@ -202,20 +203,20 @@ func GetSpanText(p *blocks.Formatted) SpanText {
 	)
 
 	// Always read the first byte in advance to avoid endless loops that kill computers (sad experience)
-	if p.Len() != 0 {
-		b, _ := p.ReadByte()
+	if input.Len() != 0 {
+		b, _ := input.ReadByte()
 		_ = st.WriteByte(b)
 	}
-	for p.Len() != 0 {
+	for input.Len() != 0 {
 		// We check for length, this should never fail:
-		ch, _ := p.ReadByte()
+		ch, _ := input.ReadByte()
 		if escaping {
 			st.WriteByte(ch)
 			escaping = false
 		} else if ch == '\\' {
 			escaping = true
-		} else if strings.IndexByte("/*`^,+[~_", ch) >= 0 {
-			p.UnreadByte()
+		} else if strings.IndexByte("/*`^,+[~_", ch) >= 0 { // TODO: generate that string there dynamically
+			input.UnreadByte()
 			break
 		} else if couldBeLinkStart() {
 			st.WriteByte(ch)

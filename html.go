@@ -11,9 +11,20 @@ import (
 func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 	switch b := block.(type) {
 	case blocks.Formatted:
-		return b.Html
+		var res string
+		for i, line := range b.Lines {
+			if i > 0 {
+				res += `<br>`
+			}
+			res += parser.ParagraphToHtml(b.HyphaName, line)
+		}
+		return res
 	case blocks.Paragraph:
-		return fmt.Sprintf("\n<p%s>%s</p>", idAttribute(b, counter), b.Html)
+		return fmt.Sprintf(
+			"\n<p%s>%s</p>",
+			idAttribute(b, counter),
+			BlockToHTML(b.Formatted, counter),
+		)
 	case blocks.HorizontalLine:
 		return fmt.Sprintf(`<hr id="%s"/>`, idAttribute(b, counter))
 	case blocks.Img:
