@@ -38,27 +38,12 @@ func parseOneMoreFormattedLine(p *blocks.Formatted, line string) {
 	p.Html += `<br>` + ParagraphToHtml(p.HyphaName, line)
 }
 
-type SpanType int
-
-const (
-	_ = iota
-	SpanItalic
-	SpanBold
-	SpanMono
-	SpanSuper
-	SpanSub
-	SpanMark
-	SpanStrike
-	SpanUnderline
-	SpanLink
-)
-
-func TagFromState(stt SpanType, tagState map[SpanType]bool) string {
+func TagFromState(stt blocks.SpanKind, tagState map[blocks.SpanKind]bool) string {
 	var tagName string
-	if stt == SpanLink {
+	if stt == blocks.SpanLink {
 		tagName = "a"
 	} else {
-		tagName = TagNameForSpan(stt)
+		tagName = blocks.TagNameForSpan(stt)
 	}
 	if tagState[stt] {
 		tagState[stt] = false
@@ -113,6 +98,22 @@ func MakeFormatted(input, hyphaName string) blocks.Formatted {
 	}
 }
 
+func stateAtNewLine() map[blocks.SpanKind]bool {
+	// false: tag not open
+	// true: tag open
+	return map[blocks.SpanKind]bool{
+		blocks.SpanItalic:    false,
+		blocks.SpanBold:      false,
+		blocks.SpanMono:      false,
+		blocks.SpanSuper:     false,
+		blocks.SpanSub:       false,
+		blocks.SpanMark:      false,
+		blocks.SpanStrike:    false,
+		blocks.SpanUnderline: false,
+		blocks.SpanLink:      false,
+	}
+}
+
 func ParagraphToHtml(hyphaName, input string) string {
 	var (
 		p = &blocks.Formatted{
@@ -123,28 +124,18 @@ func ParagraphToHtml(hyphaName, input string) string {
 		}
 		ret strings.Builder
 		// true = tag is opened, false = tag is not opened
-		tagState = map[SpanType]bool{
-			SpanItalic:    false,
-			SpanBold:      false,
-			SpanMono:      false,
-			SpanSuper:     false,
-			SpanSub:       false,
-			SpanMark:      false,
-			SpanStrike:    false,
-			SpanUnderline: false,
-			SpanLink:      false,
-		}
+		tagState   = stateAtNewLine()
 		startsWith = func(t string) bool {
 			return bytes.HasPrefix(p.Bytes(), []byte(t))
 		}
 		noTagsActive = func() bool {
-			return !(tagState[SpanItalic] || tagState[SpanBold] || tagState[SpanMono] || tagState[SpanSuper] || tagState[SpanSub] || tagState[SpanMark] || tagState[SpanLink])
+			return !(tagState[blocks.SpanItalic] || tagState[blocks.SpanBold] || tagState[blocks.SpanMono] || tagState[blocks.SpanSuper] || tagState[blocks.SpanSub] || tagState[blocks.SpanMark] || tagState[blocks.SpanLink])
 		}
 	)
 
 runeWalker:
 	for p.Len() != 0 {
-		for _, entry := range SpanTable {
+		for _, entry := range blocks.SpanTable {
 			if startsWith(entry.Token) {
 				p.Spans = append(p.Spans, entry)
 				p.Next(entry.TokenLength)
@@ -163,7 +154,7 @@ runeWalker:
 
 	for _, span := range p.Spans {
 		switch s := span.(type) {
-		case SpanTableEntry:
+		case blocks.SpanTableEntry:
 			ret.WriteString(TagFromState(s.Kind, tagState))
 		case string:
 			ret.WriteString(s)
@@ -183,7 +174,7 @@ runeWalker:
 
 type Span interface {
 	TagName() string
-	HTMLWithState(map[SpanType]bool) string
+	HTMLWithState(map[blocks.SpanKind]bool) string
 }
 
 type SpanText struct {
@@ -194,7 +185,7 @@ func (s SpanText) TagName() string {
 	return "p"
 }
 
-func (s SpanText) HTMLWithState(_ map[SpanType]bool) string {
+func (s SpanText) HTMLWithState(_ map[blocks.SpanKind]bool) string {
 	return s.String()
 }
 
@@ -235,41 +226,4 @@ func GetSpanText(p *blocks.Formatted) SpanText {
 	}
 
 	return st
-}
-
-type SpanStyle struct {
-	kind SpanType
-}
-
-type SpanTableEntry struct {
-	Kind        SpanType
-	Token       string
-	TokenLength int
-	HtmlTagName string
-}
-
-// SpanTable is a table for easier Span lexing.
-var SpanTable = []SpanTableEntry{
-	{SpanItalic, "//", 2, "em"},
-	{SpanBold, "**", 2, "strong"},
-	{SpanMono, "`", 1, "code"},
-	{SpanSuper, "^^", 2, "sup"},
-	{SpanSub, ",,", 2, "sub"},
-	{SpanMark, "++", 2, "mark"},
-	{SpanStrike, "~~", 2, "s"},
-	{SpanUnderline, "__", 2, "u"},
-}
-
-func entryForSpan(kind SpanType) SpanTableEntry {
-	for _, entry := range SpanTable {
-		if entry.Kind == kind {
-			return entry
-		}
-	}
-	// unreachable state, supposedly
-	panic("unknown kind of Span")
-}
-
-func TagNameForSpan(kind SpanType) string {
-	return entryForSpan(kind).HtmlTagName
 }
