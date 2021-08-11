@@ -146,12 +146,13 @@ func paragraphToHtml(hyphaName, input string) string {
 		}
 	)
 
+runeWalker:
 	for p.Len() != 0 {
 		for _, entry := range spanTable {
 			if startsWith(entry.token) {
 				p.spans = append(p.spans, entry)
 				p.Next(entry.tokenLength)
-				continue
+				continue runeWalker
 			}
 		}
 		switch {
