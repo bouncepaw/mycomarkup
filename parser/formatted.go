@@ -109,22 +109,13 @@ func stateAtNewLine() map[blocks.SpanKind]bool {
 	}
 }
 
-// FormattedLineToHTML turns the given line of formatted text into HTML by lexing and parsing it in place.
-//
-// TODO: separate all these steps.
-func FormattedLineToHTML(hyphaName, input string) string {
+func spansFromLine(hyphaName, line string) ([]blocks.Span, map[blocks.SpanKind]bool) {
 	var (
-		spans = make([]interface{}, 0)
-		p     = &blocks.Formatted{
-			HyphaName: hyphaName,
-			Lines:     []string{},
-			Buffer:    bytes.NewBufferString(input),
-		}
-		ret strings.Builder
-		// true = tag is opened, false = tag is not opened
+		input      = bytes.NewBufferString(line)
+		spans      = make([]blocks.Span, 0)
 		tagState   = stateAtNewLine()
 		startsWith = func(t string) bool {
-			return bytes.HasPrefix(p.Bytes(), []byte(t))
+			return bytes.HasPrefix(input.Bytes(), []byte(t))
 		}
 		noTagsActive = func() bool {
 			// This function used to be one boolean expression. I changed it to a loop so it is harder to forger 💀 any span kinds.
@@ -139,23 +130,35 @@ func FormattedLineToHTML(hyphaName, input string) string {
 	)
 
 runeWalker:
-	for p.Len() != 0 {
+	for input.Len() != 0 {
 		for _, entry := range blocks.SpanTable {
 			if startsWith(entry.Token) {
 				spans = append(spans, entry)
-				p.Next(len(entry.Token))
+				input.Next(len(entry.Token))
 				continue runeWalker
 			}
 		}
 		switch {
 		case startsWith("[["):
-			spans = append(spans, nextInlineLink(p.Buffer, hyphaName, true))
+			spans = append(spans, nextInlineLink(input, hyphaName, true))
 		case (startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")) && noTagsActive():
-			spans = append(spans, nextInlineLink(p.Buffer, hyphaName, false))
+			spans = append(spans, nextInlineLink(input, hyphaName, false))
 		default:
-			spans = append(spans, nextInlineText(p.Buffer))
+			spans = append(spans, nextInlineText(input))
 		}
 	}
+
+	return spans, tagState
+}
+
+// FormattedLineToHTML turns the given line of formatted text into HTML by lexing and parsing it in place.
+//
+// TODO: separate all these steps.
+func FormattedLineToHTML(hyphaName, input string) string {
+	var (
+		spans, tagState = spansFromLine(hyphaName, input)
+		ret             = bytes.Buffer{}
+	)
 
 	for _, span := range spans {
 		switch s := span.(type) {
