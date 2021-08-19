@@ -2,7 +2,6 @@ package parser
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 	"unicode"
 
@@ -24,29 +23,13 @@ func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
 		if done && line == "" {
 			break
 		}
-		p.AddLine(line)
+		spans := spansFromLine(p.HyphaName, line)
+		p.AddLine(spans)
 		if nextLineIsSomething(ctx) {
 			break
 		}
 	}
 	return
-}
-
-// TagFromState returns an appropriate tag half (<left> or </right>) depending on tagState and also mutates it.
-func TagFromState(stt blocks.SpanKind, tagState map[blocks.SpanKind]bool) string {
-	var tagName string
-	if stt == blocks.SpanLink {
-		tagName = "a"
-	} else {
-		tagName = blocks.TagNameForStyleSpan(stt)
-	}
-	if tagState[stt] {
-		tagState[stt] = false
-		return fmt.Sprintf("</%s>", tagName)
-	} else {
-		tagState[stt] = true
-		return fmt.Sprintf("<%s>", tagName)
-	}
 }
 
 // nextInlineLink returns an HTML representation of the next link in the input. Set isBracketedLink if the input starts with [[.
@@ -85,35 +68,19 @@ func nextInlineLink(input *bytes.Buffer, hyphaName string, isBracketedLink bool)
 	return blocks.InlineLink{Link: link}
 }
 
-// MakeFormatted parses the formatted text in the input and returns it.
+// MakeFormatted parses the formatted text in the input and returns it. Does it?
 func MakeFormatted(firstLine, hyphaName string) blocks.Formatted {
 	return blocks.Formatted{
 		HyphaName: hyphaName,
-		Lines:     []string{firstLine},
+		Lines:     [][]blocks.Span{spansFromLine(hyphaName, firstLine)},
 	}
 }
 
-func stateAtNewLine() map[blocks.SpanKind]bool {
-	// false: tag not open
-	// true: tag open
-	return map[blocks.SpanKind]bool{
-		blocks.SpanItalic:    false,
-		blocks.SpanBold:      false,
-		blocks.SpanMono:      false,
-		blocks.SpanSuper:     false,
-		blocks.SpanSub:       false,
-		blocks.SpanMark:      false,
-		blocks.SpanStrike:    false,
-		blocks.SpanUnderline: false,
-		blocks.SpanLink:      false,
-	}
-}
-
-func spansFromLine(hyphaName, line string) ([]blocks.Span, map[blocks.SpanKind]bool) {
+func spansFromLine(hyphaName, line string) []blocks.Span {
 	var (
 		input      = bytes.NewBufferString(line)
 		spans      = make([]blocks.Span, 0)
-		tagState   = stateAtNewLine()
+		tagState   = blocks.CleanStyleState()
 		startsWith = func(t string) bool {
 			return bytes.HasPrefix(input.Bytes(), []byte(t))
 		}
@@ -148,44 +115,7 @@ runeWalker:
 		}
 	}
 
-	return spans, tagState
-}
-
-// FormattedLineToHTML turns the given line of formatted text into HTML by lexing and parsing it in place.
-//
-// TODO: separate all these steps.
-func FormattedLineToHTML(hyphaName, input string) string {
-	var (
-		spans, tagState = spansFromLine(hyphaName, input)
-		ret             = bytes.Buffer{}
-	)
-
-	for _, span := range spans {
-		switch s := span.(type) {
-		case blocks.SpanTableEntry:
-			ret.WriteString(TagFromState(s.Kind(), tagState))
-		case blocks.InlineLink:
-			ret.WriteString(
-				fmt.Sprintf(
-					`<a href="%s" class="%s">%s</a>`,
-					s.Href(),
-					s.Classes(),
-					s.Display(),
-				)) // TODO: test for XSS
-		case blocks.InlineText:
-			ret.WriteString(s.Contents) // TODO: test for XSS
-		default:
-			panic("unknown inline block/span... What do you expect from me?") // gotta think about terminology
-		}
-	}
-
-	for stt, open := range tagState {
-		if open {
-			ret.WriteString(TagFromState(stt, tagState))
-		}
-	}
-
-	return ret.String()
+	return spans
 }
 
 var protocols [][]byte

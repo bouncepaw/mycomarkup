@@ -11,12 +11,36 @@ import (
 func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 	switch b := block.(type) {
 	case blocks.Formatted:
-		var res string
+		var (
+			res      string
+			tagState = blocks.CleanStyleState()
+		)
 		for i, line := range b.Lines {
 			if i > 0 {
 				res += `<br>`
 			}
-			res += parser.FormattedLineToHTML(b.HyphaName, line)
+			for _, span := range line {
+				switch s := span.(type) {
+				case blocks.SpanTableEntry:
+					res += blocks.TagFromState(s.Kind(), tagState)
+				case blocks.InlineLink:
+					res += fmt.Sprintf(
+						`<a href="%s" class="%s">%s</a>`,
+						s.Href(),
+						s.Classes(),
+						s.Display(),
+					) // TODO: test for XSS
+				case blocks.InlineText:
+					res += s.Contents // TODO: test for XSS
+				default:
+					panic("unknown span")
+				}
+			}
+			for stt, open := range tagState { // Close the unclosed
+				if open {
+					res += blocks.TagFromState(stt, tagState)
+				}
+			}
 		}
 		return res
 	case blocks.Paragraph:

@@ -1,17 +1,16 @@
 package blocks
 
 import (
-	"bytes"
+	"fmt"
 	"github.com/bouncepaw/mycomarkup/links"
 )
 
 // Formatted is a piece of formatted text. It is always part of a bigger block, such as Paragraph.
 type Formatted struct {
-	// HyphaName is the name of the hypha that contains the formatted text.
+	// HyphaName is the name of the hypha that contains the Formatted text.
 	HyphaName string
-	// Lines is where lines of the formatted text are stored. They are parsed afterwards. TODO: get rid of maybe
-	Lines []string
-	*bytes.Buffer
+	// Lines are parsed lines of the Formatted text.
+	Lines [][]Span
 }
 
 func (p Formatted) isBlock() {}
@@ -22,10 +21,11 @@ func (p Formatted) ID(_ *IDCounter) string {
 }
 
 // AddLine stores an additional line of the formatted text.
-func (p *Formatted) AddLine(line string) {
+func (p *Formatted) AddLine(line []Span) {
 	p.Lines = append(p.Lines, line)
 }
 
+// Span is a piece of Formatted text. There are three implementors of this interface: SpanTableEntry (styles), InlineLink ([[links]]), InlineText (usual text).
 type Span interface {
 	Kind() SpanKind
 }
@@ -45,17 +45,16 @@ const (
 
 	SpanLink
 	SpanText
-	// SpanNewLine represents a linebreak (\n) in the formatted text.
-	SpanNewLine
 )
 
-// SpanTableEntry is an entry of SpanTable and simultaneously
+// SpanTableEntry is an entry of SpanTable and simultaneously a Span.
 type SpanTableEntry struct {
 	kind    SpanKind
 	Token   string
-	HTMLTag string
+	htmlTag string
 }
 
+// Kind returns one of SpanKind. See the first column of SpanTable to learn what values are possible.
 func (ste SpanTableEntry) Kind() SpanKind {
 	return ste.kind
 }
@@ -82,23 +81,64 @@ func entryForSpan(kind SpanKind) SpanTableEntry {
 	panic("unknown kind of Span")
 }
 
-// TagNameForStyleSpan returns an appropriate HTML tag for the span. Note that the <a> tag is not in the table.
-func TagNameForStyleSpan(kind SpanKind) string {
-	return entryForSpan(kind).HTMLTag
-}
-
+// InlineLink is a link that is part of a Formatted text. Basically a wrapper over links.Link.
 type InlineLink struct {
 	*links.Link
 }
 
+// Kind returns SpanLink.
 func (il InlineLink) Kind() SpanKind {
 	return SpanLink
 }
 
+// InlineText is the most wholesome thing in Mycomarkup, just a bunch of characters with no formatting or any other special meaning.
 type InlineText struct {
 	Contents string
 }
 
+// Kind returns SpanText.
 func (it InlineText) Kind() SpanKind {
 	return SpanText
+}
+
+// TagFromState returns an appropriate tag half (<left> or </right>) depending on tagState and also mutates it.
+//
+// TODO: get rid of.
+func TagFromState(stt SpanKind, tagState map[SpanKind]bool) string {
+	var tagName string
+	if stt == SpanLink {
+		tagName = "a"
+	} else {
+		tagName = entryForSpan(stt).htmlTag
+	}
+	if tagState[stt] {
+		tagState[stt] = false
+		return fmt.Sprintf("</%s>", tagName)
+	} else {
+		tagState[stt] = true
+		return fmt.Sprintf("<%s>", tagName)
+	}
+}
+
+// CleanStyleState returns a map where keys are SpanKind representing inline style and values are booleans. Mutate this map to keep track of active and inactive styles.
+//
+// Values:
+// `false`: the style is not active
+// `true`: the style is active
+//
+// For example, for a Formatted line like that:
+//     **Welcome** to //California
+// `CleanStyleState()[SpanItalic] == true` at the end of string.
+func CleanStyleState() map[SpanKind]bool {
+	return map[SpanKind]bool{
+		SpanItalic:    false,
+		SpanBold:      false,
+		SpanMono:      false,
+		SpanSuper:     false,
+		SpanSub:       false,
+		SpanMark:      false,
+		SpanStrike:    false,
+		SpanUnderline: false,
+		SpanLink:      false,
+	}
 }
