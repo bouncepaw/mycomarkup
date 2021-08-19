@@ -49,8 +49,8 @@ func TagFromState(stt blocks.SpanKind, tagState map[blocks.SpanKind]bool) string
 	}
 }
 
-// GetLinkNode returns an HTML representation of the next link in the input. Set isBracketedLink if the input starts with [[.
-func GetLinkNode(input *bytes.Buffer, hyphaName string, isBracketedLink bool) blocks.InlineLink {
+// nextInlineLink returns an HTML representation of the next link in the input. Set isBracketedLink if the input starts with [[.
+func nextInlineLink(input *bytes.Buffer, hyphaName string, isBracketedLink bool) blocks.InlineLink {
 	if isBracketedLink {
 		input.Next(2) // drop those [[
 	}
@@ -149,11 +149,11 @@ runeWalker:
 		}
 		switch {
 		case startsWith("[["):
-			spans = append(spans, GetLinkNode(p.Buffer, hyphaName, true))
+			spans = append(spans, nextInlineLink(p.Buffer, hyphaName, true))
 		case (startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")) && noTagsActive():
-			spans = append(spans, GetLinkNode(p.Buffer, hyphaName, false))
+			spans = append(spans, nextInlineLink(p.Buffer, hyphaName, false))
 		default:
-			spans = append(spans, GetSpanText(p.Buffer).HTMLWithState(tagState))
+			spans = append(spans, nextInlineText(p.Buffer))
 		}
 	}
 
@@ -169,10 +169,10 @@ runeWalker:
 					s.Classes(),
 					s.Display(),
 				)) // TODO: test for XSS
-		case string:
-			ret.WriteString(s)
+		case blocks.InlineText:
+			ret.WriteString(s.Contents) // TODO: test for XSS
 		default:
-			panic("unknown Span kind... What do you expect from me?")
+			panic("unknown inline block/span... What do you expect from me?") // gotta think about terminology
 		}
 	}
 
@@ -185,50 +185,56 @@ runeWalker:
 	return ret.String()
 }
 
-type SpanText struct {
-	bytes.Buffer
+var protocols [][]byte
+
+func init() {
+	protocols = [][]byte{
+		[]byte("https://"),
+		[]byte("http://"),
+		[]byte("gemini://"),
+		[]byte("gopher://"),
+		[]byte("ftp://")}
+	// There was a demand for a way to customize the protocols ^. Do we need that?
+}
+func bytesStartWithProtocol(b []byte) bool {
+	for _, protocol := range protocols {
+		if bytes.HasPrefix(b, protocol) {
+			return true
+		}
+	}
+	return false
 }
 
-func (s SpanText) HTMLWithState(_ map[blocks.SpanKind]bool) string {
-	return s.String()
-}
-
-// GetSpanText returns the next SpanText there is in input.
-func GetSpanText(input *bytes.Buffer) SpanText {
+// nextInlineText returns the next blocks.InlineText there is in input.
+func nextInlineText(input *bytes.Buffer) blocks.InlineText {
 	var (
-		st         = SpanText{}
-		escaping   = false
-		startsWith = func(t string) bool {
-			return bytes.HasPrefix(input.Bytes(), []byte(t))
-		}
-		couldBeLinkStart = func() bool {
-			return startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")
-		}
+		ret      = bytes.Buffer{}
+		escaping = false
 	)
 
 	// Always read the first byte in advance to avoid endless loops that kill computers (sad experience)
 	if input.Len() != 0 {
 		b, _ := input.ReadByte()
-		_ = st.WriteByte(b)
+		_ = ret.WriteByte(b)
 	}
 	for input.Len() != 0 {
 		// We check for length, this should never fail:
 		ch, _ := input.ReadByte()
 		if escaping {
-			st.WriteByte(ch)
+			ret.WriteByte(ch)
 			escaping = false
 		} else if ch == '\\' {
 			escaping = true
 		} else if strings.IndexByte("/*`^,+[~_", ch) >= 0 { // TODO: generate that string there dynamically
-			input.UnreadByte()
+			input.UnreadByte() // sorry, wrong door >_<
 			break
-		} else if couldBeLinkStart() {
-			st.WriteByte(ch)
+		} else if bytesStartWithProtocol(input.Bytes()) {
+			ret.WriteByte(ch)
 			break
 		} else {
-			st.WriteByte(ch)
+			ret.WriteByte(ch)
 		}
 	}
 
-	return st
+	return blocks.InlineText{Contents: ret.String()}
 }

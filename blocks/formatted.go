@@ -96,7 +96,7 @@ func (il InlineLink) Kind() SpanKind {
 }
 
 type InlineText struct {
-	contents string
+	Contents string
 }
 
 func (it InlineText) Kind() SpanKind {
