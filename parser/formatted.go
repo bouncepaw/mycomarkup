@@ -3,7 +3,6 @@ package parser
 import (
 	"bytes"
 	"fmt"
-	"html"
 	"strings"
 	"unicode"
 
@@ -51,9 +50,7 @@ func TagFromState(stt blocks.SpanKind, tagState map[blocks.SpanKind]bool) string
 }
 
 // GetLinkNode returns an HTML representation of the next link in the input. Set isBracketedLink if the input starts with [[.
-//
-// TODO: return something bearable, not HTML.
-func GetLinkNode(input *bytes.Buffer, hyphaName string, isBracketedLink bool) string {
+func GetLinkNode(input *bytes.Buffer, hyphaName string, isBracketedLink bool) blocks.InlineLink {
 	if isBracketedLink {
 		input.Next(2) // drop those [[
 	}
@@ -85,8 +82,7 @@ func GetLinkNode(input *bytes.Buffer, hyphaName string, isBracketedLink bool) st
 	if globals.HyphaExists(util.CanonicalName(link.TargetHypha())) {
 		link.MarkAsExisting()
 	}
-	href, text, class := link.Href(), html.EscapeString(link.Display()), html.EscapeString(link.Classes())
-	return fmt.Sprintf(`<a href="%s" class="%s">%s</a>`, href, class, text)
+	return blocks.InlineLink{Link: link}
 }
 
 // MakeFormatted parses the formatted text in the input and returns it.
@@ -113,16 +109,16 @@ func stateAtNewLine() map[blocks.SpanKind]bool {
 	}
 }
 
-// ParagraphToHtml turns the given line of formatted text into HTML by lexing and parsing it in place.
+// FormattedLineToHTML turns the given line of formatted text into HTML by lexing and parsing it in place.
 //
 // TODO: separate all these steps.
-func ParagraphToHtml(hyphaName, input string) string {
+func FormattedLineToHTML(hyphaName, input string) string {
 	var (
-		p = &blocks.Formatted{
+		spans = make([]interface{}, 0)
+		p     = &blocks.Formatted{
 			HyphaName: hyphaName,
 			Lines:     []string{},
 			Buffer:    bytes.NewBufferString(input),
-			Spans:     make([]interface{}, 0),
 		}
 		ret strings.Builder
 		// true = tag is opened, false = tag is not opened
@@ -133,7 +129,7 @@ func ParagraphToHtml(hyphaName, input string) string {
 		noTagsActive = func() bool {
 			// This function used to be one boolean expression. I changed it to a loop so it is harder to forger 💀 any span kinds.
 			for _, entry := range blocks.SpanTable {
-				if tagState[entry.Kind] { // If span is open
+				if tagState[entry.Kind()] { // If span is open
 					return false
 				}
 			}
@@ -146,25 +142,33 @@ runeWalker:
 	for p.Len() != 0 {
 		for _, entry := range blocks.SpanTable {
 			if startsWith(entry.Token) {
-				p.Spans = append(p.Spans, entry)
+				spans = append(spans, entry)
 				p.Next(len(entry.Token))
 				continue runeWalker
 			}
 		}
 		switch {
 		case startsWith("[["):
-			p.Spans = append(p.Spans, GetLinkNode(p.Buffer, hyphaName, true))
+			spans = append(spans, GetLinkNode(p.Buffer, hyphaName, true))
 		case (startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")) && noTagsActive():
-			p.Spans = append(p.Spans, GetLinkNode(p.Buffer, hyphaName, false))
+			spans = append(spans, GetLinkNode(p.Buffer, hyphaName, false))
 		default:
-			p.Spans = append(p.Spans, GetSpanText(p.Buffer).HTMLWithState(tagState))
+			spans = append(spans, GetSpanText(p.Buffer).HTMLWithState(tagState))
 		}
 	}
 
-	for _, span := range p.Spans {
+	for _, span := range spans {
 		switch s := span.(type) {
 		case blocks.SpanTableEntry:
-			ret.WriteString(TagFromState(s.Kind, tagState))
+			ret.WriteString(TagFromState(s.Kind(), tagState))
+		case blocks.InlineLink:
+			ret.WriteString(
+				fmt.Sprintf(
+					`<a href="%s" class="%s">%s</a>`,
+					s.Href(),
+					s.Classes(),
+					s.Display(),
+				)) // TODO: test for XSS
 		case string:
 			ret.WriteString(s)
 		default:

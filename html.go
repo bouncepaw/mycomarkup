@@ -16,7 +16,7 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 			if i > 0 {
 				res += `<br>`
 			}
-			res += parser.ParagraphToHtml(b.HyphaName, line)
+			res += parser.FormattedLineToHTML(b.HyphaName, line)
 		}
 		return res
 	case blocks.Paragraph:

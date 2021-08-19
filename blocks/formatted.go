@@ -2,15 +2,16 @@ package blocks
 
 import (
 	"bytes"
+	"github.com/bouncepaw/mycomarkup/links"
 )
 
 // Formatted is a piece of formatted text. It is always part of a bigger block, such as Paragraph.
 type Formatted struct {
 	// HyphaName is the name of the hypha that contains the formatted text.
 	HyphaName string
-	Lines     []string
+	// Lines is where lines of the formatted text are stored. They are parsed afterwards. TODO: get rid of maybe
+	Lines []string
 	*bytes.Buffer
-	Spans []interface{} // Forgive me, for I have sinned
 }
 
 func (p Formatted) isBlock() {}
@@ -25,6 +26,10 @@ func (p *Formatted) AddLine(line string) {
 	p.Lines = append(p.Lines, line)
 }
 
+type Span interface {
+	Kind() SpanKind
+}
+
 // SpanKind is a kind of a span, such as italic, bold, etc.
 type SpanKind int
 
@@ -37,20 +42,26 @@ const (
 	SpanMark
 	SpanStrike
 	SpanUnderline
+
 	SpanLink
+	SpanText
 	// SpanNewLine represents a linebreak (\n) in the formatted text.
 	SpanNewLine
 )
 
-// SpanTableEntry is an entry of SpanTable.
+// SpanTableEntry is an entry of SpanTable and simultaneously
 type SpanTableEntry struct {
-	Kind    SpanKind
+	kind    SpanKind
 	Token   string
 	HTMLTag string
 }
 
-// SpanTable is a table for easier Span lexing, its entries are also nice to fit into Formatted.Spans.
-var SpanTable = []SpanTableEntry{
+func (ste SpanTableEntry) Kind() SpanKind {
+	return ste.kind
+}
+
+// SpanTable is a table for easier span lexing, its entries are also Span too.
+var SpanTable = []SpanTableEntry{ // it is so cute so cute
 	{SpanItalic, "//", "em"},
 	{SpanBold, "**", "strong"},
 	{SpanMono, "`", "code"},
@@ -63,7 +74,7 @@ var SpanTable = []SpanTableEntry{
 
 func entryForSpan(kind SpanKind) SpanTableEntry {
 	for _, entry := range SpanTable {
-		if entry.Kind == kind {
+		if entry.Kind() == kind {
 			return entry
 		}
 	}
@@ -74,4 +85,20 @@ func entryForSpan(kind SpanKind) SpanTableEntry {
 // TagNameForStyleSpan returns an appropriate HTML tag for the span. Note that the <a> tag is not in the table.
 func TagNameForStyleSpan(kind SpanKind) string {
 	return entryForSpan(kind).HTMLTag
+}
+
+type InlineLink struct {
+	*links.Link
+}
+
+func (il InlineLink) Kind() SpanKind {
+	return SpanLink
+}
+
+type InlineText struct {
+	contents string
+}
+
+func (it InlineText) Kind() SpanKind {
+	return SpanText
 }
