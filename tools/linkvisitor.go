@@ -3,8 +3,8 @@ package tools
 
 import (
 	"github.com/bouncepaw/mycomarkup/blocks"
-	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"github.com/bouncepaw/mycomarkup/links"
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 )
 
 // LinkVisitor creates a visitor which extracts all the links
