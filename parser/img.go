@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// PushImgEntry pushes the most recent entry of Img to Img.Entries and creates a new entry. What an ugly function!
-func PushImgEntry(img *blocks.Img) {
+// pushImgEntry pushes the most recent entry of Img to Img.Entries and creates a new entry. What an ugly function!
+func pushImgEntry(img *blocks.Img) {
 	if strings.TrimSpace(img.CurrEntry.Path.String()) != "" {
 		img.CurrEntry.Srclink = links.From(img.CurrEntry.Path.String(), "", img.HyphaName)
 		// img.currEntry.Srclink.DoubtExistence()
@@ -18,42 +18,42 @@ func PushImgEntry(img *blocks.Img) {
 	}
 }
 
-// ProcessImgLine parses the line and tells if the gallery is finished.
-func ProcessImgLine(img *blocks.Img, line string) (imgFinished bool) {
+// processImgLine parses the line and tells if the gallery is finished.
+func processImgLine(img *blocks.Img, line string) (imgFinished bool) {
 	for _, r := range line {
-		if shouldReturnTrue := ProcessImgRune(img, r); shouldReturnTrue {
+		if shouldReturnTrue := processImgRune(img, r); shouldReturnTrue {
 			return true
 		}
 	}
 	// We do that because \n are not part of line we receive as the argument:
-	ProcessImgRune(img, '\n')
+	processImgRune(img, '\n')
 
 	return false
 }
 
-// ProcessImgRune parses the rune.
-func ProcessImgRune(img *blocks.Img, r rune) (done bool) {
+// processImgRune parses the rune.
+func processImgRune(img *blocks.Img, r rune) (done bool) {
 	// TODO: move to the parser module.
 	if r == '\r' {
 		return false
 	}
 	switch img.State {
 	case blocks.InRoot:
-		return ProcessInRoot(img, r)
+		return processInRoot(img, r)
 	case blocks.InName:
-		return ProcessInName(img, r)
+		return processInName(img, r)
 	case blocks.InDimensionsW:
-		return ProcessInDimensionsW(img, r)
+		return processInDimensionsW(img, r)
 	case blocks.InDimensionsH:
-		return ProcessInDimensionsH(img, r)
+		return processInDimensionsH(img, r)
 	case blocks.InDescription:
-		return ProcessInDescription(img, r)
+		return processInDescription(img, r)
 	}
-	fmt.Println("ProcessImgRune: unreachable state", r)
+	fmt.Println("processImgRune: unreachable state", r)
 	return true
 }
 
-func ProcessInDescription(img *blocks.Img, r rune) (shouldReturnTrue bool) {
+func processInDescription(img *blocks.Img, r rune) (shouldReturnTrue bool) {
 	switch r {
 	case '}':
 		img.State = blocks.InName
@@ -63,13 +63,13 @@ func ProcessInDescription(img *blocks.Img, r rune) (shouldReturnTrue bool) {
 	return false
 }
 
-func ProcessInRoot(img *blocks.Img, r rune) (shouldReturnTrue bool) {
+func processInRoot(img *blocks.Img, r rune) (shouldReturnTrue bool) {
 	switch r {
 	case '}':
-		PushImgEntry(img)
+		pushImgEntry(img)
 		return true
 	case '\n':
-		PushImgEntry(img)
+		pushImgEntry(img)
 	case ' ', '\t':
 	default:
 		img.State = blocks.InName
@@ -80,17 +80,17 @@ func ProcessInRoot(img *blocks.Img, r rune) (shouldReturnTrue bool) {
 	return false
 }
 
-func ProcessInName(img *blocks.Img, r rune) (shouldReturnTrue bool) {
+func processInName(img *blocks.Img, r rune) (shouldReturnTrue bool) {
 	switch r {
 	case '}':
-		PushImgEntry(img)
+		pushImgEntry(img)
 		return true
 	case '|':
 		img.State = blocks.InDimensionsW
 	case '{':
 		img.State = blocks.InDescription
 	case '\n':
-		PushImgEntry(img)
+		pushImgEntry(img)
 		img.State = blocks.InRoot
 	default:
 		img.CurrEntry.Path.WriteRune(r)
@@ -98,10 +98,10 @@ func ProcessInName(img *blocks.Img, r rune) (shouldReturnTrue bool) {
 	return false
 }
 
-func ProcessInDimensionsW(img *blocks.Img, r rune) (shouldReturnTrue bool) {
+func processInDimensionsW(img *blocks.Img, r rune) (shouldReturnTrue bool) {
 	switch r {
 	case '}':
-		PushImgEntry(img)
+		pushImgEntry(img)
 		return true
 	case '*':
 		img.State = blocks.InDimensionsH
@@ -114,10 +114,10 @@ func ProcessInDimensionsW(img *blocks.Img, r rune) (shouldReturnTrue bool) {
 	return false
 }
 
-func ProcessInDimensionsH(img *blocks.Img, r rune) (imgFinished bool) {
+func processInDimensionsH(img *blocks.Img, r rune) (imgFinished bool) {
 	switch r {
 	case '}':
-		PushImgEntry(img)
+		pushImgEntry(img)
 		return true
 	case ' ', '\t', '\n':
 	case '{':
@@ -128,12 +128,12 @@ func ProcessInDimensionsH(img *blocks.Img, r rune) (imgFinished bool) {
 	return false
 }
 
-// ParseImgFirstLine parses the image gallery on the line and returns it. It also tells if the gallery is finished or not.
-func ParseImgFirstLine(line, hyphaName string) (img blocks.Img, imgFinished bool) {
+// parseImgFirstLine parses the image gallery on the line and returns it. It also tells if the gallery is finished or not.
+func parseImgFirstLine(line, hyphaName string) (img blocks.Img, imgFinished bool) {
 	img = blocks.Img{
 		HyphaName: hyphaName,
 		Entries:   make([]blocks.ImgEntry, 0),
 	}
 	line = line[strings.IndexRune(line, '{')+1:]
-	return img, ProcessImgLine(&img, line)
+	return img, processImgLine(&img, line)
 }

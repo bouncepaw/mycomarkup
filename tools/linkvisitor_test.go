@@ -2,14 +2,13 @@ package tools
 
 import (
 	"testing"
-	
+
 	"github.com/bouncepaw/mycomarkup"
-	"github.com/bouncepaw/mycomarkup/tools"
 	"github.com/bouncepaw/mycomarkup/links"
 	"github.com/bouncepaw/mycomarkup/mycocontext"
 )
 
-const input = `[[ TODO ]]
+const inputLinks = `[[ TODO ]]
 
 => links
 => links/Games Games
@@ -29,11 +28,11 @@ func TestLinkVisitor(t *testing.T) {
 	var (
 		hyphaName = "test"
 	)
-	ctx, _ := mycocontext.ContextFromStringInput(hyphaName, input)
-	linkVisitor, getLinks := tools.LinkVisitor(ctx)
+	ctx, _ := mycocontext.ContextFromStringInput(hyphaName, inputLinks)
+	linkVisitor, getLinks := LinkVisitor(ctx)
 	mycomarkup.BlockTree(ctx, linkVisitor)
 	foundLinks := getLinks()
-	
+
 	expectedLinks := []links.Link{
 		*links.From("TODO", "", hyphaName),
 		*links.From("links", "", hyphaName),

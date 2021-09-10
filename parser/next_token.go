@@ -29,14 +29,14 @@ func nextLaunchPad(ctx mycocontext.Context) (blocks.LaunchPad, bool) {
 func nextImg(ctx mycocontext.Context) (img blocks.Img, done bool) {
 	var r rune
 	line, done := mycocontext.NextLine(ctx)
-	img, imgDone := ParseImgFirstLine(line, ctx.HyphaName())
+	img, imgDone := parseImgFirstLine(line, ctx.HyphaName())
 	if imgDone {
 		return img, done
 	}
 
 	for !imgDone && !done {
 		r, done = mycocontext.NextRune(ctx)
-		imgDone = ProcessImgRune(&img, r)
+		imgDone = processImgRune(&img, r)
 	}
 
 	defer mycocontext.NextLine(ctx) // Characters after the final } of img are ignored.

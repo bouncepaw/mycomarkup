@@ -27,13 +27,14 @@ func StringID(s string) string {
 
 var badCharactersRe = regexp.MustCompile(`[?!:#@<>*|'"&%{}\\]`)
 
-func SanitizeName(unsafeName string) string {
+// SanitizedName is unsafeName with all unsafe characters removed.
+func SanitizedName(unsafeName string) string {
 	return badCharactersRe.ReplaceAllString(unsafeName, "")
 }
 
 // BeautifulName makes the ugly name beautiful by replacing _ with spaces and using title case
 func BeautifulName(uglyName string) string {
-	uglyName = SanitizeName(uglyName)
+	uglyName = SanitizedName(uglyName)
 	// What other transformations can we apply for a better beautifying process?
 	if uglyName == "" {
 		return uglyName
@@ -47,7 +48,7 @@ func CanonicalName(name string) string {
 		strings.ReplaceAll(
 			strings.TrimRight(
 				strings.TrimLeft(
-					SanitizeName(name),
+					SanitizedName(name),
 					"_",
 				),
 				"_",

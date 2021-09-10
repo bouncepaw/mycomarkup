@@ -1,16 +1,19 @@
-package mycomarkup
+package tools
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"regexp"
 	"strings"
 
+	"github.com/bouncepaw/mycomarkup"
 	"github.com/bouncepaw/mycomarkup/blocks"
+	"github.com/bouncepaw/mycomarkup/mycocontext"
 	"github.com/bouncepaw/mycomarkup/util"
 )
 
 // OpenGraphVisitors returns visitors you should pass to BlockTree. They will figure out what should go to the final opengraph. Call resultHTML to get that result.
+//
+// Description is the first root paragraph of the document. If there is no such paragraph, the description is empty string.
 func OpenGraphVisitors(ctx mycocontext.Context) (
 	resultHTML func() string,
 	descVisitor func(blocks.Block),
@@ -28,9 +31,9 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 	return func() string {
 			return strings.Join([]string{
 				ogTag("title", util.BeautifulName(ctx.HyphaName())),
-				ogTag("type", "article"),
+				ogTag("type", "article"), // TODO: change depending on content?
 				ogTag("image", imageUrl),
-				ogTag("url", ctx.WebSiteURL()+"/hypha/"+util.BeautifulName(ctx.HyphaName())),
+				ogTag("url", ctx.WebSiteURL()+"/hypha/"+util.CanonicalName(ctx.HyphaName())),
 				ogTag("determiner", ""),
 				ogTag("description", htmlTagRe.ReplaceAllString(description, "")),
 			}, "\n")
@@ -41,11 +44,11 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 			switch block := block.(type) {
 			case blocks.Paragraph:
 				foundSomethingTextual, foundProperParagraph = true, true
-				description = BlockToHTML(block, &blocks.IDCounter{ShouldUseResults: false})
+				description = mycomarkup.BlockToHTML(block, &blocks.IDCounter{ShouldUseResults: false})
 			case blocks.Heading, blocks.CodeBlock: // These two seem alright. Primitive enough.
 				if !foundSomethingTextual {
 					foundSomethingTextual = true
-					description = BlockToHTML(block, &blocks.IDCounter{ShouldUseResults: false})
+					description = mycomarkup.BlockToHTML(block, &blocks.IDCounter{ShouldUseResults: false})
 				}
 			}
 		}, func(block blocks.Block) {

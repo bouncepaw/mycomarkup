@@ -1,4 +1,4 @@
-// Package tools provides some helper functions
+// Package tools provides visitors for external usage and will provide other tools one day.
 package tools
 
 import (
@@ -7,15 +7,17 @@ import (
 	"github.com/bouncepaw/mycomarkup/mycocontext"
 )
 
-// LinkVisitor creates a visitor which extracts all the links
+// LinkVisitor creates a visitor which extracts all the links from the document in context.
+//
+// We consider inline link, rocket link, image gallery and transclusion targets to be links. Currently, there is a bug with image galleries that will
 func LinkVisitor(ctx mycocontext.Context) (
 	visitor func(block blocks.Block),
 	result func() []links.Link,
 ) {
 	var (
-		collected []links.Link
+		collected    []links.Link
+		extractBlock func(block blocks.Block)
 	)
-	var extractBlock func(block blocks.Block)
 	extractBlock = func(block blocks.Block) {
 		switch b := block.(type) {
 		case blocks.Paragraph:
