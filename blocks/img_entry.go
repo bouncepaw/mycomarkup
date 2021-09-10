@@ -10,9 +10,9 @@ import (
 type ImgEntry struct {
 	Srclink   *links.Link
 	HyphaName string
-	path      strings.Builder
-	sizeW     strings.Builder
-	sizeH     strings.Builder
+	Path      strings.Builder
+	SizeW     strings.Builder
+	SizeH     strings.Builder
 	Desc      strings.Builder
 }
 
@@ -25,16 +25,16 @@ func (entry ImgEntry) isBlock() {}
 
 // SizeWAsAttr returns either an empty string or the width attribute for the image, depending on what has been written in the markup.
 func (entry *ImgEntry) SizeWAsAttr() string {
-	if entry.sizeW.Len() == 0 {
+	if entry.SizeW.Len() == 0 {
 		return ""
 	}
-	return ` width="` + entry.sizeW.String() + `"`
+	return ` width="` + entry.SizeW.String() + `"`
 }
 
 // SizeHAsAttr returns either an empty string or the height attribute for the image, depending on what has been written in the markup.
 func (entry *ImgEntry) SizeHAsAttr() string {
-	if entry.sizeH.Len() == 0 {
+	if entry.SizeH.Len() == 0 {
 		return ""
 	}
-	return ` height="` + entry.sizeH.String() + `"`
+	return ` height="` + entry.SizeH.String() + `"`
 }
