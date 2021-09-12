@@ -4,8 +4,16 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v2/blocks"
 	"github.com/bouncepaw/mycomarkup/v2/links"
+	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
+	"regexp"
 	"strings"
 )
+
+var imgRe = regexp.MustCompile(`^img\s*[a-z\s]*{`)
+
+func matchesImg(ctx mycocontext.Context) bool {
+	return imgRe.Match(ctx.Input().Bytes())
+}
 
 // pushImgEntry pushes the most recent entry of Img to Img.Entries and creates a new entry. What an ugly function!
 func pushImgEntry(img *blocks.Img) {

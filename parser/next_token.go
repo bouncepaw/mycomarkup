@@ -108,7 +108,7 @@ func nextLineIsSomething(ctx mycocontext.Context) bool {
 			return true
 		}
 	}
-	return emptyLine(ctx) || blocks.MatchesImg(ctx.Input().String()) || matchesTable(ctx)
+	return emptyLine(ctx) || matchesImg(ctx) || matchesTable(ctx)
 }
 
 func emptyLine(ctx mycocontext.Context) bool {
@@ -165,7 +165,7 @@ func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 		line, done := mycocontext.NextLine(ctx)
 		return MakeHeading(line, ctx.HyphaName(), 1), done
 
-	case blocks.MatchesImg(ctx.Input().String()):
+	case matchesImg(ctx):
 		return nextImg(ctx)
 	case matchesTable(ctx):
 		return nextTable(ctx)
