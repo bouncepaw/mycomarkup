@@ -9,7 +9,7 @@ import (
 
 // MatchesImg is true if the line starts with img {.
 func MatchesImg(line string) bool {
-	return strings.HasPrefix(line, `^ img {`)
+	return strings.HasPrefix(line, `img {`)
 }
 
 type imgState int
