@@ -3,7 +3,7 @@ package blocks
 import (
 	"strings"
 
-	"github.com/bouncepaw/mycomarkup/links"
+	"github.com/bouncepaw/mycomarkup/v2/links"
 )
 
 // ImgEntry is an entry of an image gallery. It can only be nested into Img.

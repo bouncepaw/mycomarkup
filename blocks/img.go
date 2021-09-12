@@ -2,8 +2,8 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/globals"
-	"github.com/bouncepaw/mycomarkup/util"
+	"github.com/bouncepaw/mycomarkup/v2/globals"
+	"github.com/bouncepaw/mycomarkup/v2/util"
 	"strings"
 )
 

@@ -1,7 +1,7 @@
 package blocks
 
 import (
-	"github.com/bouncepaw/mycomarkup/util"
+	"github.com/bouncepaw/mycomarkup/v2/util"
 )
 
 // Heading is a formatted heading in the document.

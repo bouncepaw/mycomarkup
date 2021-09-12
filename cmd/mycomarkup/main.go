@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/bouncepaw/mycomarkup"
-	"github.com/bouncepaw/mycomarkup/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v2"
+	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
 	"io/ioutil"
 
-	"github.com/bouncepaw/mycomarkup/globals"
+	"github.com/bouncepaw/mycomarkup/v2/globals"
 )
 
 func main() {

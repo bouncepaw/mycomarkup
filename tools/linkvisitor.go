@@ -2,9 +2,9 @@
 package tools
 
 import (
-	"github.com/bouncepaw/mycomarkup/blocks"
-	"github.com/bouncepaw/mycomarkup/links"
-	"github.com/bouncepaw/mycomarkup/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v2/blocks"
+	"github.com/bouncepaw/mycomarkup/v2/links"
+	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
 )
 
 // LinkVisitor creates a visitor which extracts all the links from the document in context.

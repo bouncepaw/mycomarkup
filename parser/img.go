@@ -2,8 +2,8 @@ package parser
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/blocks"
-	"github.com/bouncepaw/mycomarkup/links"
+	"github.com/bouncepaw/mycomarkup/v2/blocks"
+	"github.com/bouncepaw/mycomarkup/v2/links"
 	"strings"
 )
 

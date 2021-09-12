@@ -3,9 +3,9 @@ package tools
 import (
 	"testing"
 
-	"github.com/bouncepaw/mycomarkup"
-	"github.com/bouncepaw/mycomarkup/links"
-	"github.com/bouncepaw/mycomarkup/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v2"
+	"github.com/bouncepaw/mycomarkup/v2/links"
+	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
 )
 
 const inputLinks = `[[ TODO ]]

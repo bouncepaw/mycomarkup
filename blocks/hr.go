@@ -2,7 +2,7 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/util"
+	"github.com/bouncepaw/mycomarkup/v2/util"
 )
 
 // HorizontalLine represents the horizontal line block.
