@@ -136,12 +136,48 @@ func processInDimensionsH(img *blocks.Img, r rune) (imgFinished bool) {
 	return false
 }
 
-// parseImgFirstLine parses the image gallery on the line and returns it. It also tells if the gallery is finished or not.
-func parseImgFirstLine(line, hyphaName string) (img blocks.Img, imgFinished bool) {
-	img = blocks.Img{
-		HyphaName: hyphaName,
-		Entries:   make([]blocks.ImgEntry, 0),
+func nextImg(ctx mycocontext.Context) (img blocks.Img, eof bool) {
+	img = parseImgUntilCurlyBrace(ctx)
+	var (
+		r       rune
+		imgDone bool
+	)
+	for !imgDone && !eof {
+		r, eof = mycocontext.NextRune(ctx)
+		imgDone = processImgRune(&img, r)
 	}
-	line = line[strings.IndexRune(line, '{')+1:]
-	return img, processImgLine(&img, line)
+
+	defer mycocontext.NextLine(ctx) // Characters after the final } of img are ignored.
+	return img, eof
+}
+
+// Call this function if and only if matchesImg(ctx) == true.
+func parseImgUntilCurlyBrace(ctx mycocontext.Context) (img blocks.Img) {
+	// Input:
+	// img<stuff>{<rest...>
+
+	// Read img first. Sorry for party rocking 😎
+	_, _ = mycocontext.NextRune(ctx)
+	_, _ = mycocontext.NextRune(ctx)
+	_, _ = mycocontext.NextRune(ctx)
+
+	var stuff strings.Builder
+	for {
+		// It must be safe to ignore the error as long as parseImgUntilCurlyBrace is called correctly.
+		r, _ := mycocontext.NextRune(ctx)
+		if r == '{' {
+			break
+		}
+		_, _ = stuff.WriteRune(r)
+	}
+
+	// Ignore stuff for now. TODO: https://github.com/bouncepaw/mycomarkup/issues/6
+	_ = stuff
+
+	return blocks.Img{
+		Entries:   make([]blocks.ImgEntry, 0),
+		CurrEntry: blocks.ImgEntry{},
+		HyphaName: ctx.HyphaName(),
+		State:     blocks.InRoot,
+	}
 }
