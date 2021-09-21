@@ -52,3 +52,10 @@ func NextLine(ctx Context) (line string, done bool) {
 	}
 	return lineBuffer.String(), done
 }
+
+// IsEof is true if there is nothing left to read in the input. It does not handle the case when all next characters are \r, which are never returned by NextRune, thus making this function lie.
+//
+// Be not afraid because everyone lies. Not a good idea to trust a //function// anyway.
+func IsEof(ctx Context) bool {
+	return ctx.Input().Len() == 0
+}

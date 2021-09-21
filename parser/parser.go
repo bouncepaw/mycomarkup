@@ -49,7 +49,6 @@ func parseSubdocumentForEachBlock(ctx mycocontext.Context, buf *bytes.Buffer, f 
 // MakeHeading parses the heading on the given line and returns it. Set its level by yourself though.
 func MakeHeading(line, hyphaName string, level uint) blocks.Heading {
 	// TODO: figure out the level here.
-	// TODO: move to the parser module.
 	h := blocks.Heading{
 		Level:    level,
 		Contents: MakeFormatted(line[level+1:], hyphaName),

@@ -110,7 +110,7 @@ func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 	%s
 	<figcaption>%s</figcaption>
 </figure>
-`, ret, BlockToHTML(parser.MakeFormatted(entry.Desc.String(), entry.HyphaName), counter))
+`, ret, BlockToHTML(parser.MakeFormatted(entry.Description, entry.HyphaName), counter))
 }
 
 func imgToHTML(img blocks.Img, counter *blocks.IDCounter) string {

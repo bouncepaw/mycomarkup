@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/bouncepaw/mycomarkup/v2/blocks"
 	"github.com/bouncepaw/mycomarkup/v2/links"
 	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
@@ -15,140 +14,157 @@ func matchesImg(ctx mycocontext.Context) bool {
 	return imgRe.Match(ctx.Input().Bytes())
 }
 
-// pushImgEntry pushes the most recent entry of Img to Img.Entries and creates a new entry. What an ugly function!
-func pushImgEntry(img *blocks.Img) {
-	if strings.TrimSpace(img.CurrEntry.Path.String()) != "" {
-		img.CurrEntry.Srclink = links.From(img.CurrEntry.Path.String(), "", img.HyphaName)
-		// img.currEntry.Srclink.DoubtExistence()
-		img.Entries = append(img.Entries, img.CurrEntry)
-		img.CurrEntry = blocks.ImgEntry{HyphaName: img.HyphaName}
-		img.CurrEntry.Path.Reset()
-	}
-}
-
-// processImgLine parses the line and tells if the gallery is finished.
-func processImgLine(img *blocks.Img, line string) (imgFinished bool) {
-	for _, r := range line {
-		if shouldReturnTrue := processImgRune(img, r); shouldReturnTrue {
-			return true
-		}
-	}
-	// We do that because \n are not part of line we receive as the argument:
-	processImgRune(img, '\n')
-
-	return false
-}
-
-// processImgRune parses the rune.
-func processImgRune(img *blocks.Img, r rune) (done bool) {
-	// TODO: move to the parser module.
-	if r == '\r' {
-		return false
-	}
-	switch img.State {
-	case blocks.InRoot:
-		return processInRoot(img, r)
-	case blocks.InName:
-		return processInName(img, r)
-	case blocks.InDimensionsW:
-		return processInDimensionsW(img, r)
-	case blocks.InDimensionsH:
-		return processInDimensionsH(img, r)
-	case blocks.InDescription:
-		return processInDescription(img, r)
-	}
-	fmt.Println("processImgRune: unreachable state", r)
-	return true
-}
-
-func processInDescription(img *blocks.Img, r rune) (shouldReturnTrue bool) {
-	switch r {
-	case '}':
-		img.State = blocks.InName
-	default:
-		img.CurrEntry.Desc.WriteRune(r)
-	}
-	return false
-}
-
-func processInRoot(img *blocks.Img, r rune) (shouldReturnTrue bool) {
-	switch r {
-	case '}':
-		pushImgEntry(img)
-		return true
-	case '\n':
-		pushImgEntry(img)
-	case ' ', '\t':
-	default:
-		img.State = blocks.InName
-		img.CurrEntry = blocks.ImgEntry{}
-		img.CurrEntry.Path.Reset()
-		img.CurrEntry.Path.WriteRune(r)
-	}
-	return false
-}
-
-func processInName(img *blocks.Img, r rune) (shouldReturnTrue bool) {
-	switch r {
-	case '}':
-		pushImgEntry(img)
-		return true
-	case '|':
-		img.State = blocks.InDimensionsW
-	case '{':
-		img.State = blocks.InDescription
-	case '\n':
-		pushImgEntry(img)
-		img.State = blocks.InRoot
-	default:
-		img.CurrEntry.Path.WriteRune(r)
-	}
-	return false
-}
-
-func processInDimensionsW(img *blocks.Img, r rune) (shouldReturnTrue bool) {
-	switch r {
-	case '}':
-		pushImgEntry(img)
-		return true
-	case '*':
-		img.State = blocks.InDimensionsH
-	case ' ', '\t', '\n':
-	case '{':
-		img.State = blocks.InDescription
-	default:
-		img.CurrEntry.SizeW.WriteRune(r)
-	}
-	return false
-}
-
-func processInDimensionsH(img *blocks.Img, r rune) (imgFinished bool) {
-	switch r {
-	case '}':
-		pushImgEntry(img)
-		return true
-	case ' ', '\t', '\n':
-	case '{':
-		img.State = blocks.InDescription
-	default:
-		img.CurrEntry.SizeH.WriteRune(r)
-	}
-	return false
-}
-
 func nextImg(ctx mycocontext.Context) (img blocks.Img, eof bool) {
 	img = parseImgUntilCurlyBrace(ctx)
-	var (
-		r       rune
-		imgDone bool
-	)
-	for !imgDone && !eof {
-		r, eof = mycocontext.NextRune(ctx)
-		imgDone = processImgRune(&img, r)
+	for {
+		imgEntry, found, imgFinished := nextImgEntry(ctx)
+		if found {
+			img.Entries = append(img.Entries, imgEntry)
+		}
+		if imgFinished {
+			break
+		}
 	}
 
-	defer mycocontext.NextLine(ctx) // Characters after the final } of img are ignored.
-	return img, eof
+	return img, mycocontext.IsEof(ctx)
+}
+
+type imgEntryParsingState int
+
+const (
+	imgEntryOnStart imgEntryParsingState = iota
+	imgEntryCollectingTarget
+	imgEntryCollectingDimensionWidth
+	imgEntryCollectingDimensionHeight
+	imgEntryWaitingForTheEndOfIt
+)
+
+func nextImgEntryDescription(ctx mycocontext.Context) string {
+	var (
+		r               rune
+		eof             bool
+		curlyBracesOpen = 0
+		res             strings.Builder
+	)
+	for {
+		r, eof = mycocontext.NextRune(ctx)
+		if eof {
+			return res.String()
+		}
+
+		switch r {
+		case '{':
+			curlyBracesOpen++
+			res.WriteRune('{')
+		case '}':
+			if curlyBracesOpen == 0 {
+				return res.String()
+			}
+			if curlyBracesOpen > 0 {
+				curlyBracesOpen--
+			}
+			res.WriteRune('{')
+		default: // Including \n
+			res.WriteRune(r)
+		}
+	}
+}
+
+func nextImgEntry(ctx mycocontext.Context) (
+	imgEntry blocks.ImgEntry,
+	entryFound bool, // true if an entry was found
+	imgDone bool, // true if final img } found
+) {
+	var (
+		r     rune
+		eof   bool
+		state = imgEntryOnStart
+
+		target, width, height strings.Builder
+		description           string
+	)
+
+runewalker:
+	for {
+		r, eof = mycocontext.NextRune(ctx)
+		if eof {
+			break
+		}
+
+	runechecker: // TODO: add escaping \
+		switch state {
+		case imgEntryOnStart:
+			switch r {
+			case '}':
+				entryFound, imgDone = false, true
+				break runewalker
+			case '\n':
+				entryFound, imgDone = false, false
+			case ' ', '\t': // Ignore the leading whitespace
+			case '|': // Empty target, so it seems. This entry becomes invalid.
+				state = imgEntryCollectingDimensionWidth
+			default:
+				state = imgEntryCollectingTarget
+				goto runechecker // uwu
+			}
+		case imgEntryCollectingTarget:
+			switch r {
+			case '}':
+				entryFound, imgDone = true, true
+				state = imgEntryWaitingForTheEndOfIt
+			case '\n':
+				entryFound, imgDone = true, false
+				break runewalker
+			case '|':
+				state = imgEntryCollectingDimensionWidth
+			case '{':
+				description = nextImgEntryDescription(ctx)
+				break runewalker
+			default:
+				// I am confident in myself, thus I ignore errors
+				_, _ = target.WriteRune(r)
+			}
+		case imgEntryCollectingDimensionWidth:
+			switch r {
+			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+				_, _ = width.WriteRune(r)
+			case '*':
+				state = imgEntryCollectingDimensionHeight
+			case '{':
+				description = nextImgEntryDescription(ctx)
+				break runewalker
+			default: // Ignore the garbage!
+			}
+		case imgEntryCollectingDimensionHeight:
+			switch r {
+			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+				_, _ = height.WriteRune(r)
+			case '{':
+				description = nextImgEntryDescription(ctx)
+				break runewalker
+			default: // Ignore the garbage!
+			}
+		case imgEntryWaitingForTheEndOfIt:
+			switch r {
+			case '}':
+				return imgEntry, false, true
+			case '\n':
+				return imgEntry, false, false
+			default:
+				continue
+			}
+		default:
+			panic("warning warning warning!!!!!!!!")
+		}
+	}
+
+	imgEntry.Srclink = links.From(target.String(), "", ctx.HyphaName())
+	imgEntry.HyphaName = ctx.HyphaName()
+	imgEntry.Width = width.String()
+	imgEntry.Height = height.String()
+	imgEntry.Description = description
+
+	return imgEntry, entryFound, imgDone
 }
 
 // Call this function if and only if matchesImg(ctx) == true.
@@ -176,8 +192,6 @@ func parseImgUntilCurlyBrace(ctx mycocontext.Context) (img blocks.Img) {
 
 	return blocks.Img{
 		Entries:   make([]blocks.ImgEntry, 0),
-		CurrEntry: blocks.ImgEntry{},
 		HyphaName: ctx.HyphaName(),
-		State:     blocks.InRoot,
 	}
 }
