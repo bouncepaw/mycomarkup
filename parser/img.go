@@ -36,7 +36,6 @@ const (
 	imgEntryCollectingTarget
 	imgEntryCollectingDimensionWidth
 	imgEntryCollectingDimensionHeight
-	imgEntryWaitingForTheEndOfIt
 )
 
 func nextImgEntryDescription(ctx mycocontext.Context) string {
@@ -81,8 +80,8 @@ func nextImgEntry(ctx mycocontext.Context) (
 		state = imgEntryOnStart
 
 		target, width, height strings.Builder
-		description           string
 	)
+	entryFound = true
 
 runewalker:
 	for {
@@ -97,11 +96,14 @@ runewalker:
 			switch r {
 			case '}':
 				entryFound, imgDone = false, true
+				_, _ = mycocontext.NextLine(ctx) // After closing }
 				break runewalker
 			case '\n':
 				entryFound, imgDone = false, false
+				break runewalker
 			case ' ', '\t': // Ignore the leading whitespace
 			case '|': // Empty target, so it seems. This entry becomes invalid.
+				entryFound = false
 				state = imgEntryCollectingDimensionWidth
 			default:
 				state = imgEntryCollectingTarget
@@ -111,14 +113,14 @@ runewalker:
 			switch r {
 			case '}':
 				entryFound, imgDone = true, true
-				state = imgEntryWaitingForTheEndOfIt
+				break runewalker
 			case '\n':
 				entryFound, imgDone = true, false
 				break runewalker
 			case '|':
 				state = imgEntryCollectingDimensionWidth
 			case '{':
-				description = nextImgEntryDescription(ctx)
+				imgEntry.Description = nextImgEntryDescription(ctx)
 				break runewalker
 			default:
 				// I am confident in myself, thus I ignore errors
@@ -131,7 +133,7 @@ runewalker:
 			case '*':
 				state = imgEntryCollectingDimensionHeight
 			case '{':
-				description = nextImgEntryDescription(ctx)
+				imgEntry.Description = nextImgEntryDescription(ctx)
 				break runewalker
 			default: // Ignore the garbage!
 			}
@@ -140,18 +142,9 @@ runewalker:
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				_, _ = height.WriteRune(r)
 			case '{':
-				description = nextImgEntryDescription(ctx)
+				imgEntry.Description = nextImgEntryDescription(ctx)
 				break runewalker
 			default: // Ignore the garbage!
-			}
-		case imgEntryWaitingForTheEndOfIt:
-			switch r {
-			case '}':
-				return imgEntry, false, true
-			case '\n':
-				return imgEntry, false, false
-			default:
-				continue
 			}
 		default:
 			panic("warning warning warning!!!!!!!!")
@@ -162,7 +155,6 @@ runewalker:
 	imgEntry.HyphaName = ctx.HyphaName()
 	imgEntry.Width = width.String()
 	imgEntry.Height = height.String()
-	imgEntry.Description = description
 
 	return imgEntry, entryFound, imgDone
 }

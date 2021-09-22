@@ -106,11 +106,15 @@ func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 			entry.Srclink.Href(),
 			entry.Srclink.TargetHypha())
 	}
-	return fmt.Sprintf(`<figure class="img-gallery__entry">
+	return fmt.Sprintf(
+		`<figure class="img-gallery__entry">
 	%s
 	<figcaption>%s</figcaption>
 </figure>
-`, ret, BlockToHTML(parser.MakeFormatted(entry.Description, entry.HyphaName), counter))
+`,
+		ret,
+		BlockToHTML(parser.MakeFormatted(entry.Description, entry.HyphaName), counter),
+	)
 }
 
 func imgToHTML(img blocks.Img, counter *blocks.IDCounter) string {
