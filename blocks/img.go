@@ -4,33 +4,13 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v2/globals"
 	"github.com/bouncepaw/mycomarkup/v2/util"
-	"strings"
-)
-
-// MatchesImg is true if the line starts with img {.
-func MatchesImg(line string) bool {
-	return strings.HasPrefix(line, `img {`)
-}
-
-type imgState int
-
-const (
-	InRoot imgState = iota
-	InName
-	InDimensionsW
-	InDimensionsH
-	InDescription
 )
 
 // Img is an image gallery, consisting of zero or more images.
 type Img struct {
-	// All entries but the last one
-	Entries []ImgEntry
-	// The last entry
-	CurrEntry ImgEntry
+	// All entries
+	Entries   []ImgEntry
 	HyphaName string
-	// Parsing state. TODO: move to a different place.
-	State imgState
 }
 
 func (img Img) isBlock() {}
@@ -41,9 +21,9 @@ func (img Img) ID(counter *IDCounter) string {
 	return fmt.Sprintf("img-%d", counter.imgs)
 }
 
-// HasOneImage returns true if img has exactly one image and that images has no description.
+// HasOneImage returns true if img has exactly one image. The image may have a description.
 func (img *Img) HasOneImage() bool {
-	return len(img.Entries) == 1 && img.Entries[0].Desc.Len() == 0
+	return len(img.Entries) == 1
 }
 
 // MarkExistenceOfSrcLinks effectively checks if the links in the gallery are blue or red.

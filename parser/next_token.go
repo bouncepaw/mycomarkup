@@ -26,23 +26,6 @@ func nextLaunchPad(ctx mycocontext.Context) (blocks.LaunchPad, bool) {
 	return launchPad, done
 }
 
-func nextImg(ctx mycocontext.Context) (img blocks.Img, done bool) {
-	var r rune
-	line, done := mycocontext.NextLine(ctx)
-	img, imgDone := parseImgFirstLine(line, ctx.HyphaName())
-	if imgDone {
-		return img, done
-	}
-
-	for !imgDone && !done {
-		r, done = mycocontext.NextRune(ctx)
-		imgDone = processImgRune(&img, r)
-	}
-
-	defer mycocontext.NextLine(ctx) // Characters after the final } of img are ignored.
-	return img, done
-}
-
 func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, done bool) {
 	line, done := mycocontext.NextLine(ctx)
 	code = blocks.MakeCodeBlock(strings.TrimPrefix(line, "```"), "")
@@ -108,7 +91,7 @@ func nextLineIsSomething(ctx mycocontext.Context) bool {
 			return true
 		}
 	}
-	return emptyLine(ctx) || blocks.MatchesImg(ctx.Input().String()) || matchesTable(ctx)
+	return emptyLine(ctx) || matchesImg(ctx) || matchesTable(ctx)
 }
 
 func emptyLine(ctx mycocontext.Context) bool {
@@ -165,7 +148,7 @@ func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 		line, done := mycocontext.NextLine(ctx)
 		return MakeHeading(line, ctx.HyphaName(), 1), done
 
-	case blocks.MatchesImg(ctx.Input().String()):
+	case matchesImg(ctx):
 		return nextImg(ctx)
 	case matchesTable(ctx):
 		return nextTable(ctx)

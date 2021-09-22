@@ -10,8 +10,8 @@ func EatUntilSpace(ctx Context) (line string) {
 	return line
 }
 
-// NextByte returns the next byte in the inputFrom. The CR byte (\r) is never returned, if there is a CR in the inputFrom, the byte after it is returned. If there is no next byte, the NL byte (\n) is returned and done is true.
-func NextByte(ctx Context) (b byte, done bool) {
+// NextByte returns the next byte in the inputFrom. The CR byte (\r) is never returned, if there is a CR in the inputFrom, the byte after it is returned. If there is no next byte, the NL byte (\n) is returned and eof is true.
+func NextByte(ctx Context) (b byte, eof bool) {
 	b, err := ctx.Input().ReadByte()
 	if err != nil {
 		return '\n', true
@@ -28,7 +28,7 @@ func UnreadRune(ctx Context) {
 }
 
 // NextRune is like NextByte, but for runes.
-func NextRune(ctx Context) (r rune, done bool) {
+func NextRune(ctx Context) (r rune, eof bool) {
 	r, _, err := ctx.Input().ReadRune()
 	if err != nil {
 		return '\n', true
@@ -51,4 +51,11 @@ func NextLine(ctx Context) (line string, done bool) {
 		b, done = NextByte(ctx)
 	}
 	return lineBuffer.String(), done
+}
+
+// IsEof is true if there is nothing left to read in the input. It does not handle the case when all next characters are \r, which are never returned by NextRune, thus making this function lie.
+//
+// Be not afraid because everyone lies. Not a good idea to trust a //function// anyway.
+func IsEof(ctx Context) bool {
+	return ctx.Input().Len() == 0
 }
