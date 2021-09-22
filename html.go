@@ -94,11 +94,11 @@ func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 	var ret string
 	if entry.Srclink.IsBlueLink() {
 		ret += fmt.Sprintf(
-			`<a href="%s"><img src="%s" %s %s></a>`,
+			`<a href="%s"><img src="%s"%s%s></a>`,
 			entry.Srclink.Href(),
 			entry.Srclink.ImgSrc(),
-			entry.SizeWAsAttr(),
-			entry.SizeHAsAttr())
+			entry.WidthAttributeHTML(),
+			entry.HeightAttributeHTML())
 	} else {
 		ret += fmt.Sprintf(
 			`<a class="%s" href="%s">Hypha <i>%s</i> does not exist</a>`,
