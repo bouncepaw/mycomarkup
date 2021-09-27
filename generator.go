@@ -5,6 +5,7 @@ import (
 	"github.com/bouncepaw/mycomarkup/v2/blocks"
 	"github.com/bouncepaw/mycomarkup/v2/globals"
 	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v2/util"
 )
 
 const maxRecursionLevel = 3
@@ -41,9 +42,13 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 				for _, tc := range tr.Cells {
 					ret += fmt.Sprintf(
 						"\n\t<%[1]s%[3]s>%[2]s</%[1]s>",
-						tc.TagNameHTML(),
+						util.TernaryConditionString(tc.IsHeaderCell(), "th", "td"),
 						generateHTML(tc.Contents(), recursionLevel, counter.UnusableCopy()),
-						tc.ColspanAttributeHTML(),
+						util.TernaryConditionString(
+							tc.Colspan() <= 1,
+							"",
+							fmt.Sprintf(` colspan="%d"`, tc.Colspan()),
+						),
 					)
 				}
 				ret += "</tr>\n"
@@ -103,7 +108,7 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 	}
 	xclVisistor, result := transclusionVisitor(xcl)
 	ctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText) // FIXME: it will bite us one day
-	_ = BlockTree(ctx, xclVisistor)                                   // TODO: inject transclusion visitors here
+	_ = BlockTree(ctx, xclVisistor)
 	xclText := generateHTML(result(), recursionLevel+1, counter.UnusableCopy())
 
 	if xcl.Selector == blocks.SelectorAttachment || xcl.Selector == blocks.SelectorFull || xcl.Selector == blocks.SelectorOverview {

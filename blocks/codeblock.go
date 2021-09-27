@@ -2,6 +2,7 @@ package blocks
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/v2/util"
 	"html"
 )
 
@@ -27,10 +28,7 @@ func NewCodeBlock(language, contents string) CodeBlock {
 
 // Language returns what kind of formal language the code block is written in. It returns "plain" if the language is not specified. Returns escaped text otherwise.
 func (cb CodeBlock) Language() string {
-	if cb.language == "" {
-		return "plain"
-	}
-	return html.EscapeString(cb.language)
+	return util.DefaultString(html.EscapeString(cb.language), "plain")
 }
 
 // Contents returns the code block's contents.

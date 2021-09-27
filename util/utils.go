@@ -62,3 +62,11 @@ func DefaultString(s, d string) string {
 	}
 	return s
 }
+
+// TernaryConditionString is an approximation of an expression like (cond ? thenBranch : elseBranch) from other programming languages. There is no real need for this function, I just felt the urge to add it.
+func TernaryConditionString(cond bool, thenBranch, elseBranch string) string {
+	if cond {
+		return thenBranch
+	}
+	return elseBranch
+}

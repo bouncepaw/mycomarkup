@@ -4,7 +4,7 @@ import (
 	"github.com/bouncepaw/mycomarkup/v2/links"
 )
 
-// ImgEntry is an entry of an image gallery. It can only be nested into Img.
+// ImgEntry is an entry of an image gallery. It can only be nested into Img. V3: proper readers, encapsulate
 type ImgEntry struct {
 	Target      links.Link
 	HyphaName   string
@@ -18,18 +18,8 @@ func (entry ImgEntry) ID(_ *IDCounter) string {
 	return ""
 }
 
-// WidthAttributeHTML returns either an empty string or the width attribute for the image, depending on what has been written in the markup.
-func (entry *ImgEntry) WidthAttributeHTML() string {
-	if len(entry.Width) == 0 {
-		return ""
-	}
-	return ` width="` + entry.Width + `"`
-}
+// GetWidth returns the width property of the entry. TODO: rename to Width.
+func (entry ImgEntry) GetWidth() string { return entry.Width }
 
-// HeightAttributeHTML returns either an empty string or the height attribute for the image, depending on what has been written in the markup.
-func (entry *ImgEntry) HeightAttributeHTML() string {
-	if len(entry.Height) == 0 {
-		return ""
-	}
-	return ` height="` + entry.Height + `"`
-}
+// GetHeight returns the height property of the entry. TODO: rename to Height.
+func (entry ImgEntry) GetHeight() string { return entry.Height }

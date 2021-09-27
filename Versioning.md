@@ -12,7 +12,9 @@ ast := mycomarkup.BlockTree(ctx)
 result := mycomarkup.BlocksToHTML(ctx, ast)
 ```
 
-Mycomarkup has a lot more exported symbols than that, and they change often. They are not part of API. One day we should use Go's internal packages for a clearer distinction.
+Mycomarkup has a lot more exported symbols than that, and they change often. They are not part of the public API. One
+day we should use Go's internal packages for a clearer distinction or, alternatively, promise the stability of all
+exported symbols.
 
 Increment MINOR when you _add_ something new, such as a new block.
 

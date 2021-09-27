@@ -1,7 +1,5 @@
 package blocks
 
-import "fmt"
-
 // TableCell is a cell in TableRow.
 type TableCell struct {
 	isHeaderCell bool
@@ -36,22 +34,4 @@ func (tc TableCell) Contents() []Block {
 // Colspan returns how many columns the cell spans.
 func (tc TableCell) Colspan() uint {
 	return tc.colspan
-}
-
-// ColspanAttributeHTML returns either an empty string (if the cell doesn't have colspan) or a string in this format:
-//
-//     colspan="<number here>"
-func (tc TableCell) ColspanAttributeHTML() string {
-	if tc.colspan <= 1 {
-		return ""
-	}
-	return fmt.Sprintf(` colspan="%d"`, tc.colspan)
-}
-
-// TagNameHTML returns "th" if the cell is a header cell, "td" otherwise.
-func (tc TableCell) TagNameHTML() string {
-	if tc.IsHeaderCell() {
-		return "th"
-	}
-	return "td"
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v2/blocks"
 	"github.com/bouncepaw/mycomarkup/v2/parser"
+	"github.com/bouncepaw/mycomarkup/v2/util"
 	"html"
 )
 
@@ -97,8 +98,17 @@ func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 			`<a href="%s"><img src="%s"%s%s></a>`,
 			entry.Target.Href(),
 			entry.Target.ImgSrc(),
-			entry.WidthAttributeHTML(),
-			entry.HeightAttributeHTML())
+			util.TernaryConditionString(
+				entry.GetWidth() == "",
+				"",
+				` width="`+entry.GetWidth()+`"`,
+			),
+			util.TernaryConditionString(
+				entry.GetHeight() == "",
+				"",
+				` height="`+entry.GetHeight()+`"`,
+			),
+		)
 	} else {
 		ret += fmt.Sprintf(
 			`<a class="%s" href="%s">Hypha <i>%s</i> does not exist</a>`,

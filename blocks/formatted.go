@@ -3,6 +3,7 @@ package blocks
 import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v2/links"
+	"github.com/bouncepaw/mycomarkup/v2/util"
 )
 
 // Formatted is a piece of formatted text. It is always part of a bigger block, such as Paragraph.
@@ -103,12 +104,7 @@ func (it InlineText) Kind() SpanKind {
 //
 // TODO: get rid of.
 func TagFromState(stt SpanKind, tagState map[SpanKind]bool) string {
-	var tagName string
-	if stt == SpanLink {
-		tagName = "a"
-	} else {
-		tagName = entryForSpan(stt).htmlTag
-	}
+	tagName := util.TernaryConditionString(stt == SpanLink, "a", entryForSpan(stt).htmlTag)
 	if tagState[stt] {
 		tagState[stt] = false
 		return fmt.Sprintf("</%s>", tagName)
