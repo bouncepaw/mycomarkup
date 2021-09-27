@@ -9,7 +9,6 @@ import (
 )
 
 // Transclusion is the block representing an extract from a different document.
-// TODO: visitors for transclusion.
 type Transclusion struct {
 	// Target is the name of the hypha to be transcluded.
 	Target   string

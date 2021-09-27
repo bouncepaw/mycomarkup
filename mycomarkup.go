@@ -11,9 +11,9 @@ import (
 
 // BlockTree returns a slice of blocks parsed from the Mycomarkup document contained in ctx.
 //
-// Pass visitors. Visitors are functions (usually closures) that are called on every found block.
+// Pass visitors. Visitors are functions (usually closures) that are called on every top-pevep found block.
 //
-// Visitors included with mycomarkup can be gotten from OpenGraphVisitors. More visitors coming soon.
+// Some pre-implemented visitors are in the tools package.
 func BlockTree(ctx mycocontext.Context, visitors ...func(block blocks.Block)) []blocks.Block {
 	var (
 		tokens = make(chan blocks.Block)
