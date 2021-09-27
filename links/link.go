@@ -24,33 +24,31 @@ const (
 
 // Link is an abstraction for universal representation of links, be they links in mycomarkup links or whatever.
 type Link struct {
-	// Known stuff
-	srcAddress string // Before |
-	srcDisplay string // After |
-	srcHypha   string // The hypha where it all happened
 	// Parsed stuff
-	anchor   string // # and everything after it
-	address  string //
-	display  string
 	kind     LinkType
 	protocol string
+	address  string //
+	anchor   string // # and everything after it
+
+	display string
 	// Settable stuff
 	destinationKnown bool // set to true when you have //checked// that the target hypha exists. It might be false for non-hypha links.
 }
 
-// From makes a link from the given source address and display text on the given hypha.
+// From makes a link from the given source address and display text on the given hypha. The arguments are stripped of whitespace on both sides before further processing.
 func From(srcAddress, srcDisplay, srcHypha string) *Link {
+	srcAddress = strings.TrimSpace(srcAddress)
+	srcDisplay = strings.TrimSpace(srcDisplay)
+	srcHypha = strings.TrimSpace(srcHypha)
+
 	link := Link{
-		srcAddress:       strings.TrimSpace(srcAddress),
-		srcDisplay:       strings.TrimSpace(srcDisplay),
-		srcHypha:         strings.TrimSpace(srcHypha),
+		address:          srcAddress,
 		destinationKnown: false,
 	}
-	link.address = link.srcAddress
 
 	// If there is a hash sign in the address, move everything starting from the sign to the end of the address to the anchor field and truncate the address.
-	if pos := strings.IndexRune(link.srcAddress, '#'); pos != -1 {
-		link.anchor = link.srcAddress[pos:]
+	if pos := strings.IndexRune(srcAddress, '#'); pos != -1 {
+		link.anchor = srcAddress[pos:]
 		link.address = link.address[:pos]
 	}
 
@@ -74,19 +72,19 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 	case strings.HasPrefix(link.address, "./"):
 		link.kind = LinkLocalHypha
 		link.display = link.address + link.anchor
-		link.address = util.CanonicalName(path.Join(link.srcHypha, link.address[2:]))
+		link.address = util.CanonicalName(path.Join(srcHypha, link.address[2:]))
 	case link.address == "..":
 		link.kind = LinkLocalHypha
-		link.address = util.CanonicalName(path.Dir(link.srcHypha))
+		link.address = util.CanonicalName(path.Dir(srcHypha))
 		link.display = ".."
 	case strings.HasPrefix(link.address, "../"):
 		link.kind = LinkLocalHypha
 		link.display = link.address + link.anchor
-		link.address = util.CanonicalName(path.Join(path.Dir(link.srcHypha), link.address[3:]))
+		link.address = util.CanonicalName(path.Join(path.Dir(srcHypha), link.address[3:]))
 	case strings.HasPrefix(link.address, "#"):
 		link.kind = LinkLocalHypha
 		link.anchor = link.address
-		link.address = util.CanonicalName(link.srcHypha)
+		link.address = util.CanonicalName(srcHypha)
 		link.display = link.anchor
 	default:
 		link.kind = LinkLocalHypha
@@ -94,8 +92,8 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 		link.address = util.CanonicalName(link.address)
 	}
 
-	if link.srcDisplay != "" {
-		link.display = link.srcDisplay
+	if srcDisplay != "" {
+		link.display = srcDisplay
 	}
 
 	return &link
@@ -122,17 +120,21 @@ func (link *Link) Classes() (classes string) {
 			classes += " wikilink_new"
 		}
 	case LinkExternal:
-		classes += fmt.Sprintf(" wikilink_external wikilink_%s", strings.TrimSuffix(strings.TrimSuffix(link.protocol, "://"), ":"))
+		classes += fmt.Sprintf(
+			" wikilink_external wikilink_%s",
+			strings.TrimSuffix(strings.TrimSuffix(link.protocol, "://"), ":"),
+		)
 	}
 	return classes
 }
 
-// Href returns escaped content for the href attribute for hyperlink. You should always use it.
+// Href returns escaped content for the href attribute for HTML link. You should always use it.
 func (link *Link) Href() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:
 		return html.EscapeString(link.protocol + link.address + link.anchor)
 	default:
+		// TODO: configure the path
 		return "/hypha/" + html.EscapeString(link.address+link.anchor)
 	}
 }
@@ -141,8 +143,9 @@ func (link *Link) Href() string {
 func (link *Link) ImgSrc() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:
-		return link.protocol + html.EscapeString(link.address+link.anchor)
+		return html.EscapeString(link.protocol + link.address + link.anchor)
 	default:
+		// TODO: configure the path
 		return "/binary/" + html.EscapeString(link.address)
 	}
 }
@@ -157,7 +160,7 @@ func (link *Link) TargetHypha() string {
 	return util.CanonicalName(link.address)
 }
 
-// OfKind returns if the given link is of the given kind.
+// OfKind is true if the given link is of the given kind, i/e the kinds are equal.
 func (link *Link) OfKind(kind LinkType) bool {
 	return link.kind == kind
 }
