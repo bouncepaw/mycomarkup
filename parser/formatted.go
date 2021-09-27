@@ -63,7 +63,7 @@ func nextInlineLink(input *bytes.Buffer, hyphaName string, isBracketedLink bool)
 
 	link := links.From(addrBuf.String(), displayBuf.String(), hyphaName)
 	if globals.HyphaExists(util.CanonicalName(link.TargetHypha())) {
-		link.MarkAsExisting()
+		link = link.CopyMarkedAsExisting()
 	}
 	return blocks.InlineLink{Link: link}
 }

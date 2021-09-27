@@ -38,7 +38,7 @@ func (lp *LaunchPad) ColorRockets() {
 		for i, rocket := range lp.Rockets {
 			// TODO: do not canonize every time
 			if util.CanonicalName(rocket.TargetHypha()) == hyphaName {
-				rocket.Link.MarkAsExisting()
+				rocket.Link = rocket.Link.CopyMarkedAsExisting()
 			}
 			lp.Rockets[i] = rocket
 		}
@@ -72,7 +72,7 @@ func MakeRocketLink(line, hyphaName string) RocketLink {
 		display = strings.TrimPrefix(line, addr)
 		rl      = RocketLink{
 			IsEmpty: false,
-			Link:    *links.From(addr, display, hyphaName),
+			Link:    links.From(addr, display, hyphaName),
 		}
 	)
 

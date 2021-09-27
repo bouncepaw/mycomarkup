@@ -36,7 +36,7 @@ type Link struct {
 }
 
 // From makes a link from the given source address and display text on the given hypha. The arguments are stripped of whitespace on both sides before further processing.
-func From(srcAddress, srcDisplay, srcHypha string) *Link {
+func From(srcAddress, srcDisplay, srcHypha string) Link {
 	srcAddress = strings.TrimSpace(srcAddress)
 	srcDisplay = strings.TrimSpace(srcDisplay)
 	srcHypha = strings.TrimSpace(srcHypha)
@@ -96,22 +96,22 @@ func From(srcAddress, srcDisplay, srcHypha string) *Link {
 		link.display = srcDisplay
 	}
 
-	return &link
+	return link
 }
 
 // IsBlueLink is true if the link should be blue, not red. Red links are links to hyphae that do not exist, all other links are blue.
-func (link *Link) IsBlueLink() bool {
+func (link Link) IsBlueLink() bool {
 	return !(link.OfKind(LinkLocalHypha) && !link.destinationKnown)
 }
 
-// MarkAsExisting notes that the hypha does exist.
-func (link *Link) MarkAsExisting() *Link {
+// CopyMarkedAsExisting returns a copy of the link that is marked as existing, i/e colored in blue.
+func (link Link) CopyMarkedAsExisting() Link {
 	link.destinationKnown = true
 	return link
 }
 
 // Classes returns CSS class string for given link. It is not wrapped in any quotes, wrap yourself.
-func (link *Link) Classes() (classes string) {
+func (link Link) Classes() (classes string) {
 	classes = "wikilink"
 	switch link.kind {
 	case LinkLocalRoot, LinkLocalHypha:
@@ -129,7 +129,7 @@ func (link *Link) Classes() (classes string) {
 }
 
 // Href returns escaped content for the href attribute for HTML link. You should always use it.
-func (link *Link) Href() string {
+func (link Link) Href() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:
 		return html.EscapeString(link.protocol + link.address + link.anchor)
@@ -140,7 +140,7 @@ func (link *Link) Href() string {
 }
 
 // ImgSrc returns escaped content for src attribute of img tag. Used with `img{}`.
-func (link *Link) ImgSrc() string {
+func (link Link) ImgSrc() string {
 	switch link.kind {
 	case LinkExternal, LinkLocalRoot:
 		return html.EscapeString(link.protocol + link.address + link.anchor)
@@ -151,16 +151,16 @@ func (link *Link) ImgSrc() string {
 }
 
 // Display returns the display text of the given link. It is not escaped, escape by yourself.
-func (link *Link) Display() string {
+func (link Link) Display() string {
 	return link.display
 }
 
 // TargetHypha returns the canonical name of the target hypha. Use for hypha links.
-func (link *Link) TargetHypha() string {
+func (link Link) TargetHypha() string {
 	return util.CanonicalName(link.address)
 }
 
 // OfKind is true if the given link is of the given kind, i/e the kinds are equal.
-func (link *Link) OfKind(kind LinkType) bool {
+func (link Link) OfKind(kind LinkType) bool {
 	return link.kind == kind
 }

@@ -6,7 +6,7 @@ import (
 
 // ImgEntry is an entry of an image gallery. It can only be nested into Img.
 type ImgEntry struct {
-	Srclink     *links.Link
+	Srclink     links.Link
 	HyphaName   string
 	Width       string
 	Height      string
