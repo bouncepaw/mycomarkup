@@ -9,30 +9,30 @@ import (
 
 // LinkVisitor creates a visitor which extracts all the links from the document in context.
 //
-// We consider inline link, rocket link, image gallery and transclusion targets to be links. Currently, there is a bug with image galleries that will
+// We consider inline link, rocket link, image gallery and transclusion targets to be links.
 func LinkVisitor(ctx mycocontext.Context) (
 	visitor func(block blocks.Block),
 	result func() []links.Link,
 ) {
 	var (
 		collected    []links.Link
-		extractBlock func(block blocks.Block)
+		extractLinks func(block blocks.Block)
 	)
-	extractBlock = func(block blocks.Block) {
+	extractLinks = func(block blocks.Block) {
 		switch b := block.(type) {
 		case blocks.Paragraph:
-			extractBlock(b.Formatted)
+			extractLinks(b.Formatted)
 		case blocks.Heading:
-			extractBlock(b.Contents())
+			extractLinks(b.Contents())
 		case blocks.List:
 			for _, item := range b.Items {
 				for _, sub := range item.Contents {
-					extractBlock(sub)
+					extractLinks(sub)
 				}
 			}
 		case blocks.Img:
 			for _, entry := range b.Entries {
-				extractBlock(entry)
+				extractLinks(entry)
 			}
 		case blocks.ImgEntry:
 			collected = append(collected, b.Target)
@@ -41,7 +41,7 @@ func LinkVisitor(ctx mycocontext.Context) (
 			collected = append(collected, link)
 		case blocks.LaunchPad:
 			for _, rocket := range b.Rockets {
-				extractBlock(rocket)
+				extractLinks(rocket)
 			}
 		case blocks.Formatted:
 			for _, line := range b.Lines {
@@ -59,7 +59,7 @@ func LinkVisitor(ctx mycocontext.Context) (
 		}
 	}
 	visitor = func(block blocks.Block) {
-		extractBlock(block)
+		extractLinks(block)
 	}
 	result = func() []links.Link {
 		return collected

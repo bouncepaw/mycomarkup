@@ -81,27 +81,27 @@ func TestNextLineIsSomething3(t *testing.T) {
 
 func TestEmptyLine(t *testing.T) {
 	ctx1, _ := mycocontext.ContextFromStringInput("test", "")
-	if !emptyLine(ctx1) {
+	if !matchesEmptyLine(ctx1) {
 		t.Errorf("Wrong 1")
 	}
 
 	ctx2, _ := mycocontext.ContextFromStringInput("test", "\r\n")
-	if !emptyLine(ctx2) {
+	if !matchesEmptyLine(ctx2) {
 		t.Errorf("Wrong 2")
 	}
 
 	ctx3, _ := mycocontext.ContextFromStringInput("test", "aboba\r\n")
-	if emptyLine(ctx3) {
+	if matchesEmptyLine(ctx3) {
 		t.Errorf("Wrong 3")
 	}
 
 	ctx4, _ := mycocontext.ContextFromStringInput("test", " \r\n")
-	if !emptyLine(ctx4) {
+	if !matchesEmptyLine(ctx4) {
 		t.Errorf("Wrong 4")
 	}
 
 	ctx5, _ := mycocontext.ContextFromStringInput("test", "aboba\r\n")
-	if emptyLine(ctx5) {
+	if matchesEmptyLine(ctx5) {
 		t.Errorf("Wrong 5")
 	}
 }

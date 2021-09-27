@@ -90,10 +90,10 @@ func nextLineIsSomething(ctx mycocontext.Context) bool {
 			return true
 		}
 	}
-	return emptyLine(ctx) || matchesImg(ctx) || matchesTable(ctx)
+	return matchesEmptyLine(ctx) || matchesImg(ctx) || matchesTable(ctx)
 }
 
-func emptyLine(ctx mycocontext.Context) bool {
+func matchesEmptyLine(ctx mycocontext.Context) bool {
 	for _, b := range ctx.Input().Bytes() {
 		switch b {
 		case '\n':
@@ -109,11 +109,10 @@ func emptyLine(ctx mycocontext.Context) bool {
 
 func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 	switch {
-	case emptyLine(ctx):
+	case matchesEmptyLine(ctx):
 		_, done := mycocontext.NextLine(ctx)
 		return nil, done
 	case looksLikeList(ctx):
-		//case isPrefixedBy(ctx, "* "), isPrefixedBy(ctx, "*. "), isPrefixedBy(ctx, "*v "), isPrefixedBy(ctx, "*x "): — alternative way?
 		return nextList(ctx)
 	case isPrefixedBy(ctx, "```"):
 		return nextCodeBlock(ctx)
