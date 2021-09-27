@@ -24,7 +24,10 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 		case blocks.List:
 			var ret string
 			for _, item := range v.Items {
-				ret += fmt.Sprintf(markerToTemplate(item.Marker), generateHTML(item.Contents, recursionLevel, counter.UnusableCopy()))
+				ret += fmt.Sprintf(
+					markerToTemplate(item.Marker),
+					generateHTML(item.Contents, recursionLevel, counter.UnusableCopy()),
+				)
 			}
 			html += fmt.Sprintf(listToTemplate(v), idAttribute(v, counter), ret)
 		case blocks.Table:
@@ -38,8 +41,8 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 				for _, tc := range tr.Cells {
 					ret += fmt.Sprintf(
 						"\n\t<%[1]s%[3]s>%[2]s</%[1]s>",
-						tc.TagName(),
-						generateHTML(tc.Contents, recursionLevel, counter.UnusableCopy()),
+						tc.TagNameHTML(),
+						generateHTML(tc.Contents(), recursionLevel, counter.UnusableCopy()),
 						tc.ColspanAttributeHTML(),
 					)
 				}

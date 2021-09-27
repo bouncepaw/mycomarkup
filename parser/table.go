@@ -78,11 +78,8 @@ runeWalker:
 			parseSubdocumentForEachBlock(ctx, cellText, func(block blocks.Block) {
 				contents = append(contents, block)
 			})
-			cell := &blocks.TableCell{
-				IsHeaderCell: currCellMarker == '!',
-				Contents:     contents,
-				Colspan:      currColspan,
-			}
+			cellv := blocks.NewTableCell(currCellMarker == '!', currColspan, contents) // V3
+			cell := &cellv
 			cells = append(cells, cell)
 			if tableDone {
 				break runeWalker
