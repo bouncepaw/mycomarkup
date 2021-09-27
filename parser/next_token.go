@@ -14,16 +14,16 @@ func isPrefixedBy(ctx mycocontext.Context, s string) bool { // This function has
 
 func nextLaunchPad(ctx mycocontext.Context) (blocks.LaunchPad, bool) {
 	var (
-		hyphaName = ctx.HyphaName()
-		launchPad = blocks.MakeLaunchPad()
-		line      string
-		done      bool
+		hyphaName   = ctx.HyphaName()
+		line        string
+		done        bool
+		rocketLinks = make([]blocks.RocketLink, 0)
 	)
 	for isPrefixedBy(ctx, "=>") {
 		line, done = mycocontext.NextLine(ctx)
-		launchPad.AddRocket(blocks.MakeRocketLink(line, hyphaName))
+		rocketLinks = append(rocketLinks, blocks.ParseRocketLink(line, hyphaName))
 	}
-	return launchPad, done
+	return blocks.MakeLaunchPad(rocketLinks), done
 }
 
 func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, done bool) {

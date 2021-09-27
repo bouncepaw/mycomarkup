@@ -17,7 +17,6 @@ func (h HorizontalLine) isBlock() {}
 
 // MakeHorizontalLine parses the horizontal line block on the given text line and returns it.
 func MakeHorizontalLine(line string) HorizontalLine {
-	// TODO: move to the parser block.
 	return HorizontalLine{
 		src: line,
 	}

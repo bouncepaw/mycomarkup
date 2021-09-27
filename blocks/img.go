@@ -26,7 +26,7 @@ func (img *Img) HasOneImage() bool {
 	return len(img.Entries) == 1
 }
 
-// MarkExistenceOfSrcLinks effectively checks if the links in the gallery are blue or red.
+// MarkExistenceOfSrcLinks effectively checks if the links in the gallery are blue or red. V3
 func (img *Img) MarkExistenceOfSrcLinks() {
 	globals.HyphaIterate(func(hn string) {
 		for _, entry := range img.Entries {
