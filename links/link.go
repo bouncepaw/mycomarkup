@@ -20,8 +20,6 @@ const (
 	LinkLocalHypha
 	// LinkExternal is an external link with specified protocol.
 	LinkExternal
-	// LinkInterwiki is currently left unused. In the future it will be used for interwiki links.
-	LinkInterwiki
 )
 
 // Link is an abstraction for universal representation of links, be they links in mycomarkup links or whatever.
@@ -123,8 +121,6 @@ func (link *Link) Classes() (classes string) {
 		if !link.IsBlueLink() {
 			classes += " wikilink_new"
 		}
-	case LinkInterwiki:
-		classes += " wikilink_interwiki"
 	case LinkExternal:
 		classes += fmt.Sprintf(" wikilink_external wikilink_%s", strings.TrimSuffix(strings.TrimSuffix(link.protocol, "://"), ":"))
 	}
