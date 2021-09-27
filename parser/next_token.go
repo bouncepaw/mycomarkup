@@ -22,7 +22,7 @@ func nextLaunchPad(ctx mycocontext.Context) (blocks.LaunchPad, bool) {
 		line, done = mycocontext.NextLine(ctx)
 		rocketLinks = append(rocketLinks, blocks.ParseRocketLink(line, hyphaName))
 	}
-	return blocks.MakeLaunchPad(rocketLinks), done
+	return blocks.NewLaunchPad(rocketLinks), done
 }
 
 func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, eof bool) {
@@ -35,12 +35,12 @@ func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, eof bool) {
 		if strings.HasPrefix(line, "```") {
 			break
 		}
-		contents += "\n" + line // Maybe should not add the first time?
+		contents += "\n" + line // Note: newline added every time
 	}
 	if len(contents) > 0 {
 		contents = contents[1:] // Drop the leading newline
 	}
-	return blocks.MakeCodeBlock(language, contents), eof
+	return blocks.NewCodeBlock(language, contents), eof
 }
 
 func linesForQuote(ctx mycocontext.Context) ([]string, bool) {
@@ -64,9 +64,9 @@ func linesForQuote(ctx mycocontext.Context) ([]string, bool) {
 
 func nextQuote(ctx mycocontext.Context) (blocks.Quote, bool) {
 	var (
-		quote       = blocks.Quote{}
-		lines, done = linesForQuote(ctx)
-		innerText   bytes.Buffer
+		lines, done   = linesForQuote(ctx)
+		innerText     bytes.Buffer
+		quoteContents = make([]blocks.Block, 0)
 	)
 
 	for i, line := range lines {
@@ -77,10 +77,10 @@ func nextQuote(ctx mycocontext.Context) (blocks.Quote, bool) {
 	}
 
 	parseSubdocumentForEachBlock(ctx, &innerText, func(block blocks.Block) {
-		quote.AddBlock(block)
+		quoteContents = append(quoteContents, block)
 	})
 
-	return quote, done
+	return blocks.NewQuote(quoteContents), done
 }
 
 func nextLineIsSomething(ctx mycocontext.Context) bool {
@@ -126,26 +126,26 @@ func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 		return blocks.MakeTransclusion(ctx, line), done
 	case isPrefixedBy(ctx, "----"):
 		line, done := mycocontext.NextLine(ctx)
-		return blocks.MakeHorizontalLine(line), done
+		return blocks.NewHorizontalLine(line), done
 
 	case isPrefixedBy(ctx, "###### "):
 		line, done := mycocontext.NextLine(ctx)
-		return MakeHeading(line, ctx.HyphaName(), 6), done
+		return parseHeading(line, ctx.HyphaName(), 6), done
 	case isPrefixedBy(ctx, "##### "):
 		line, done := mycocontext.NextLine(ctx)
-		return MakeHeading(line, ctx.HyphaName(), 5), done
+		return parseHeading(line, ctx.HyphaName(), 5), done
 	case isPrefixedBy(ctx, "#### "):
 		line, done := mycocontext.NextLine(ctx)
-		return MakeHeading(line, ctx.HyphaName(), 4), done
+		return parseHeading(line, ctx.HyphaName(), 4), done
 	case isPrefixedBy(ctx, "### "):
 		line, done := mycocontext.NextLine(ctx)
-		return MakeHeading(line, ctx.HyphaName(), 3), done
+		return parseHeading(line, ctx.HyphaName(), 3), done
 	case isPrefixedBy(ctx, "## "):
 		line, done := mycocontext.NextLine(ctx)
-		return MakeHeading(line, ctx.HyphaName(), 2), done
+		return parseHeading(line, ctx.HyphaName(), 2), done
 	case isPrefixedBy(ctx, "# "):
 		line, done := mycocontext.NextLine(ctx)
-		return MakeHeading(line, ctx.HyphaName(), 1), done
+		return parseHeading(line, ctx.HyphaName(), 1), done
 
 	case matchesImg(ctx):
 		return nextImg(ctx)

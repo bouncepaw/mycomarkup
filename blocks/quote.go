@@ -7,7 +7,10 @@ type Quote struct {
 	contents []Block
 }
 
-func (q Quote) isBlock() {}
+// NewQuote returns Quote with the given contents.
+func NewQuote(contents []Block) Quote {
+	return Quote{contents: contents}
+}
 
 // ID returns the quote's id which is quote- and a number.
 func (q Quote) ID(counter *IDCounter) string {
@@ -18,9 +21,4 @@ func (q Quote) ID(counter *IDCounter) string {
 // Contents returns the quote's contents.
 func (q *Quote) Contents() []Block {
 	return q.contents
-}
-
-// AddBlock adds the block to the quote. V3
-func (q *Quote) AddBlock(block Block) {
-	q.contents = append(q.contents, block)
 }

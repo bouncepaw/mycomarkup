@@ -23,7 +23,7 @@ func LinkVisitor(ctx mycocontext.Context) (
 		case blocks.Paragraph:
 			extractBlock(b.Formatted)
 		case blocks.Heading:
-			extractBlock(b.GetContents())
+			extractBlock(b.Contents())
 		case blocks.List:
 			for _, item := range b.Items {
 				for _, sub := range item.Contents {
@@ -35,7 +35,7 @@ func LinkVisitor(ctx mycocontext.Context) (
 				extractBlock(entry)
 			}
 		case blocks.ImgEntry:
-			collected = append(collected, b.Srclink)
+			collected = append(collected, b.Target)
 		case blocks.Transclusion:
 			link := links.From(b.Target, "", ctx.HyphaName())
 			collected = append(collected, link)

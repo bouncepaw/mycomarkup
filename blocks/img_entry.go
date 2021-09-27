@@ -6,7 +6,7 @@ import (
 
 // ImgEntry is an entry of an image gallery. It can only be nested into Img.
 type ImgEntry struct {
-	Srclink     links.Link
+	Target      links.Link
 	HyphaName   string
 	Width       string
 	Height      string
@@ -17,8 +17,6 @@ type ImgEntry struct {
 func (entry ImgEntry) ID(_ *IDCounter) string {
 	return ""
 }
-
-func (entry ImgEntry) isBlock() {}
 
 // WidthAttributeHTML returns either an empty string or the width attribute for the image, depending on what has been written in the markup.
 func (entry *ImgEntry) WidthAttributeHTML() string {

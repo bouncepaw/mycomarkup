@@ -63,7 +63,7 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 	case blocks.Heading:
 		return fmt.Sprintf(`
 <h%[1]d%[4]s>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
-`, b.Level, BlockToHTML(b.GetContents(), counter), b.ID(counter), idAttribute(b, counter))
+`, b.Level(), BlockToHTML(b.Contents(), counter), b.ID(counter), idAttribute(b, counter))
 	case blocks.CodeBlock:
 		return fmt.Sprintf("\n<pre class='codeblock'%s><code class='language-%s'>%s</code></pre>", idAttribute(b, counter), b.Language(), b.Contents())
 	}
@@ -92,19 +92,19 @@ func launchpadToHTML(lp blocks.LaunchPad, counter *blocks.IDCounter) string {
 
 func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 	var ret string
-	if entry.Srclink.IsBlueLink() {
+	if entry.Target.IsBlueLink() {
 		ret += fmt.Sprintf(
 			`<a href="%s"><img src="%s"%s%s></a>`,
-			entry.Srclink.Href(),
-			entry.Srclink.ImgSrc(),
+			entry.Target.Href(),
+			entry.Target.ImgSrc(),
 			entry.WidthAttributeHTML(),
 			entry.HeightAttributeHTML())
 	} else {
 		ret += fmt.Sprintf(
 			`<a class="%s" href="%s">Hypha <i>%s</i> does not exist</a>`,
-			entry.Srclink.Classes(),
-			entry.Srclink.Href(),
-			entry.Srclink.TargetHypha())
+			entry.Target.Classes(),
+			entry.Target.Href(),
+			entry.Target.TargetHypha())
 	}
 	return fmt.Sprintf(
 		`<figure class="img-gallery__entry">

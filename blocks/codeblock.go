@@ -11,16 +11,14 @@ type CodeBlock struct {
 	contents string
 }
 
-// ID returns the codeblock's id which is codeblock- and a number.
+// ID returns the code block's id which is "codeblock-" and a number.
 func (cb CodeBlock) ID(counter *IDCounter) string {
 	counter.codeblocks++
 	return fmt.Sprintf("codeblock-%d", counter.codeblocks)
 }
 
-func (cb CodeBlock) isBlock() {}
-
-// MakeCodeBlock returns a code block with the given language and contents.
-func MakeCodeBlock(language, contents string) CodeBlock {
+// NewCodeBlock returns a code block with the given language and contents.
+func NewCodeBlock(language, contents string) CodeBlock {
 	return CodeBlock{
 		language: language,
 		contents: contents,
@@ -28,7 +26,7 @@ func MakeCodeBlock(language, contents string) CodeBlock {
 }
 
 // Language returns what kind of formal language the code block is written in. It returns "plain" if the language is not specified. Returns escaped text otherwise.
-func (cb *CodeBlock) Language() string {
+func (cb CodeBlock) Language() string {
 	if cb.language == "" {
 		return "plain"
 	}
@@ -36,6 +34,6 @@ func (cb *CodeBlock) Language() string {
 }
 
 // Contents returns the code block's contents.
-func (cb *CodeBlock) Contents() string {
+func (cb CodeBlock) Contents() string {
 	return cb.contents
 }

@@ -6,20 +6,32 @@ import (
 
 // Heading is a formatted heading in the document.
 type Heading struct {
-	// Level is a number between 1 and 6.
-	Level    uint
-	Contents Formatted
-	Src      string
+	// level is a number between 1 and 6.
+	level    uint
+	contents Formatted
+	srcLine  string
 }
 
-func (h Heading) isBlock() {}
-
-// GetContents returns the heading's contents.
-func (h *Heading) GetContents() Formatted {
-	return h.Contents
+// NewHeading returns a Heading with the given data.
+func NewHeading(level uint, contents Formatted, srcLine string) Heading {
+	return Heading{
+		level:    level,
+		contents: contents,
+		srcLine:  srcLine,
+	}
 }
 
-// ID returns the heading's id which is basically a stripped version of its contents. See util.StringID.
+// Level returns the Heading's level, 1 from 6.
+func (h Heading) Level() uint {
+	return h.level
+}
+
+// Contents returns the Heading's contents.
+func (h Heading) Contents() Formatted {
+	return h.contents
+}
+
+// ID returns the Heading's id which is basically a stripped version of its contents. See util.StringID.
 func (h Heading) ID(_ *IDCounter) string {
-	return util.StringID(h.Src[h.Level+1:])
+	return util.StringID(h.srcLine[h.level+1:])
 }
