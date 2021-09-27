@@ -13,10 +13,8 @@ type HorizontalLine struct {
 	src string
 }
 
-func (h HorizontalLine) isBlock() {}
-
-// MakeHorizontalLine parses the horizontal line block on the given text line and returns it.
-func MakeHorizontalLine(line string) HorizontalLine {
+// NewHorizontalLine parses the horizontal line block on the given text line and returns it.
+func NewHorizontalLine(line string) HorizontalLine {
 	return HorizontalLine{
 		src: line,
 	}

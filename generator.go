@@ -40,7 +40,7 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 						"\n\t<%[1]s%[3]s>%[2]s</%[1]s>",
 						tc.TagName(),
 						generateHTML(tc.Contents, recursionLevel, counter.UnusableCopy()),
-						tc.ColspanAttribute(),
+						tc.ColspanAttributeHTML(),
 					)
 				}
 				ret += "</tr>\n"

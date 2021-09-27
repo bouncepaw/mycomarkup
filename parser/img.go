@@ -164,7 +164,7 @@ runewalker:
 		}
 	}
 
-	imgEntry.Srclink = links.From(target.String(), "", ctx.HyphaName())
+	imgEntry.Target = links.From(target.String(), "", ctx.HyphaName())
 	imgEntry.HyphaName = ctx.HyphaName()
 	imgEntry.Width = width.String()
 	imgEntry.Height = height.String()

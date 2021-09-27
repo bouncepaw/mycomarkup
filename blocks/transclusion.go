@@ -24,8 +24,6 @@ func (t Transclusion) ID(counter *IDCounter) string {
 	return fmt.Sprintf("transclusion-%d", counter.transclusions)
 }
 
-func (t Transclusion) isBlock() {}
-
 // MakeTransclusion parses the line and returns a transclusion block. V3
 func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
 	if ctx.CalledInShell() {
@@ -100,7 +98,7 @@ const (
 	TransclusionErrorNotExists
 )
 
-// TransclusionError is the error that occured during transclusion.
+// TransclusionError is the error that occurred during transclusion.
 type TransclusionError struct {
 	Reason TransclusionErrorReason
 }

@@ -13,9 +13,7 @@ type Formatted struct {
 	Lines [][]Span
 }
 
-func (p Formatted) isBlock() {}
-
-// ID returns an empty string because Formatted is always part of a bigger block.
+// ID returns an empty string because Formatted is always part of a bigger block that has a meaningful ID.
 func (p Formatted) ID(_ *IDCounter) string {
 	return ""
 }

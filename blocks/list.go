@@ -16,8 +16,6 @@ func (l List) ID(counter *IDCounter) string {
 	return fmt.Sprintf("list-%d", counter.lists)
 }
 
-func (l List) isBlock() {}
-
 // ListItem is an entry in a List.
 type ListItem struct {
 	Marker ListMarker
@@ -28,8 +26,6 @@ type ListItem struct {
 	// Contents are Mycomarkup blocks contained in this list item.
 	Contents []Block
 }
-
-func (l ListItem) isBlock() {}
 
 // ID returns an empty string because list items don't have ids.
 func (l ListItem) ID(_ *IDCounter) string {

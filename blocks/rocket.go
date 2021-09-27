@@ -20,10 +20,8 @@ func (lp LaunchPad) ID(counter *IDCounter) string {
 	return fmt.Sprintf("rocket-%d", counter.launchpads)
 }
 
-func (lp LaunchPad) isBlock() {}
-
-// MakeLaunchPad returns a launchpad with the given RocketLinks inside
-func MakeLaunchPad(rockets []RocketLink) LaunchPad {
+// NewLaunchPad returns a launchpad with the given RocketLinks inside
+func NewLaunchPad(rockets []RocketLink) LaunchPad {
 	return LaunchPad{Rockets: rockets}
 }
 

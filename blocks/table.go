@@ -18,8 +18,6 @@ func (t Table) ID(counter *IDCounter) string {
 	return fmt.Sprintf("table-%d", counter.tables)
 }
 
-func (t Table) isBlock() {}
-
 // TableRow is a row in a table. Thus, it can only be nested inside a table.
 type TableRow struct {
 	HyphaName string
@@ -30,8 +28,6 @@ type TableRow struct {
 func (tr TableRow) ID(_ *IDCounter) string {
 	return ""
 }
-
-func (tr TableRow) isBlock() {}
 
 // LooksLikeThead is true if the table row looks like it might as well be a thead row.
 //
@@ -66,20 +62,18 @@ func (tc TableCell) ID(_ *IDCounter) string {
 	return ""
 }
 
-func (tc TableCell) isBlock() {}
-
-// ColspanAttribute returns either an empty string (if the cell doesn't have colspan) or a string in this format:
+// ColspanAttributeHTML returns either an empty string (if the cell doesn't have colspan) or a string in this format:
 //
 //     colspan="<number here>"
-func (tc *TableCell) ColspanAttribute() string {
+func (tc TableCell) ColspanAttributeHTML() string {
 	if tc.Colspan <= 1 {
 		return ""
 	}
 	return fmt.Sprintf(` colspan="%d"`, tc.Colspan)
 }
 
-// TagName returns "th" if the cell is a header cell, "td" otherise.
-func (tc *TableCell) TagName() string {
+// TagName returns "th" if the cell is a header cell, "td" otherwise.
+func (tc TableCell) TagName() string {
 	if tc.IsHeaderCell {
 		return "th"
 	}
