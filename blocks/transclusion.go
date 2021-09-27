@@ -26,9 +26,7 @@ func (t Transclusion) ID(counter *IDCounter) string {
 
 func (t Transclusion) isBlock() {}
 
-// MakeTransclusion parses the line and returns a transclusion block.
-//
-// TODO: move to the parser module.
+// MakeTransclusion parses the line and returns a transclusion block. V3
 func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
 	if ctx.CalledInShell() {
 		return Transclusion{

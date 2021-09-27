@@ -22,17 +22,12 @@ func (lp LaunchPad) ID(counter *IDCounter) string {
 
 func (lp LaunchPad) isBlock() {}
 
-// MakeLaunchPad returns an empty launchpad. Add rocket links there using AddRocket.
-func MakeLaunchPad() LaunchPad {
-	return LaunchPad{[]RocketLink{}}
+// MakeLaunchPad returns a launchpad with the given RocketLinks inside
+func MakeLaunchPad(rockets []RocketLink) LaunchPad {
+	return LaunchPad{Rockets: rockets}
 }
 
-// AddRocket stores the rocket link in the launchpad.
-func (lp *LaunchPad) AddRocket(rl RocketLink) {
-	lp.Rockets = append(lp.Rockets, rl)
-}
-
-// ColorRockets marks links to existing hyphae as existing.
+// ColorRockets marks links to existing hyphae as existing. V3
 func (lp *LaunchPad) ColorRockets() {
 	globals.HyphaIterate(func(hyphaName string) {
 		for i, rocket := range lp.Rockets {
@@ -58,8 +53,8 @@ func (r RocketLink) ID(_ *IDCounter) string {
 	return ""
 }
 
-// MakeRocketLink parses the rocket link on the given line and returns it.
-func MakeRocketLink(line, hyphaName string) RocketLink {
+// ParseRocketLink parses the rocket link on the given line and returns it. V3
+func ParseRocketLink(line, hyphaName string) RocketLink {
 	line = strings.TrimSpace(line[2:])
 	if line == "" {
 		return RocketLink{IsEmpty: true}

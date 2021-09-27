@@ -41,7 +41,7 @@ func (cb *CodeBlock) Contents() string {
 	return strings.TrimPrefix(cb.contents, "\n")
 }
 
-// AddLine adds a line to the code block's contents. The line should be without line breaks.
+// AddLine adds a line to the code block's contents. The line should be without line breaks. V3
 func (cb *CodeBlock) AddLine(line string) {
 	cb.contents += "\n" + line
 }

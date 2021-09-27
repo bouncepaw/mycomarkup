@@ -20,7 +20,7 @@ func (p Formatted) ID(_ *IDCounter) string {
 	return ""
 }
 
-// AddLine stores an additional line of the formatted text.
+// AddLine stores an additional line of the formatted text. V3
 func (p *Formatted) AddLine(line []Span) {
 	p.Lines = append(p.Lines, line)
 }
@@ -101,7 +101,7 @@ func (it InlineText) Kind() SpanKind {
 	return SpanText
 }
 
-// TagFromState returns an appropriate tag half (<left> or </right>) depending on tagState and also mutates it.
+// TagFromState returns an appropriate tag half (<left> or </right>) depending on tagState and also mutates it. V3
 //
 // TODO: get rid of.
 func TagFromState(stt SpanKind, tagState map[SpanKind]bool) string {

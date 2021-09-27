@@ -20,7 +20,7 @@ func (q *Quote) Contents() []Block {
 	return q.contents
 }
 
-// AddBlock adds the block to the quote.
+// AddBlock adds the block to the quote. V3
 func (q *Quote) AddBlock(block Block) {
 	q.contents = append(q.contents, block)
 }

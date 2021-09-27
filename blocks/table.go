@@ -9,7 +9,7 @@ type Table struct {
 	// data
 	HyphaName string
 	Caption   string
-	Rows      []*TableRow
+	Rows      []*TableRow // V3
 }
 
 // ID returns table's id which is table- and its number.
@@ -23,7 +23,7 @@ func (t Table) isBlock() {}
 // TableRow is a row in a table. Thus, it can only be nested inside a table.
 type TableRow struct {
 	HyphaName string
-	Cells     []*TableCell
+	Cells     []*TableCell // V3
 }
 
 // ID returns and empty string because table rows do not have ids.
@@ -78,7 +78,7 @@ func (tc *TableCell) ColspanAttribute() string {
 	return fmt.Sprintf(` colspan="%d"`, tc.Colspan)
 }
 
-// TagName returns "th" if the cell is a header cell, "td" elsewise.
+// TagName returns "th" if the cell is a header cell, "td" otherise.
 func (tc *TableCell) TagName() string {
 	if tc.IsHeaderCell {
 		return "th"
