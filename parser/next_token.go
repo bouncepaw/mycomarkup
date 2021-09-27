@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"github.com/bouncepaw/mycomarkup/v2/blocks"
 	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
-	"html"
 	"strings"
 )
 
@@ -26,22 +25,22 @@ func nextLaunchPad(ctx mycocontext.Context) (blocks.LaunchPad, bool) {
 	return blocks.MakeLaunchPad(rocketLinks), done
 }
 
-func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, done bool) {
-	line, done := mycocontext.NextLine(ctx)
-	code = blocks.MakeCodeBlock(strings.TrimPrefix(line, "```"), "")
+func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, eof bool) {
+	contents := ""
+	line, eof := mycocontext.NextLine(ctx)
+	language := strings.TrimPrefix(line, "```")
 
-	for {
-		line, done = mycocontext.NextLine(ctx)
-		switch {
-		case strings.HasPrefix(line, "```"):
-			return code, done
-		default:
-			code.AddLine(html.EscapeString(line))
+	for !eof {
+		line, eof = mycocontext.NextLine(ctx)
+		if strings.HasPrefix(line, "```") {
+			break
 		}
-		if done {
-			return code, done
-		}
+		contents += "\n" + line // Maybe should not add the first time?
 	}
+	if len(contents) > 0 {
+		contents = contents[1:] // Drop the leading newline
+	}
+	return blocks.MakeCodeBlock(language, contents), eof
 }
 
 func linesForQuote(ctx mycocontext.Context) ([]string, bool) {

@@ -2,7 +2,7 @@ package blocks
 
 import (
 	"fmt"
-	"strings"
+	"html"
 )
 
 // CodeBlock represents a block of preformatted text.
@@ -27,21 +27,15 @@ func MakeCodeBlock(language, contents string) CodeBlock {
 	}
 }
 
-// Language returns what kind of formal language the code block is written in. It returns "plain" if the language is not specified.
+// Language returns what kind of formal language the code block is written in. It returns "plain" if the language is not specified. Returns escaped text otherwise.
 func (cb *CodeBlock) Language() string {
-	// TODO: some form of protection should be done?
 	if cb.language == "" {
 		return "plain"
 	}
-	return cb.language
+	return html.EscapeString(cb.language)
 }
 
 // Contents returns the code block's contents.
 func (cb *CodeBlock) Contents() string {
-	return strings.TrimPrefix(cb.contents, "\n")
-}
-
-// AddLine adds a line to the code block's contents. The line should be without line breaks. V3
-func (cb *CodeBlock) AddLine(line string) {
-	cb.contents += "\n" + line
+	return cb.contents
 }
