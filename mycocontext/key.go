@@ -13,4 +13,6 @@ const (
 	keyRecursionLevel
 	//
 	keyWebSiteURL
+	//
+	keyCalledInShell
 )

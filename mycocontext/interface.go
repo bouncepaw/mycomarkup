@@ -28,6 +28,9 @@ type Context interface {
 
 	// WebSiteURL returns the URL of the wiki, including the protocol (http or https). It is used for generating OpenGraph meta tags.
 	WebSiteURL() string
+
+	// CalledInShell is true if Mycomarkup is invoked as a stand-alone program, false if used as a library.
+	CalledInShell() bool
 }
 
 // CancelFunc is a function you call to cancel the context. Why would you, though?
@@ -40,18 +43,19 @@ func ContextFromStringInput(hyphaName, input string) (Context, CancelFunc) {
 			context.WithValue(
 				context.WithValue(
 					context.WithValue(
-						context.Background(),
-						keyHyphaName,
-						hyphaName),
-					keyInputBuffer,
-					bytes.NewBufferString(input),
+						context.WithValue(
+							context.Background(),
+							keyHyphaName,
+							hyphaName),
+						keyInputBuffer,
+						bytes.NewBufferString(input),
+					),
+					keyRecursionLevel,
+					0,
 				),
-				keyRecursionLevel,
-				0,
-			),
-			keyWebSiteURL,
-			""),
-	)
+				keyWebSiteURL,
+				""),
+			keyCalledInShell, true))
 	return &mycoContext{ctx}, CancelFunc(cancel)
 }
 

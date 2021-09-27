@@ -6,8 +6,6 @@ import (
 	"github.com/bouncepaw/mycomarkup/v2"
 	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
 	"io/ioutil"
-
-	"github.com/bouncepaw/mycomarkup/v2/globals"
 )
 
 func main() {
@@ -24,8 +22,6 @@ func main() {
 }
 
 func parseFlags() (hyphaName, filename string) {
-	globals.CalledInShell = true
-
 	flag.StringVar(&hyphaName, "hypha-name", "", "Set hypha name. Relative links depend on it.")
 	flag.StringVar(&filename, "filename", "/dev/stdin", "File with mycomarkup.")
 	flag.Parse()

@@ -31,3 +31,7 @@ func (ctx *mycoContext) WithIncrementedRecursionLevel() Context {
 func (ctx *mycoContext) WebSiteURL() string {
 	return ctx.Value(keyWebSiteURL).(string)
 }
+
+func (ctx *mycoContext) CalledInShell() bool {
+	return ctx.Value(keyCalledInShell).(bool)
+}

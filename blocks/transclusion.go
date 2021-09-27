@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v2/globals"
 	"github.com/bouncepaw/mycomarkup/v2/links"
+	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v2/util"
 	"strings"
 )
@@ -28,8 +29,8 @@ func (t Transclusion) isBlock() {}
 // MakeTransclusion parses the line and returns a transclusion block.
 //
 // TODO: move to the parser module.
-func MakeTransclusion(line, hyphaName string) Transclusion {
-	if globals.CalledInShell {
+func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
+	if ctx.CalledInShell() {
 		return Transclusion{
 			"",
 			false,
@@ -62,7 +63,7 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 			}
 		}
 		// Sorry for party rocking
-		targetHypha = links.From(targetHypha, "", hyphaName).TargetHypha()
+		targetHypha = links.From(targetHypha, "", ctx.HyphaName()).TargetHypha()
 		if !globals.HyphaExists(targetHypha) {
 			return Transclusion{
 				Target:            targetHypha,
@@ -72,14 +73,14 @@ func MakeTransclusion(line, hyphaName string) Transclusion {
 			}
 		}
 		return Transclusion{
-			Target:   links.From(targetHypha, "", hyphaName).TargetHypha(),
+			Target:   links.From(targetHypha, "", ctx.HyphaName()).TargetHypha(),
 			Blend:    strings.Contains(parts[1], "blend"),
 			Selector: selectorFrom(parts[1]),
 		}
 	}
 
 	return Transclusion{
-		Target:   links.From(strings.TrimSpace(line), "", hyphaName).TargetHypha(),
+		Target:   links.From(strings.TrimSpace(line), "", ctx.HyphaName()).TargetHypha(),
 		Blend:    false,
 		Selector: SelectorOverview,
 	}
