@@ -31,7 +31,7 @@ func (img *Img) MarkExistenceOfSrcLinks() {
 	globals.HyphaIterate(func(hn string) {
 		for _, entry := range img.Entries {
 			if hn == util.CanonicalName(entry.Srclink.TargetHypha()) {
-				entry.Srclink.MarkAsExisting()
+				entry.Srclink = entry.Srclink.CopyMarkedAsExisting()
 			}
 		}
 	})

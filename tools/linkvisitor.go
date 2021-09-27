@@ -35,9 +35,9 @@ func LinkVisitor(ctx mycocontext.Context) (
 				extractBlock(entry)
 			}
 		case blocks.ImgEntry:
-			collected = append(collected, *b.Srclink)
+			collected = append(collected, b.Srclink)
 		case blocks.Transclusion:
-			link := *links.From(b.Target, "", ctx.HyphaName())
+			link := links.From(b.Target, "", ctx.HyphaName())
 			collected = append(collected, link)
 		case blocks.LaunchPad:
 			for _, rocket := range b.Rockets {
@@ -48,7 +48,7 @@ func LinkVisitor(ctx mycocontext.Context) (
 				for _, span := range line {
 					switch s := span.(type) {
 					case blocks.InlineLink:
-						collected = append(collected, *s.Link)
+						collected = append(collected, s.Link)
 					}
 				}
 			}

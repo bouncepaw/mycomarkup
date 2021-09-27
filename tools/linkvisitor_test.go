@@ -29,24 +29,25 @@ func TestLinkVisitor(t *testing.T) {
 		hyphaName = "test"
 	)
 	ctx, _ := mycocontext.ContextFromStringInput(hyphaName, inputLinks)
+	ctx = mycocontext.WithCalledAsLibrary(ctx)
 	linkVisitor, getLinks := LinkVisitor(ctx)
 	mycomarkup.BlockTree(ctx, linkVisitor)
 	foundLinks := getLinks()
 
 	expectedLinks := []links.Link{
-		*links.From("TODO", "", hyphaName),
-		*links.From("links", "", hyphaName),
-		*links.From("links/Games", "Games", hyphaName),
-		*links.From("ideas", "", hyphaName),
-		*links.From("links/Anime", "", hyphaName),
-		*links.From("./kittens", "", hyphaName),
-		*links.From("../puppies", "", hyphaName),
-		*links.From("https://example.com/favicon.ico", "", hyphaName),
-		*links.From("home", "", hyphaName),
+		links.From("TODO", "", hyphaName),
+		links.From("links", "", hyphaName),
+		links.From("links/Games", "Games", hyphaName),
+		links.From("ideas", "", hyphaName),
+		links.From("links/Anime", "", hyphaName),
+		links.From("./kittens", "", hyphaName),
+		links.From("../puppies", "", hyphaName),
+		links.From("https://example.com/favicon.ico", "", hyphaName),
+		links.From("home", "", hyphaName),
 	}
 	// a little dirty hack for destinationKnown
-	expectedLinks[0].MarkAsExisting()
-	expectedLinks[3].MarkAsExisting()
+	expectedLinks[0] = expectedLinks[0].CopyMarkedAsExisting()
+	expectedLinks[3] = expectedLinks[3].CopyMarkedAsExisting()
 
 	if !(len(expectedLinks) == len(foundLinks)) {
 		t.Errorf("Links count mismatch: expected %d, got %d\n", len(expectedLinks), len(foundLinks))
