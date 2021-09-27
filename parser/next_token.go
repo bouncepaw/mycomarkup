@@ -124,7 +124,7 @@ func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 		return nextQuote(ctx)
 	case isPrefixedBy(ctx, "<="):
 		line, done := mycocontext.NextLine(ctx)
-		return blocks.MakeTransclusion(line, ctx.HyphaName()), done
+		return blocks.MakeTransclusion(ctx, line), done
 	case isPrefixedBy(ctx, "----"):
 		line, done := mycocontext.NextLine(ctx)
 		return blocks.MakeHorizontalLine(line), done

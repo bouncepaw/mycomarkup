@@ -3,9 +3,6 @@ package globals
 
 import "errors"
 
-// CalledInShell is true when mycomarkup is invoked as a program.
-var CalledInShell bool
-
 // TODO: get rid of these three ⤵. It requires quite an amount of work.︎
 
 // HyphaExists holds function that checks if the hypha is present. By default, it is set to a function that is always true.
