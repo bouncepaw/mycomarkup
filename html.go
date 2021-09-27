@@ -28,10 +28,10 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 						`<a href="%s" class="%s">%s</a>`,
 						s.Href(),
 						s.Classes(),
-						s.Display(),
-					) // TODO: test for XSS
+						html.EscapeString(s.Display()),
+					)
 				case blocks.InlineText:
-					res += s.Contents // TODO: test for XSS
+					res += html.EscapeString(s.Contents)
 				default:
 					panic("unknown span")
 				}
