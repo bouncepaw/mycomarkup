@@ -41,41 +41,11 @@ func (tr *TableRow) LooksLikeThead() bool {
 		datumAmount  = 0
 	)
 	for _, tc := range tr.Cells {
-		if tc.IsHeaderCell {
+		if tc.IsHeaderCell() {
 			headerAmount++
 		} else {
 			datumAmount++
 		}
 	}
 	return headerAmount >= 2 && datumAmount <= 1
-}
-
-// TableCell is a cell in TableRow.
-type TableCell struct {
-	IsHeaderCell bool
-	Contents     []Block
-	Colspan      uint
-}
-
-// ID returns and empty string because table cells do not have ids.
-func (tc TableCell) ID(_ *IDCounter) string {
-	return ""
-}
-
-// ColspanAttributeHTML returns either an empty string (if the cell doesn't have colspan) or a string in this format:
-//
-//     colspan="<number here>"
-func (tc TableCell) ColspanAttributeHTML() string {
-	if tc.Colspan <= 1 {
-		return ""
-	}
-	return fmt.Sprintf(` colspan="%d"`, tc.Colspan)
-}
-
-// TagName returns "th" if the cell is a header cell, "td" otherwise.
-func (tc TableCell) TagName() string {
-	if tc.IsHeaderCell {
-		return "th"
-	}
-	return "td"
 }
