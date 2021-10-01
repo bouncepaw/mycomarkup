@@ -107,7 +107,7 @@ func matchesEmptyLine(ctx mycocontext.Context) bool {
 	return true
 }
 
-func nextToken(ctx mycocontext.Context) (blocks.Block, bool) {
+func NextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 	switch {
 	case matchesEmptyLine(ctx):
 		_, done := mycocontext.NextLine(ctx)
