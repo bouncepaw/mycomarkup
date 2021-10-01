@@ -44,11 +44,17 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 			switch block := block.(type) {
 			case blocks.Paragraph:
 				foundSomethingTextual, foundProperParagraph = true, true
-				description = mycomarkup.BlockToHTML(block, &blocks.IDCounter{ShouldUseResults: false})
+				description = mycomarkup.BlockToHTML(
+					block,
+					blocks.NewIDCounter().UnusableCopy(),
+				)
 			case blocks.Heading, blocks.CodeBlock: // These two seem alright. Primitive enough.
 				if !foundSomethingTextual {
 					foundSomethingTextual = true
-					description = mycomarkup.BlockToHTML(block, &blocks.IDCounter{ShouldUseResults: false})
+					description = mycomarkup.BlockToHTML(
+						block,
+						blocks.NewIDCounter().UnusableCopy(),
+					)
 				}
 			}
 		}, func(block blocks.Block) {

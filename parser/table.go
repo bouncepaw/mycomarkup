@@ -77,7 +77,7 @@ runeWalker:
 			parseSubdocumentForEachBlock(ctx, cellText, func(block blocks.Block) {
 				contents = append(contents, block)
 			})
-			cell := blocks.NewTableCell(currCellMarker == '!', currColspan, contents) // V3
+			cell := blocks.NewTableCell(currCellMarker == '!', currColspan, contents)
 			cells = append(cells, cell)
 			if tableDone {
 				break runeWalker

@@ -74,7 +74,7 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 
 func idAttribute(b blocks.Block, counter *blocks.IDCounter) string {
 	switch id := b.ID(counter); {
-	case !counter.ShouldUseResults, id == "":
+	case !counter.ShouldUseResults(), id == "":
 		return ""
 	default:
 		return fmt.Sprintf(` id="%s"`, id)
