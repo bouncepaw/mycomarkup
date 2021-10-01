@@ -11,14 +11,14 @@ import (
 
 func nextTable(ctx mycocontext.Context) (t blocks.Table, eof bool) {
 	line, eof := mycocontext.NextLine(ctx)
-	t, tableDone := tableFromFirstLine(line, ctx.HyphaName())
+	t, tableDone := tableFromFirstLine(line)
 	if tableDone || eof {
 		return t, eof
 	}
 	for {
-		row, tableDone := nextTableRow(ctx)
-		if row != nil {
-			t.Rows = append(t.Rows, row)
+		row, rowFound, tableDone := nextTableRow(ctx)
+		if rowFound {
+			t = t.WithNewRow(row)
 		}
 		if tableDone {
 			break
@@ -28,8 +28,7 @@ func nextTable(ctx mycocontext.Context) (t blocks.Table, eof bool) {
 	return t, eof
 }
 
-// row might be nil
-func nextTableRow(ctx mycocontext.Context) (row *blocks.TableRow, tableDone bool) {
+func nextTableRow(ctx mycocontext.Context) (row blocks.TableRow, foundRow, tableDone bool) {
 	var (
 		cleaningLeadingWhitespace = true
 		countingColspan           = false
@@ -41,7 +40,7 @@ func nextTableRow(ctx mycocontext.Context) (row *blocks.TableRow, tableDone bool
 		r        rune
 		eof      bool
 
-		cells []*blocks.TableCell
+		cells []blocks.TableCell
 	)
 runeWalker:
 	for {
@@ -78,8 +77,7 @@ runeWalker:
 			parseSubdocumentForEachBlock(ctx, cellText, func(block blocks.Block) {
 				contents = append(contents, block)
 			})
-			cellv := blocks.NewTableCell(currCellMarker == '!', currColspan, contents) // V3
-			cell := &cellv
+			cell := blocks.NewTableCell(currCellMarker == '!', currColspan, contents) // V3
 			cells = append(cells, cell)
 			if tableDone {
 				break runeWalker
@@ -96,13 +94,10 @@ runeWalker:
 	}
 
 	if len(cells) == 0 {
-		return nil, tableDone
+		return blocks.TableRow{}, false, tableDone
 	}
 
-	return &blocks.TableRow{
-		HyphaName: ctx.HyphaName(),
-		Cells:     cells,
-	}, tableDone
+	return blocks.NewTableRow(cells), true, tableDone
 }
 
 func nextTableCellContents(
@@ -209,7 +204,7 @@ func matchesTable(ctx mycocontext.Context) bool {
 	return tableRe.Match(ctx.Input().Bytes())
 }
 
-func tableFromFirstLine(line, hyphaName string) (t blocks.Table, done bool) {
+func tableFromFirstLine(line string) (t blocks.Table, done bool) { // V3
 	var (
 		caption       = line[strings.IndexRune(line, '{')+1:]
 		closeBracePos = strings.IndexRune(caption, '}')
@@ -218,9 +213,5 @@ func tableFromFirstLine(line, hyphaName string) (t blocks.Table, done bool) {
 	if isClosed {
 		caption = caption[:closeBracePos]
 	}
-	return blocks.Table{
-		HyphaName: hyphaName,
-		Caption:   caption,
-		Rows:      make([]*blocks.TableRow, 0),
-	}, isClosed
+	return blocks.NewTable(caption, make([]blocks.TableRow, 0)), isClosed
 }
