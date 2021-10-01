@@ -33,13 +33,13 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 			html += fmt.Sprintf(listToTemplate(v), idAttribute(v, counter), ret)
 		case blocks.Table:
 			var ret string
-			if v.Caption != "" {
-				ret = fmt.Sprintf("<caption>%s</caption>", v.Caption)
+			if v.Caption() != "" {
+				ret = fmt.Sprintf("<caption>%s</caption>", v.Caption())
 			}
 			ret += "<tbody>\n"
-			for _, tr := range v.Rows {
+			for _, tr := range v.Rows() {
 				ret += "<tr>"
-				for _, tc := range tr.Cells {
+				for _, tc := range tr.Cells() {
 					ret += fmt.Sprintf(
 						"\n\t<%[1]s%[3]s>%[2]s</%[1]s>",
 						util.TernaryConditionString(tc.IsHeaderCell(), "th", "td"),
