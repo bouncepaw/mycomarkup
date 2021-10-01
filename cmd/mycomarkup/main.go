@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	hyphaName, filename := parseFlags()
-	contents, err := ioutil.ReadFile(filename)
+	hyphaName, fileName := parseFlags()
+	contents, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		_ = fmt.Errorf("%s\n", err)
 	}
@@ -21,9 +21,9 @@ func main() {
 	fmt.Println(mycomarkup.BlocksToHTML(ctx, ast))
 }
 
-func parseFlags() (hyphaName, filename string) {
+func parseFlags() (hyphaName, fileName string) {
 	flag.StringVar(&hyphaName, "hypha-name", "", "Set hypha name. Relative links depend on it.")
-	flag.StringVar(&filename, "filename", "/dev/stdin", "File with mycomarkup.")
+	flag.StringVar(&fileName, "file-name", "/dev/stdin", "File with mycomarkup.")
 	flag.Parse()
 
 	return
