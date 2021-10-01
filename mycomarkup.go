@@ -40,9 +40,9 @@ func BlockTree(ctx mycocontext.Context, visitors ...func(block blocks.Block)) []
 }
 
 // BlocksToHTML turns the blocks into their HTML representation.
-func BlocksToHTML(_ mycocontext.Context, ast []blocks.Block) string {
+func BlocksToHTML(ctx mycocontext.Context, ast []blocks.Block) string {
 	counter := blocks.NewIDCounter()
-	return generateHTML(ast, 0, counter)
+	return generateHTML(ctx, ast, 0, counter)
 }
 
 // transclusionVisitor returns a visitor to pass to BlockTree and a function to get the results.
