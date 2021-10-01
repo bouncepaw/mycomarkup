@@ -4,9 +4,9 @@ package mycomarkup
 import (
 	"sync"
 
-	"github.com/bouncepaw/mycomarkup/v2/blocks"
-	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v2/parser"
+	"github.com/bouncepaw/mycomarkup/v3/blocks"
+	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v3/parser"
 )
 
 // BlockTree returns a slice of blocks parsed from the Mycomarkup document contained in ctx.

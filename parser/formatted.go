@@ -5,11 +5,11 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/bouncepaw/mycomarkup/v2/blocks"
-	"github.com/bouncepaw/mycomarkup/v2/globals"
-	"github.com/bouncepaw/mycomarkup/v2/links"
-	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v2/util"
+	"github.com/bouncepaw/mycomarkup/v3/blocks"
+	"github.com/bouncepaw/mycomarkup/v3/globals"
+	"github.com/bouncepaw/mycomarkup/v3/links"
+	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v3/util"
 )
 
 func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {

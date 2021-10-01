@@ -2,10 +2,10 @@ package mycomarkup
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v2/blocks"
-	"github.com/bouncepaw/mycomarkup/v2/globals"
-	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v2/util"
+	"github.com/bouncepaw/mycomarkup/v3/blocks"
+	"github.com/bouncepaw/mycomarkup/v3/globals"
+	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v3/util"
 )
 
 const maxRecursionLevel = 3

@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"testing"
 )
 

@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v2"
-	"github.com/bouncepaw/mycomarkup/v2/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v3"
+	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"io/ioutil"
 )
 

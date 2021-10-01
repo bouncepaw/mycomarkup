@@ -2,9 +2,9 @@ package mycomarkup
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v2/blocks"
-	"github.com/bouncepaw/mycomarkup/v2/parser"
-	"github.com/bouncepaw/mycomarkup/v2/util"
+	"github.com/bouncepaw/mycomarkup/v3/blocks"
+	"github.com/bouncepaw/mycomarkup/v3/parser"
+	"github.com/bouncepaw/mycomarkup/v3/util"
 	"html"
 )
 

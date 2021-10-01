@@ -2,8 +2,8 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v2/globals"
-	"github.com/bouncepaw/mycomarkup/v2/util"
+	"github.com/bouncepaw/mycomarkup/v3/globals"
+	"github.com/bouncepaw/mycomarkup/v3/util"
 )
 
 // Img is an image gallery, consisting of zero or more images.
