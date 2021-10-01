@@ -87,6 +87,7 @@ runewalker:
 	for {
 		r, eof = mycocontext.NextRune(ctx)
 		if eof {
+			imgDone = true // Just to be sure
 			break
 		}
 
