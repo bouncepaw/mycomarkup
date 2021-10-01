@@ -10,7 +10,7 @@ import (
 
 const maxRecursionLevel = 3
 
-func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCounter) (html string) {
+func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel int, counter *blocks.IDCounter) (html string) {
 	if recursionLevel > maxRecursionLevel {
 		return "Transclusion depth limit"
 	}
@@ -20,14 +20,14 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 			html += fmt.Sprintf(
 				"\n<blockquote%s>%s\n</blockquote>",
 				idAttribute(v, counter.UnusableCopy()),
-				generateHTML(v.Contents(), recursionLevel, counter.UnusableCopy()),
+				generateHTML(ctx, v.Contents(), recursionLevel, counter.UnusableCopy()),
 			)
 		case blocks.List:
 			var ret string
 			for _, item := range v.Items {
 				ret += fmt.Sprintf(
 					markerToTemplate(item.Marker),
-					generateHTML(item.Contents, recursionLevel, counter.UnusableCopy()),
+					generateHTML(ctx, item.Contents, recursionLevel, counter.UnusableCopy()),
 				)
 			}
 			html += fmt.Sprintf(listToTemplate(v), idAttribute(v, counter), ret)
@@ -43,7 +43,7 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 					ret += fmt.Sprintf(
 						"\n\t<%[1]s%[3]s>%[2]s</%[1]s>",
 						util.TernaryConditionString(tc.IsHeaderCell(), "th", "td"),
-						generateHTML(tc.Contents(), recursionLevel, counter.UnusableCopy()),
+						generateHTML(ctx, tc.Contents(), recursionLevel, counter.UnusableCopy()),
 						util.TernaryConditionString(
 							tc.Colspan() <= 1,
 							"",
@@ -58,7 +58,7 @@ func generateHTML(ast []blocks.Block, recursionLevel int, counter *blocks.IDCoun
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel, counter.UnusableCopy())
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.CodeBlock:
-			html += BlockToHTML(v, counter)
+			html += BlockToHTML(ctx, v, counter)
 		default:
 			html += "<v class='error'>Unknown element.</v>"
 		}
@@ -109,7 +109,7 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 	xclVisistor, result := transclusionVisitor(xcl)
 	ctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText) // FIXME: it will bite us one day
 	_ = BlockTree(ctx, xclVisistor)
-	xclText := generateHTML(result(), recursionLevel+1, counter.UnusableCopy())
+	xclText := generateHTML(ctx, result(), recursionLevel+1, counter.UnusableCopy())
 
 	if xcl.Selector == blocks.SelectorAttachment || xcl.Selector == blocks.SelectorFull || xcl.Selector == blocks.SelectorOverview {
 		xclText = binaryHtml + xclText

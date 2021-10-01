@@ -3,13 +3,15 @@ package mycomarkup
 import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
+	"github.com/bouncepaw/mycomarkup/v3/genhtml"
+	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/parser"
 	"github.com/bouncepaw/mycomarkup/v3/util"
 	"html"
 )
 
 // BlockToHTML turns the given block into HTML. It supports only a subset of Mycomarkup.
-func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
+func BlockToHTML(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDCounter) string {
 	switch b := block.(type) {
 	case blocks.Formatted:
 		var (
@@ -48,23 +50,23 @@ func BlockToHTML(block blocks.Block, counter *blocks.IDCounter) string {
 		return fmt.Sprintf(
 			"\n<p%s>%s</p>",
 			idAttribute(b, counter),
-			BlockToHTML(b.Formatted, counter),
+			BlockToHTML(ctx, b.Formatted, counter),
 		)
 	case blocks.HorizontalLine:
-		return fmt.Sprintf(`<hr id="%s"/>`, idAttribute(b, counter))
+		return genhtml.BlockToTag(ctx, b, counter).String()
 	case blocks.Img:
-		return imgToHTML(b, counter)
+		return imgToHTML(ctx, b, counter)
 	case blocks.ImgEntry:
-		return imgEntryToHTML(b, counter)
+		return imgEntryToHTML(ctx, b, counter)
 	case blocks.LaunchPad:
-		return launchpadToHTML(b, counter)
+		return launchpadToHTML(ctx, b, counter)
 	case blocks.RocketLink:
 		return fmt.Sprintf(`
 	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), html.EscapeString(b.Display()))
 	case blocks.Heading:
 		return fmt.Sprintf(`
 <h%[1]d%[4]s>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
-`, b.Level(), BlockToHTML(b.Contents(), counter), b.ID(counter), idAttribute(b, counter))
+`, b.Level(), BlockToHTML(ctx, b.Contents(), counter), b.ID(counter), idAttribute(b, counter))
 	case blocks.CodeBlock:
 		return fmt.Sprintf("\n<pre class='codeblock'%s><code class='language-%s'>%s</code></pre>", idAttribute(b, counter), b.Language(), b.Contents())
 	}
@@ -81,17 +83,17 @@ func idAttribute(b blocks.Block, counter *blocks.IDCounter) string {
 	}
 }
 
-func launchpadToHTML(lp blocks.LaunchPad, counter *blocks.IDCounter) string {
+func launchpadToHTML(ctx mycocontext.Context, lp blocks.LaunchPad, counter *blocks.IDCounter) string {
 	lp.ColorRockets()
 	var ret string
 	for _, rocket := range lp.Rockets {
-		ret += BlockToHTML(rocket, counter)
+		ret += BlockToHTML(ctx, rocket, counter)
 	}
 	return fmt.Sprintf(`<ul class="launchpad"%s>%s
 </ul>`, idAttribute(lp, counter), ret)
 }
 
-func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
+func imgEntryToHTML(ctx mycocontext.Context, entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 	var ret string
 	if entry.Target.IsBlueLink() {
 		ret += fmt.Sprintf(
@@ -123,15 +125,15 @@ func imgEntryToHTML(entry blocks.ImgEntry, counter *blocks.IDCounter) string {
 </figure>
 `,
 		ret,
-		BlockToHTML(parser.MakeFormatted(entry.Description, entry.HyphaName), counter),
+		BlockToHTML(ctx, parser.MakeFormatted(entry.Description, entry.HyphaName), counter),
 	)
 }
 
-func imgToHTML(img blocks.Img, counter *blocks.IDCounter) string {
+func imgToHTML(ctx mycocontext.Context, img blocks.Img, counter *blocks.IDCounter) string {
 	img.MarkExistenceOfSrcLinks()
 	var ret string
 	for _, entry := range img.Entries {
-		ret += BlockToHTML(entry, counter)
+		ret += BlockToHTML(ctx, entry, counter)
 	}
 	return fmt.Sprintf(`<section class="img-gallery %s"%s>
 %s</section>`,
