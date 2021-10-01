@@ -2,11 +2,11 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v2/globals"
-	"github.com/bouncepaw/mycomarkup/v2/util"
+	"github.com/bouncepaw/mycomarkup/v3/globals"
+	"github.com/bouncepaw/mycomarkup/v3/util"
 	"strings"
 
-	"github.com/bouncepaw/mycomarkup/v2/links"
+	"github.com/bouncepaw/mycomarkup/v3/links"
 )
 
 // LaunchPad is a container for RocketLinks.
