@@ -7,23 +7,36 @@ type Block interface {
 	ID(counter *IDCounter) string
 }
 
-// IDCounter is a struct with counters of how many times some blocks have appeared. Block's ID depends on these counters.
+// IDCounter is a struct with counters of how many times some blocks have appeared. Block's ID depends on these counters. IDCounter is not a Block.
 type IDCounter struct {
-	// In some cases using the results of counting is not needed because the IDs are not needed themselves. This variable is true when this is the case.
-	ShouldUseResults bool
-	codeblocks       uint
-	hrs              uint
-	imgs             uint
-	launchpads       uint
-	lists            uint
-	paragraphs       uint
-	quotes           uint
-	tables           uint
-	transclusions    uint
+	// In some cases using the results of counting is not needed because the IDs are not needed themselves. This variable is false when this is the case. Do not modify it directly!
+	shouldUseResults bool
+	// Increment the fields below. You should not decrement them or set them to a specific value.
+	codeblocks    uint
+	hrs           uint
+	imgs          uint
+	launchpads    uint
+	lists         uint
+	paragraphs    uint
+	quotes        uint
+	tables        uint
+	transclusions uint
 }
 
-// UnusableCopy returns a copy of the counter with ShouldUseResults set to false.
+// NewIDCounter returns a pointer to an IDCounter. ShouldUseResults is true for this counter.
+func NewIDCounter() *IDCounter {
+	return &IDCounter{
+		shouldUseResults: true,
+	}
+}
+
+// ShouldUseResults is true if you should use generated IDs.
+func (c IDCounter) ShouldUseResults() bool {
+	return c.shouldUseResults
+}
+
+// UnusableCopy returns a pointer to a copy of the counter with shouldUseResults set to false.
 func (c IDCounter) UnusableCopy() *IDCounter {
-	c.ShouldUseResults = false
+	c.shouldUseResults = false
 	return &c
 }
