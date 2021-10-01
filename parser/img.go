@@ -128,6 +128,12 @@ runewalker:
 			}
 		case imgEntryCollectingDimensionWidth:
 			switch r {
+			case '}':
+				entryFound, imgDone = true, true
+				break runewalker
+			case '\n':
+				entryFound, imgDone = true, false
+				break runewalker
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				_, _ = width.WriteRune(r)
 			case '*':
@@ -139,6 +145,12 @@ runewalker:
 			}
 		case imgEntryCollectingDimensionHeight:
 			switch r {
+			case '}':
+				entryFound, imgDone = true, true
+				break runewalker
+			case '\n':
+				entryFound, imgDone = true, false
+				break runewalker
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				_, _ = height.WriteRune(r)
 			case '{':
