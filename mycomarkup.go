@@ -47,7 +47,7 @@ func BlocksToHTML(_ mycocontext.Context, ast []blocks.Block) string {
 	return generateHTML(ast, 0, counter)
 }
 
-// transclusionVisitor returns a visitor to pass to BlockTree and a function
+// transclusionVisitor returns a visitor to pass to BlockTree and a function to get the results.
 func transclusionVisitor(xcl blocks.Transclusion) (
 	visitor func(block blocks.Block),
 	result func() []blocks.Block,

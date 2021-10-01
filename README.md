@@ -11,7 +11,7 @@ Also see [our kanban board](https://github.com/bouncepaw/mycomarkup/projects/1) 
 ## Running
 ```
 Usage of mycomarkup:
-  -filename string
+  -file-name string
         File with mycomarkup. (default "/dev/stdin")
   -hypha-name string
         Set hypha name. Relative links depend on it.
