@@ -2,8 +2,6 @@
 package mycomarkup
 
 import (
-	"sync"
-
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/parser"
@@ -16,28 +14,29 @@ import (
 // Some pre-implemented visitors are in the tools package.
 func BlockTree(ctx mycocontext.Context, visitors ...func(block blocks.Block)) []blocks.Block {
 	var (
-		tokens = make(chan blocks.Block)
-		ast    = []blocks.Block{}
-		wg     sync.WaitGroup
+		tokens = make([]blocks.Block, 0)
+		token  blocks.Block
+		done   bool
 	)
 
-	wg.Add(1)
-	go func() {
-		parser.Parse(ctx, tokens)
-		wg.Done()
-	}()
+	for !done {
+		select {
+		case <-ctx.Done():
+			return tokens
+		default:
+			token, done = parser.NextToken(ctx)
+			if token != nil {
+				tokens = append(tokens, token)
 
-	for token := range tokens {
-		ast = append(ast, token)
-
-		for _, visitor := range visitors {
-			visitor := visitor
-			visitor(token)
+				for _, visitor := range visitors {
+					visitor := visitor
+					visitor(token)
+				}
+			}
 		}
 	}
 
-	wg.Wait()
-	return ast
+	return tokens
 }
 
 // BlocksToHTML turns the blocks into their HTML representation.
