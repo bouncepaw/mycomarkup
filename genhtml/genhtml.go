@@ -3,10 +3,12 @@ package genhtml
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v3/blocks"
-	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"html"
 	"sort"
 	"strings"
+
+	"github.com/bouncepaw/mycomarkup/v3/blocks"
+	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 )
 
 // This package shall not depend on anything other than blocks, links, globals, mycocontext, util.
@@ -31,6 +33,7 @@ type Tag struct {
 	Name       string
 	Kind       TagKind
 	Attributes map[string]string
+	Contents   string
 	// nil if infertile
 	Children []Tag
 }
@@ -43,8 +46,9 @@ func (t Tag) String() (res string) {
 	case ClosedTag:
 		res += fmt.Sprintf("<%s%s>\n", t.Name, attrs(t.Attributes))
 		var tmp string
+		tmp += t.Contents
 		for i, child := range t.Children {
-			if i > 0 {
+			if i > 0 || (i == 0 && t.Contents != "") {
 				tmp += "\n"
 			}
 			tmp += child.String()
@@ -53,8 +57,9 @@ func (t Tag) String() (res string) {
 		res += fmt.Sprintf("</%s>", t.Name)
 		return res
 	case WrapperTag:
+		res += t.Contents
 		for i, child := range t.Children {
-			if i > 0 {
+			if i > 0 || (i == 0 && t.Contents != "") {
 				res += "\n"
 			}
 			res += child.String()
@@ -85,12 +90,52 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 	if counter.ShouldUseResults() {
 		attrs["id"] = block.ID(counter)
 	}
-	switch block.(type) {
+	switch block := block.(type) {
+	case blocks.Formatted:
+		var (
+			contents string
+			tagState = blocks.CleanStyleState()
+		)
+		for i, line := range block.Lines {
+			if i > 0 {
+				contents += `<br>`
+			}
+			for _, span := range line {
+				switch s := span.(type) {
+				case blocks.SpanTableEntry:
+					contents += blocks.TagFromState(s.Kind(), tagState)
+				case blocks.InlineLink:
+					contents += fmt.Sprintf(
+						`<a href="%s" class="%s">%s</a>`,
+						s.Href(),
+						s.Classes(),
+						html.EscapeString(s.Display()),
+					)
+				case blocks.InlineText:
+					contents += html.EscapeString(s.Contents)
+				default:
+					panic("unknown span")
+				}
+			}
+			for stt, open := range tagState { // Close the unclosed
+				if open {
+					contents += blocks.TagFromState(stt, tagState)
+				}
+			}
+		}
+		return Tag{
+			Name:       "",
+			Kind:       WrapperTag,
+			Attributes: attrs,
+			Contents:   contents,
+			Children:   nil,
+		}
 	case blocks.HorizontalLine:
 		return Tag{
 			Name:       "hr",
 			Kind:       UnclosedTag,
 			Attributes: attrs,
+			Contents:   "",
 			Children:   nil,
 		}
 	default:
@@ -98,6 +143,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			Name:       "error",
 			Kind:       UnclosedTag,
 			Attributes: nil,
+			Contents:   "",
 			Children:   nil,
 		}
 	}
