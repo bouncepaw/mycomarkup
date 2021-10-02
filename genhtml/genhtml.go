@@ -3,6 +3,7 @@ package genhtml
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/v3/util"
 	"html"
 
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
@@ -11,7 +12,7 @@ import (
 	"github.com/bouncepaw/mycomarkup/v3/parser"
 )
 
-// This package shall not depend on anything other than blocks, links, globals, mycocontext, util, tag.
+// This package shall not depend on anything other than blocks, links, mycocontext, util, tag.
 
 // BlockToTag turns the given Block into a Tag depending on the Context and IDCounter.
 func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDCounter) tag.Tag {
@@ -103,6 +104,15 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 				map[string]string{"class": "language-" + block.Language()},
 				block.Contents(),
 			))
+
+	case blocks.Img:
+		block.MarkExistenceOfSrcLinks()
+		var children []tag.Tag
+		for _, entry := range block.Entries {
+			children = append(children, BlockToTag(ctx, entry, counter))
+		}
+		attrs["class"] = "img-gallery " + util.TernaryConditionString(block.HasOneImage(), "img-gallery_one-image", "img-gallery_many-images")
+		return tag.NewClosed("section", attrs, "", children...)
 
 	case blocks.ImgEntry:
 		var children []tag.Tag

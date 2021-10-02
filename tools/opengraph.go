@@ -2,10 +2,10 @@ package tools
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/v3/genhtml"
 	"regexp"
 	"strings"
 
-	"github.com/bouncepaw/mycomarkup/v3"
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/util"
@@ -44,17 +44,11 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 			switch block := block.(type) {
 			case blocks.Paragraph:
 				foundSomethingTextual, foundProperParagraph = true, true
-				description = mycomarkup.BlockToHTML(
-					block,
-					blocks.NewIDCounter().UnusableCopy(),
-				)
+				description = genhtml.BlockToTag(ctx, block, blocks.NewIDCounter().UnusableCopy()).String()
 			case blocks.Heading, blocks.CodeBlock: // These two seem alright. Primitive enough.
 				if !foundSomethingTextual {
 					foundSomethingTextual = true
-					description = mycomarkup.BlockToHTML(
-						block,
-						blocks.NewIDCounter().UnusableCopy(),
-					)
+					description = genhtml.BlockToTag(ctx, block, blocks.NewIDCounter().UnusableCopy()).String()
 				}
 			}
 		}, func(block blocks.Block) {

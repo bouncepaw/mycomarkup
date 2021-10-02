@@ -3,6 +3,7 @@ package mycomarkup
 import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
+	"github.com/bouncepaw/mycomarkup/v3/genhtml"
 	"github.com/bouncepaw/mycomarkup/v3/globals"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/util"
@@ -58,7 +59,7 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel in
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel, counter.UnusableCopy())
 		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.CodeBlock:
-			html += BlockToHTML(ctx, v, counter)
+			html += genhtml.BlockToTag(ctx, v, counter).String()
 		default:
 			html += "<v class='error'>Unknown element.</v>"
 		}
