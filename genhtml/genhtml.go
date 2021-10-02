@@ -9,7 +9,7 @@ import (
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 )
 
-// This package shall not depend on anything other than blocks, links, globals, mycocontext, util.
+// This package shall not depend on anything other than blocks, links, globals, mycocontext, util, tag.
 
 // BlockToTag turns the given Block into a Tag depending on the Context and IDCounter.
 func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDCounter) tag.Tag {
@@ -37,7 +37,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					contents += tag.New("a", tag.Closed, map[string]string{
 						"href":  s.Href(),
 						"class": s.Classes(),
-					}, s.Display(), nil).String()
+					}, s.Display()).String()
 
 				case blocks.InlineText:
 					contents += html.EscapeString(s.Contents)
@@ -53,12 +53,35 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 				}
 			}
 		}
-		return tag.New("", tag.Wrapper, attrs, contents, nil)
+		return tag.New("", tag.Wrapper, attrs, contents)
 	case blocks.Paragraph:
-		return tag.New("p", tag.Closed, attrs, "", []tag.Tag{BlockToTag(ctx, block.Formatted, counter)})
+		return tag.New("p", tag.Closed, attrs, "", BlockToTag(ctx, block.Formatted, counter))
+	case blocks.RocketLink:
+		return tag.New(
+			"li", tag.Closed,
+			map[string]string{
+				"class": "launchpad__entry",
+			}, "",
+			tag.New(
+				"a", tag.Closed,
+				map[string]string{
+					"class": "rocketlink " + block.Classes(),
+					"href":  block.Href(),
+				},
+				html.EscapeString(block.Display()),
+			),
+		)
+	case blocks.LaunchPad:
+		block.ColorRockets()
+		var rockets []tag.Tag
+		for _, rocket := range block.Rockets {
+			rockets = append(rockets, BlockToTag(ctx, rocket, counter))
+		}
+		attrs["class"] = "launchpad"
+		return tag.New("ul", tag.Closed, attrs, "", rockets...)
 	case blocks.HorizontalLine:
-		return tag.New("hr", tag.Unclosed, attrs, "", nil)
+		return tag.New("hr", tag.Unclosed, attrs, "")
 	default:
-		return tag.New("error", tag.Unclosed, nil, "", nil)
+		return tag.New("error", tag.Unclosed, nil, "")
 	}
 }
