@@ -13,47 +13,14 @@ import (
 // BlockToHTML turns the given block into HTML. It supports only a subset of Mycomarkup.
 func BlockToHTML(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDCounter) string {
 	switch b := block.(type) {
-	case blocks.Formatted:
-		var (
-			res      string
-			tagState = blocks.CleanStyleState()
-		)
-		for i, line := range b.Lines {
-			if i > 0 {
-				res += `<br>`
-			}
-			for _, span := range line {
-				switch s := span.(type) {
-				case blocks.SpanTableEntry:
-					res += blocks.TagFromState(s.Kind(), tagState)
-				case blocks.InlineLink:
-					res += fmt.Sprintf(
-						`<a href="%s" class="%s">%s</a>`,
-						s.Href(),
-						s.Classes(),
-						html.EscapeString(s.Display()),
-					)
-				case blocks.InlineText:
-					res += html.EscapeString(s.Contents)
-				default:
-					panic("unknown span")
-				}
-			}
-			for stt, open := range tagState { // Close the unclosed
-				if open {
-					res += blocks.TagFromState(stt, tagState)
-				}
-			}
-		}
-		return res
+	case blocks.Formatted, blocks.HorizontalLine:
+		return genhtml.BlockToTag(ctx, b, counter).String()
 	case blocks.Paragraph:
 		return fmt.Sprintf(
 			"\n<p%s>%s</p>",
 			idAttribute(b, counter),
 			BlockToHTML(ctx, b.Formatted, counter),
 		)
-	case blocks.HorizontalLine:
-		return genhtml.BlockToTag(ctx, b, counter).String()
 	case blocks.Img:
 		return imgToHTML(ctx, b, counter)
 	case blocks.ImgEntry:
