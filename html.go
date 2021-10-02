@@ -13,13 +13,11 @@ import (
 // BlockToHTML turns the given block into HTML. It supports only a subset of Mycomarkup.
 func BlockToHTML(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDCounter) string {
 	switch b := block.(type) {
-	case blocks.Formatted, blocks.HorizontalLine, blocks.Paragraph, blocks.RocketLink, blocks.LaunchPad, blocks.CodeBlock, blocks.Heading:
+	case blocks.Formatted, blocks.HorizontalLine, blocks.Paragraph, blocks.RocketLink, blocks.LaunchPad, blocks.CodeBlock, blocks.Heading, blocks.ImgEntry:
 		return genhtml.BlockToTag(ctx, b, counter).String()
 
 	case blocks.Img:
 		return imgToHTML(ctx, b, counter)
-	case blocks.ImgEntry:
-		return imgEntryToHTML(ctx, b, counter)
 
 	}
 

@@ -108,7 +108,10 @@ func attrs(m map[string]string) (res string) {
 }
 
 func eachLineIndented(s string) (res string) {
-	for _, line := range strings.Split(s, "\n") {
+	for i, line := range strings.Split(s, "\n") {
+		if i > 0 {
+			res += "\n"
+		}
 		res += "\t" + line
 	}
 	return res

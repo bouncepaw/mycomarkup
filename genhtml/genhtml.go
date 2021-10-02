@@ -8,6 +8,7 @@ import (
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
 	"github.com/bouncepaw/mycomarkup/v3/genhtml/tag"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v3/parser"
 )
 
 // This package shall not depend on anything other than blocks, links, globals, mycocontext, util, tag.
@@ -18,6 +19,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 	if counter.ShouldUseResults() {
 		attrs["id"] = block.ID(counter)
 	}
+
 	switch block := block.(type) {
 	case blocks.Formatted:
 		var (
@@ -55,8 +57,10 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			}
 		}
 		return tag.NewWrapper(contents)
+
 	case blocks.Paragraph:
 		return tag.NewClosed("p", attrs, "", BlockToTag(ctx, block.Formatted, counter))
+
 	case blocks.Heading:
 		return tag.NewClosed(
 			fmt.Sprintf("h%d", block.Level()),
@@ -65,6 +69,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			BlockToTag(ctx, block.Contents(), counter),
 			tag.NewClosed("a", map[string]string{"href": "#" + attrs["id"], "class": "heading__link"}, ""),
 		)
+
 	case blocks.RocketLink:
 		return tag.NewClosed(
 			"li",
@@ -80,6 +85,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 				html.EscapeString(block.Display()),
 			),
 		)
+
 	case blocks.LaunchPad:
 		block.ColorRockets()
 		var rockets []tag.Tag
@@ -88,6 +94,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 		}
 		attrs["class"] = "launchpad"
 		return tag.NewClosed("ul", attrs, "", rockets...)
+
 	case blocks.CodeBlock:
 		attrs["class"] = "codeblock"
 		return tag.NewClosed("pre", attrs, "",
@@ -96,8 +103,54 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 				map[string]string{"class": "language-" + block.Language()},
 				block.Contents(),
 			))
+
+	case blocks.ImgEntry:
+		var children []tag.Tag
+
+		if block.Target.IsBlueLink() {
+			imgAttrs := map[string]string{
+				"src": block.Target.ImgSrc(),
+			}
+			if block.GetWidth() != "" {
+				imgAttrs["width"] = block.GetWidth()
+			}
+			if block.GetHeight() != "" {
+				imgAttrs["height"] = block.GetHeight()
+			}
+			children = append(
+				children,
+				tag.NewClosed(
+					"a",
+					map[string]string{"href": block.Target.Href()},
+					"",
+					tag.NewUnclosed("img", imgAttrs),
+				),
+			)
+		} else {
+			children = append(
+				children,
+				tag.NewClosed(
+					"a",
+					map[string]string{
+						"class": block.Target.Classes(),
+						"href":  block.Target.Href(),
+					},
+					fmt.Sprintf("Hypha <i>%s</i> does not exist", block.Target.TargetHypha()),
+				),
+			)
+		}
+		if block.Description != "" {
+			children = append(children, BlockToTag(
+				ctx,
+				parser.MakeFormatted(block.Description, ctx.HyphaName()),
+				counter,
+			))
+		}
+		return tag.NewClosed("figure", map[string]string{"class": "img-gallery__entry"}, "", children...)
+
 	case blocks.HorizontalLine:
 		return tag.NewUnclosed("hr", attrs)
+
 	default:
 		return tag.NewUnclosed("error", attrs)
 	}
