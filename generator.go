@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
 	"github.com/bouncepaw/mycomarkup/v3/genhtml"
+	"github.com/bouncepaw/mycomarkup/v3/genhtml/tag"
 	"github.com/bouncepaw/mycomarkup/v3/globals"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/util"
@@ -11,6 +12,7 @@ import (
 
 const maxRecursionLevel = 3
 
+// V3 Kinda hard to get rid of that
 func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel int, counter *blocks.IDCounter) (html string) {
 	if recursionLevel > maxRecursionLevel {
 		return "Transclusion depth limit"
@@ -18,11 +20,11 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel in
 	for _, line := range ast {
 		switch v := line.(type) {
 		case blocks.Quote:
-			html += fmt.Sprintf(
-				"\n<blockquote%s>%s\n</blockquote>",
-				idAttribute(v, counter.UnusableCopy()),
+			html += tag.NewClosed(
+				"blockquote",
+				map[string]string{"id": v.ID(counter)},
 				generateHTML(ctx, v.Contents(), recursionLevel, counter.UnusableCopy()),
-			)
+			).String()
 		case blocks.List:
 			var ret string
 			for _, item := range v.Items {
@@ -58,10 +60,8 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel in
 <table%s>%s</tbody></table>`, idAttribute(v, counter), ret)
 		case blocks.Transclusion:
 			html += transclusionToHTML(v, recursionLevel, counter.UnusableCopy())
-		case blocks.Formatted, blocks.Paragraph, blocks.Img, blocks.HorizontalLine, blocks.LaunchPad, blocks.Heading, blocks.CodeBlock:
-			html += genhtml.BlockToTag(ctx, v, counter).String()
 		default:
-			html += "<v class='error'>Unknown element.</v>"
+			html += genhtml.BlockToTag(ctx, v, counter).String()
 		}
 	}
 	return html
@@ -155,4 +155,13 @@ func markerToTemplate(m blocks.ListMarker) string {
 	<li class="item_todo"><input type="checkbox" disabled>%s</li>`
 	}
 	panic("unreachable")
+}
+
+func idAttribute(b blocks.Block, counter *blocks.IDCounter) string {
+	switch id := b.ID(counter); {
+	case !counter.ShouldUseResults(), id == "":
+		return ""
+	default:
+		return fmt.Sprintf(` id="%s"`, id)
+	}
 }
