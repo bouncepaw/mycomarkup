@@ -13,8 +13,8 @@ import (
 const maxRecursionLevel = 3
 
 // V3 Kinda hard to get rid of that
-func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel int, counter *blocks.IDCounter) (html string) {
-	if recursionLevel > maxRecursionLevel {
+func generateHTML(ctx mycocontext.Context, ast []blocks.Block, counter *blocks.IDCounter) (html string) {
+	if ctx.RecursionLevel() > maxRecursionLevel {
 		return "Transclusion depth limit"
 	}
 	for _, line := range ast {
@@ -23,14 +23,14 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel in
 			html += tag.NewClosed(
 				"blockquote",
 				map[string]string{"id": v.ID(counter)},
-				generateHTML(ctx, v.Contents(), recursionLevel, counter.UnusableCopy()),
+				generateHTML(ctx, v.Contents(), counter.UnusableCopy()),
 			).String()
 		case blocks.List:
 			var ret string
 			for _, item := range v.Items {
 				ret += fmt.Sprintf(
 					markerToTemplate(item.Marker),
-					generateHTML(ctx, item.Contents, recursionLevel, counter.UnusableCopy()),
+					generateHTML(ctx, item.Contents, counter.UnusableCopy()),
 				)
 			}
 			html += fmt.Sprintf(listToTemplate(v), idAttribute(v, counter), ret)
@@ -46,7 +46,7 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel in
 					ret += fmt.Sprintf(
 						"\n\t<%[1]s%[3]s>%[2]s</%[1]s>",
 						util.TernaryConditionString(tc.IsHeaderCell(), "th", "td"),
-						generateHTML(ctx, tc.Contents(), recursionLevel, counter.UnusableCopy()),
+						generateHTML(ctx, tc.Contents(), counter.UnusableCopy()),
 						util.TernaryConditionString(
 							tc.Colspan() <= 1,
 							"",
@@ -59,7 +59,7 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel in
 			html += fmt.Sprintf(`
 <table%s>%s</tbody></table>`, idAttribute(v, counter), ret)
 		case blocks.Transclusion:
-			html += transclusionToHTML(v, recursionLevel, counter.UnusableCopy())
+			html += transclusionToHTML(ctx, v, counter.UnusableCopy())
 		default:
 			html += genhtml.BlockToTag(ctx, v, counter).String()
 		}
@@ -67,7 +67,7 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, recursionLevel in
 	return html
 }
 
-func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *blocks.IDCounter) string {
+func transclusionToHTML(ctx mycocontext.Context, xcl blocks.Transclusion, counter *blocks.IDCounter) string {
 	var (
 		messageBase = `
 <section class="transclusion transclusion_%s">
@@ -90,7 +90,7 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 </section>`
 	)
 
-	// Nonthing will match if there is no error:
+	// Nothing will match if there is no error:
 	switch xcl.TransclusionError.Reason {
 	case blocks.TransclusionErrorNotExists:
 		return fmt.Sprintf(messageNotExists, xcl.Target)
@@ -102,15 +102,16 @@ func transclusionToHTML(xcl blocks.Transclusion, recursionLevel int, counter *bl
 		return messageOldSyntax
 	}
 
+	// V4 This part is awful
 	// Now, to real transclusion:
 	rawText, binaryHtml, err := globals.HyphaAccess(xcl.Target)
 	if err != nil {
 		return fmt.Sprintf(messageNotExists, xcl.Target)
 	}
 	xclVisistor, result := transclusionVisitor(xcl)
-	ctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText) // FIXME: it will bite us one day
-	_ = BlockTree(ctx, xclVisistor)
-	xclText := generateHTML(ctx, result(), recursionLevel+1, counter.UnusableCopy())
+	xclctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText) // FIXME: it will bite us one day UPDATE: is it the day? I don't feel the bite.
+	_ = BlockTree(xclctx, xclVisistor)
+	xclText := generateHTML(ctx.WithIncrementedRecursionLevel(), result(), counter.UnusableCopy())
 
 	if xcl.Selector == blocks.SelectorAttachment || xcl.Selector == blocks.SelectorFull || xcl.Selector == blocks.SelectorOverview {
 		xclText = binaryHtml + xclText

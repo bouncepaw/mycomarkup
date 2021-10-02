@@ -51,7 +51,7 @@ func ContextFromStringInput(hyphaName, input string) (Context, CancelFunc) {
 						bytes.NewBufferString(input),
 					),
 					keyRecursionLevel,
-					0,
+					uint(0),
 				),
 				keyWebSiteURL,
 				""),
