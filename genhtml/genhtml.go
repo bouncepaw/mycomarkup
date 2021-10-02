@@ -2,6 +2,7 @@
 package genhtml
 
 import (
+	"fmt"
 	"html"
 
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
@@ -56,6 +57,15 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 		return tag.New("", tag.Wrapper, attrs, contents)
 	case blocks.Paragraph:
 		return tag.New("p", tag.Closed, attrs, "", BlockToTag(ctx, block.Formatted, counter))
+	case blocks.Heading:
+		return tag.New(
+			fmt.Sprintf("h%d", block.Level()),
+			tag.Closed,
+			attrs,
+			"",
+			BlockToTag(ctx, block.Contents(), counter),
+			tag.New("a", tag.Closed, map[string]string{"href": "#" + attrs["id"], "class": "heading__link"}, ""),
+		)
 	case blocks.RocketLink:
 		return tag.New(
 			"li", tag.Closed,
@@ -79,6 +89,15 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 		}
 		attrs["class"] = "launchpad"
 		return tag.New("ul", tag.Closed, attrs, "", rockets...)
+	case blocks.CodeBlock:
+		attrs["class"] = "codeblock"
+		return tag.New("pre", tag.Closed, attrs, "",
+			tag.New(
+				"code",
+				tag.Closed,
+				map[string]string{"class": "language-" + block.Language()},
+				block.Contents(),
+			))
 	case blocks.HorizontalLine:
 		return tag.New("hr", tag.Unclosed, attrs, "")
 	default:

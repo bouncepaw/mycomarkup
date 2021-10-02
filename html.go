@@ -2,6 +2,7 @@ package mycomarkup
 
 import (
 	"fmt"
+
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
 	"github.com/bouncepaw/mycomarkup/v3/genhtml"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
@@ -12,19 +13,16 @@ import (
 // BlockToHTML turns the given block into HTML. It supports only a subset of Mycomarkup.
 func BlockToHTML(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDCounter) string {
 	switch b := block.(type) {
-	case blocks.Formatted, blocks.HorizontalLine, blocks.Paragraph, blocks.RocketLink, blocks.LaunchPad:
+	case blocks.Formatted, blocks.HorizontalLine, blocks.Paragraph, blocks.RocketLink, blocks.LaunchPad, blocks.CodeBlock, blocks.Heading:
 		return genhtml.BlockToTag(ctx, b, counter).String()
+
 	case blocks.Img:
 		return imgToHTML(ctx, b, counter)
 	case blocks.ImgEntry:
 		return imgEntryToHTML(ctx, b, counter)
-	case blocks.Heading:
-		return fmt.Sprintf(`
-<h%[1]d%[4]s>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
-`, b.Level(), BlockToHTML(ctx, b.Contents(), counter), b.ID(counter), idAttribute(b, counter))
-	case blocks.CodeBlock:
-		return fmt.Sprintf("\n<pre class='codeblock'%s><code class='language-%s'>%s</code></pre>", idAttribute(b, counter), b.Language(), b.Contents())
+
 	}
+
 	fmt.Printf("%q\n", block)
 	return "<b>UNKNOWN ELEMENT</b>"
 }
