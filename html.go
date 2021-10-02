@@ -7,23 +7,17 @@ import (
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/parser"
 	"github.com/bouncepaw/mycomarkup/v3/util"
-	"html"
 )
 
 // BlockToHTML turns the given block into HTML. It supports only a subset of Mycomarkup.
 func BlockToHTML(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDCounter) string {
 	switch b := block.(type) {
-	case blocks.Formatted, blocks.HorizontalLine, blocks.Paragraph:
+	case blocks.Formatted, blocks.HorizontalLine, blocks.Paragraph, blocks.RocketLink, blocks.LaunchPad:
 		return genhtml.BlockToTag(ctx, b, counter).String()
 	case blocks.Img:
 		return imgToHTML(ctx, b, counter)
 	case blocks.ImgEntry:
 		return imgEntryToHTML(ctx, b, counter)
-	case blocks.LaunchPad:
-		return launchpadToHTML(ctx, b, counter)
-	case blocks.RocketLink:
-		return fmt.Sprintf(`
-	<li class="launchpad__entry"><a href="%s" class="rocketlink %s">%s</a></li>`, b.Href(), b.Classes(), html.EscapeString(b.Display()))
 	case blocks.Heading:
 		return fmt.Sprintf(`
 <h%[1]d%[4]s>%[2]s<a href="#%[3]s" id="%[3]s" class="heading__link"></a></h%[1]d>
@@ -42,16 +36,6 @@ func idAttribute(b blocks.Block, counter *blocks.IDCounter) string {
 	default:
 		return fmt.Sprintf(` id="%s"`, id)
 	}
-}
-
-func launchpadToHTML(ctx mycocontext.Context, lp blocks.LaunchPad, counter *blocks.IDCounter) string {
-	lp.ColorRockets()
-	var ret string
-	for _, rocket := range lp.Rockets {
-		ret += BlockToHTML(ctx, rocket, counter)
-	}
-	return fmt.Sprintf(`<ul class="launchpad"%s>%s
-</ul>`, idAttribute(lp, counter), ret)
 }
 
 func imgEntryToHTML(ctx mycocontext.Context, entry blocks.ImgEntry, counter *blocks.IDCounter) string {

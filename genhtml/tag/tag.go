@@ -25,12 +25,11 @@ type Tag struct {
 	Kind       Kind
 	Attributes map[string]string
 	Contents   string
-	// nil if infertile
-	Children []Tag
+	Children   []Tag
 }
 
 // New returns a new Tag with the given data.
-func New(name string, kind Kind, attributes map[string]string, contents string, children []Tag) Tag {
+func New(name string, kind Kind, attributes map[string]string, contents string, children ...Tag) Tag {
 	return Tag{
 		Name:       name,
 		Kind:       kind,
