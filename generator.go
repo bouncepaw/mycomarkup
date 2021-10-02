@@ -68,65 +68,42 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, counter *blocks.I
 }
 
 func transclusionToHTML(ctx mycocontext.Context, xcl blocks.Transclusion, counter *blocks.IDCounter) string {
-	var (
-		messageBase = `
-<section class="transclusion transclusion_%s">
-	%s
-</section>`
-		messageCLI = fmt.Sprintf(messageBase, "failed",
-			`<p>Transclusion is not supported in documents generated using Mycomarkup CLI</p>`)
-		messageNoTarget = fmt.Sprintf(messageBase, "failed",
-			`<p>Transclusion target not specified</p>`)
-		messageOldSyntax = fmt.Sprintf(messageBase, "failed",
-			`<p>This transclusion is using the old syntax. Please update it to the new one</p>`)
-		_ = fmt.Sprintf(messageBase, "failed",
-			`<p>An error occured while transcluding</p>`)
-		messageNotExists = `<section class="transclusion transclusion_failed">
-	<p class="error">Cannot transclude hypha <a class="wikilink wikilink_new" href="/hypha/%[1]s">%[1]s</a> because it does not exist</p>
-</section>`
-		messageOK = `<section class="transclusion transclusion_ok%[3]s">
-	<a class="transclusion__link" href="/hypha/%[1]s">%[1]s</a>
-	<div class="transclusion__content">%[2]s</div>
-</section>`
-	)
-
-	// Nothing will match if there is no error:
-	switch xcl.TransclusionError.Reason {
-	case blocks.TransclusionErrorNotExists:
-		return fmt.Sprintf(messageNotExists, xcl.Target)
-	case blocks.TransclusionErrorNoTarget:
-		return messageNoTarget
-	case blocks.TransclusionInTerminal:
-		return messageCLI
-	case blocks.TransclusionErrorOldSyntax:
-		return messageOldSyntax
+	if xcl.HasError() {
+		return genhtml.MapTransclusionErrorToTag(xcl).String()
 	}
 
-	// V4 This part is awful
+	// V3
+	// V4 This part is awful, bloody hell. Move to the parser module
 	// Now, to real transclusion:
 	rawText, binaryHtml, err := globals.HyphaAccess(xcl.Target)
 	if err != nil {
-		return fmt.Sprintf(messageNotExists, xcl.Target)
+		return genhtml.MapTransclusionErrorToTag(xcl).String()
 	}
 	xclVisistor, result := transclusionVisitor(xcl)
 	xclctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText) // FIXME: it will bite us one day UPDATE: is it the day? I don't feel the bite.
-	_ = BlockTree(xclctx, xclVisistor)
+	_ = BlockTree(xclctx, xclVisistor)                                   // Call for side-effects
 	xclText := generateHTML(ctx.WithIncrementedRecursionLevel(), result(), counter.UnusableCopy())
 
 	if xcl.Selector == blocks.SelectorAttachment || xcl.Selector == blocks.SelectorFull || xcl.Selector == blocks.SelectorOverview {
 		xclText = binaryHtml + xclText
 	}
-	return fmt.Sprintf(
-		messageOK,
-		xcl.Target,
-		xclText,
-		func() string {
-			if xcl.Blend {
-				return " transclusion_blend"
-			}
-			return " transclusion_stand-out"
-		}(),
-	)
+
+	return tag.NewClosed("section", map[string]string{
+		"id": xcl.ID(counter),
+		"class": "transclusion transclusion_ok transclusion_" + util.TernaryConditionString(
+			xcl.Blend,
+			"blend",
+			"stand-out",
+		),
+	}, "",
+		tag.NewClosed("a", map[string]string{
+			"class": "transclusion__link",
+			"href":  "/hypha/" + xcl.Target,
+		}, xcl.Target),
+		tag.NewClosed("div", map[string]string{
+			"class": "transclusion__content",
+		}, xclText),
+	).String()
 }
 
 func listToTemplate(list blocks.List) string {

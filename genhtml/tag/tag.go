@@ -69,15 +69,17 @@ func (t Tag) String() (res string) {
 	case closed:
 		res += fmt.Sprintf("<%s%s>\n", t.name, attrs(t.attributes))
 		var tmp string
-		tmp += t.contents
+		if t.contents != "" {
+			tmp += t.contents + "\n"
+		}
 		for i, child := range t.children {
-			if i > 0 || (i == 0 && t.contents != "") {
+			if i > 0 {
 				tmp += "\n"
 			}
 			tmp += child.String()
 		}
 		res += eachLineIndented(tmp)
-		res += fmt.Sprintf("</%s>\n", t.name)
+		res += fmt.Sprintf("</%s>\n", t.name) // FIXME: Extra indent is printed for some reason
 		return res
 	case wrapper:
 		res += t.contents
