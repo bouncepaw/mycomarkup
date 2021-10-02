@@ -7,60 +7,82 @@ import (
 	"strings"
 )
 
-// Kind is the kind of a Tag. The way the tag is rendered depends on the kind.
-type Kind int
+// tagKind is the kind of a Tag. The way the tag is rendered depends on the kind.
+type tagKind int
 
 const (
-	// Closed is a tag that looks like that: <t>children</t>.
-	Closed Kind = iota
-	// Unclosed is a tag that looks like that: <t/>
-	Unclosed
-	// Wrapper is a tag that looks like that: children
-	Wrapper
+	// closed is a tag that looks like that: <t>children</t>.
+	closed tagKind = iota
+	// unclosed is a tag that looks like that: <t/>
+	unclosed
+	// wrapper is a tag that looks like that: children
+	wrapper
 )
 
 // Tag represents an HTML tag/DOM node.
 type Tag struct {
-	Name       string
-	Kind       Kind
-	Attributes map[string]string
-	Contents   string
-	Children   []Tag
+	name       string
+	kind       tagKind
+	attributes map[string]string
+	contents   string
+	children   []Tag
 }
 
-// New returns a new Tag with the given data.
-func New(name string, kind Kind, attributes map[string]string, contents string, children ...Tag) Tag {
+// NewUnclosed returns a new unclosed tag.
+func NewUnclosed(name string, attributes map[string]string) Tag {
 	return Tag{
-		Name:       name,
-		Kind:       kind,
-		Attributes: attributes,
-		Contents:   contents,
-		Children:   children,
+		name:       name,
+		kind:       unclosed,
+		attributes: attributes,
+		contents:   "",
+		children:   nil,
+	}
+}
+
+// NewClosed returns a new closed tag.
+func NewClosed(name string, attributes map[string]string, contents string, children ...Tag) Tag {
+	return Tag{
+		name:       name,
+		kind:       closed,
+		attributes: attributes,
+		contents:   contents,
+		children:   children,
+	}
+}
+
+// NewWrapper returns a new wrapper tag.
+func NewWrapper(contents string, children ...Tag) Tag {
+	return Tag{
+		name:       "",
+		kind:       wrapper,
+		attributes: map[string]string{},
+		contents:   contents,
+		children:   children,
 	}
 }
 
 // String returns an indented pretty-printed representation of the Tag.
 func (t Tag) String() (res string) {
-	switch t.Kind {
-	case Unclosed:
-		return fmt.Sprintf("<%s%s/>\n", t.Name, attrs(t.Attributes))
-	case Closed:
-		res += fmt.Sprintf("<%s%s>\n", t.Name, attrs(t.Attributes))
+	switch t.kind {
+	case unclosed:
+		return fmt.Sprintf("<%s%s/>\n", t.name, attrs(t.attributes))
+	case closed:
+		res += fmt.Sprintf("<%s%s>\n", t.name, attrs(t.attributes))
 		var tmp string
-		tmp += t.Contents
-		for i, child := range t.Children {
-			if i > 0 || (i == 0 && t.Contents != "") {
+		tmp += t.contents
+		for i, child := range t.children {
+			if i > 0 || (i == 0 && t.contents != "") {
 				tmp += "\n"
 			}
 			tmp += child.String()
 		}
 		res += eachLineIndented(tmp)
-		res += fmt.Sprintf("</%s>", t.Name)
+		res += fmt.Sprintf("</%s>\n", t.name)
 		return res
-	case Wrapper:
-		res += t.Contents
-		for i, child := range t.Children {
-			if i > 0 || (i == 0 && t.Contents != "") {
+	case wrapper:
+		res += t.contents
+		for i, child := range t.children {
+			if i > 0 || (i == 0 && t.contents != "") {
 				res += "\n"
 			}
 			res += child.String()

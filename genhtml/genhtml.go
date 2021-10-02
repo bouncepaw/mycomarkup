@@ -35,7 +35,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					contents += blocks.TagFromState(s.Kind(), tagState)
 
 				case blocks.InlineLink:
-					contents += tag.New("a", tag.Closed, map[string]string{
+					contents += tag.NewClosed("a", map[string]string{
 						"href":  s.Href(),
 						"class": s.Classes(),
 					}, s.Display()).String()
@@ -54,26 +54,25 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 				}
 			}
 		}
-		return tag.New("", tag.Wrapper, attrs, contents)
+		return tag.NewWrapper(contents)
 	case blocks.Paragraph:
-		return tag.New("p", tag.Closed, attrs, "", BlockToTag(ctx, block.Formatted, counter))
+		return tag.NewClosed("p", attrs, "", BlockToTag(ctx, block.Formatted, counter))
 	case blocks.Heading:
-		return tag.New(
+		return tag.NewClosed(
 			fmt.Sprintf("h%d", block.Level()),
-			tag.Closed,
 			attrs,
 			"",
 			BlockToTag(ctx, block.Contents(), counter),
-			tag.New("a", tag.Closed, map[string]string{"href": "#" + attrs["id"], "class": "heading__link"}, ""),
+			tag.NewClosed("a", map[string]string{"href": "#" + attrs["id"], "class": "heading__link"}, ""),
 		)
 	case blocks.RocketLink:
-		return tag.New(
-			"li", tag.Closed,
+		return tag.NewClosed(
+			"li",
 			map[string]string{
 				"class": "launchpad__entry",
 			}, "",
-			tag.New(
-				"a", tag.Closed,
+			tag.NewClosed(
+				"a",
 				map[string]string{
 					"class": "rocketlink " + block.Classes(),
 					"href":  block.Href(),
@@ -88,19 +87,18 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			rockets = append(rockets, BlockToTag(ctx, rocket, counter))
 		}
 		attrs["class"] = "launchpad"
-		return tag.New("ul", tag.Closed, attrs, "", rockets...)
+		return tag.NewClosed("ul", attrs, "", rockets...)
 	case blocks.CodeBlock:
 		attrs["class"] = "codeblock"
-		return tag.New("pre", tag.Closed, attrs, "",
-			tag.New(
+		return tag.NewClosed("pre", attrs, "",
+			tag.NewClosed(
 				"code",
-				tag.Closed,
 				map[string]string{"class": "language-" + block.Language()},
 				block.Contents(),
 			))
 	case blocks.HorizontalLine:
-		return tag.New("hr", tag.Unclosed, attrs, "")
+		return tag.NewUnclosed("hr", attrs)
 	default:
-		return tag.New("error", tag.Unclosed, nil, "")
+		return tag.NewUnclosed("error", attrs)
 	}
 }
