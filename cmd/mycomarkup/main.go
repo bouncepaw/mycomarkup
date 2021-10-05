@@ -17,6 +17,7 @@ func main() {
 
 	// TODO: provide a similar function but for []byte and use it here.
 	ctx, _ := mycocontext.ContextFromStringInput(hyphaName, string(contents))
+	ctx = mycocontext.WithCalledInShell(ctx)
 	ast := mycomarkup.BlockTree(ctx)
 	fmt.Println(mycomarkup.BlocksToHTML(ctx, ast))
 }

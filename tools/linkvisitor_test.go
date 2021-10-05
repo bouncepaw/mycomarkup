@@ -29,7 +29,7 @@ func TestLinkVisitor(t *testing.T) {
 		hyphaName = "test"
 	)
 	ctx, _ := mycocontext.ContextFromStringInput(hyphaName, inputLinks)
-	ctx = mycocontext.WithCalledAsLibrary(ctx)
+	ctx = mycocontext.WithCalledInShell(ctx)
 	linkVisitor, getLinks := LinkVisitor(ctx)
 	mycomarkup.BlockTree(ctx, linkVisitor)
 	foundLinks := getLinks()

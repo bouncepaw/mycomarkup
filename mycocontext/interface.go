@@ -55,7 +55,7 @@ func ContextFromStringInput(hyphaName, input string) (Context, CancelFunc) {
 				),
 				keyWebSiteURL,
 				""),
-			keyCalledInShell, true))
+			keyCalledInShell, false))
 	return &mycoContext{ctx}, CancelFunc(cancel)
 }
 
@@ -69,7 +69,7 @@ func WithWebSiteURL(ctx Context, url string) Context {
 	return &mycoContext{context.WithValue(ctx, keyWebSiteURL, url)}
 }
 
-// WithCalledAsLibrary returns a copy of the given context but marked as called as a library. It changes the behavior of transclusion.
-func WithCalledAsLibrary(ctx Context) Context {
-	return &mycoContext{context.WithValue(ctx, keyCalledInShell, false)}
+// WithCalledInShell returns a copy of the given context but marked as called as a library. It changes the behavior of transclusion.
+func WithCalledInShell(ctx Context) Context {
+	return &mycoContext{context.WithValue(ctx, keyCalledInShell, true)}
 }
