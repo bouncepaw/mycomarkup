@@ -35,7 +35,7 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 				ogTag("image", imageUrl),
 				ogTag("url", ctx.WebSiteURL()+"/hypha/"+util.CanonicalName(ctx.HyphaName())),
 				ogTag("determiner", ""),
-				ogTag("description", htmlTagRe.ReplaceAllString(description, "")),
+				ogTag("description", prepareDescription(description)),
 			}, "\n")
 		}, func(block blocks.Block) {
 			if foundProperParagraph { // Won't find anything better.
@@ -63,6 +63,15 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 			}
 		}
 }
+
+func prepareDescription(desc string) string {
+	return strings.TrimSpace(
+		htmlTagRe.ReplaceAllString(
+			htmlBrTagRe.ReplaceAllString(desc, "\n"),
+			""))
+}
+
+var htmlBrTagRe = regexp.MustCompile(`<br/?>`)
 
 // Used to clear opengraph description from html tags. This method is usually bad because of dangers of malformed HTML, but I'm going to use it only for Mycorrhiza-generated HTML, so it's okay. The question mark is required; without it the whole string is eaten away.
 var htmlTagRe = regexp.MustCompile(`<.*?>`)
