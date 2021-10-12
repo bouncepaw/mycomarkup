@@ -106,7 +106,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			))
 
 	case blocks.Img:
-		block.MarkExistenceOfSrcLinks()
+		block = block.WithExistingTargetsMarked()
 		var children []tag.Tag
 		for _, entry := range block.Entries {
 			children = append(children, BlockToTag(ctx, entry, counter))
