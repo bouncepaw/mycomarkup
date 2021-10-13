@@ -150,11 +150,12 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			)
 		}
 		if block.Description != "" {
-			children = append(children, BlockToTag(
+			figcaption := tag.NewClosed("figcaption", nil, "", BlockToTag(
 				ctx,
 				parser.MakeFormatted(block.Description, ctx.HyphaName()),
 				counter,
 			))
+			children = append(children, figcaption)
 		}
 		return tag.NewClosed("figure", map[string]string{"class": "img-gallery__entry"}, "", children...)
 
