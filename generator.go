@@ -15,7 +15,10 @@ const maxRecursionLevel = 3
 // V3 Kinda hard to get rid of that
 func generateHTML(ctx mycocontext.Context, ast []blocks.Block, counter *blocks.IDCounter) (html string) {
 	if ctx.RecursionLevel() > maxRecursionLevel {
-		return "Transclusion depth limit"
+		return tag.NewClosed("section", map[string]string{
+			"class": "transclusion transclusion_failed transclusion_not-exists",
+		}, "",
+			tag.NewClosed("p", map[string]string{}, "Transclusion depth limit")).String()
 	}
 	for _, line := range ast {
 		switch v := line.(type) {
