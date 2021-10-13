@@ -77,6 +77,7 @@ func transclusionToHTML(ctx mycocontext.Context, xcl blocks.Transclusion, counte
 	// Now, to real transclusion:
 	rawText, binaryHtml, err := globals.HyphaAccess(xcl.Target)
 	if err != nil {
+		xcl.TransclusionError.Reason = blocks.TransclusionErrorNotExists
 		return genhtml.MapTransclusionErrorToTag(xcl).String()
 	}
 	xclVisistor, result := transclusionVisitor(xcl)

@@ -27,6 +27,6 @@ func MapTransclusionErrorToTag(xcl blocks.Transclusion) tag.Tag {
 	case blocks.TransclusionErrorOldSyntax:
 		return wrapInTransclusionError("This transclusion is using the old syntax. Please update it to the new one")
 	}
-	log.Println("MapTransclusionErrorToTag: unknown kind of transclusion error")
+	log.Printf("MapTransclusionErrorToTag: unknown kind of transclusion error %d\n", xcl.TransclusionError.Reason)
 	return tag.Tag{}
 }
