@@ -41,25 +41,47 @@ func NewUnclosed(name string, attributes map[string]string) Tag {
 }
 
 // NewClosed returns a new closed tag.
-func NewClosed(name string, attributes map[string]string, contents []lines.Line, children ...Tag) Tag {
+func NewClosed(name string, attributes map[string]string, children ...Tag) Tag {
 	return Tag{
 		name:       name,
 		kind:       closed,
 		attributes: attributes,
-		contents:   contents,
+		contents:   nil,
 		children:   children,
 	}
 }
 
 // NewWrapper returns a new wrapper tag.
-func NewWrapper(contents []lines.Line, children ...Tag) Tag {
+func NewWrapper(children ...Tag) Tag {
 	return Tag{
 		name:       "",
 		kind:       wrapper,
 		attributes: map[string]string{},
-		contents:   contents,
+		contents:   nil,
 		children:   children,
 	}
+}
+
+// WithContentsLines returns a tag but with the given lines of contents.
+//
+// Contents is like children, but just text, not tags.
+//
+// This is a no-op for unclosed tags.
+func (t Tag) WithContentsLines(lines ...lines.Line) Tag {
+	if t.kind == unclosed {
+		return t
+	}
+	t.contents = lines
+	return t
+}
+
+// WithContentsStrings is like WithContentsLines but it wraps strings into indented lines for you.
+func (t Tag) WithContentsStrings(strs ...string) Tag {
+	var contentsLines []lines.Line
+	for _, str := range strs {
+		contentsLines = append(contentsLines, lines.IndentableFrom(str))
+	}
+	return t.WithContentsLines(contentsLines...)
 }
 
 // String returns a string representation of the tag.

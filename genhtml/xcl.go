@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
 	"github.com/bouncepaw/mycomarkup/v3/genhtml/tag"
-	"github.com/bouncepaw/mycomarkup/v3/util/lines"
 	"log"
 )
 
 func wrapInTransclusionError(errParagraph string) tag.Tag {
 	return tag.NewClosed("section", map[string]string{
 		"class": "transclusion transclusion_failed transclusion_not-exists",
-	}, []lines.Line{},
-		tag.NewClosed("p", map[string]string{}, []lines.Line{lines.IndentableFrom(errParagraph)}))
+	},
+		tag.NewClosed("p", map[string]string{}).WithContentsStrings(errParagraph))
 }
 
 // MapTransclusionErrorToTag returns an error tag that you should display to the user. If there is no error in the transclusion, bad things will happen, so verify with xcl.HasError beforehand.
