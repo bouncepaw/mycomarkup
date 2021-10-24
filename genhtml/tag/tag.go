@@ -30,22 +30,22 @@ type Tag struct {
 }
 
 // NewUnclosed returns a new unclosed tag.
-func NewUnclosed(name string, attributes map[string]string) Tag {
+func NewUnclosed(name string) Tag {
 	return Tag{
 		name:       name,
 		kind:       unclosed,
-		attributes: attributes,
+		attributes: nil,
 		contents:   nil,
 		children:   nil,
 	}
 }
 
 // NewClosed returns a new closed tag.
-func NewClosed(name string, attributes map[string]string, children ...Tag) Tag {
+func NewClosed(name string, children ...Tag) Tag {
 	return Tag{
 		name:       name,
 		kind:       closed,
-		attributes: attributes,
+		attributes: nil,
 		contents:   nil,
 		children:   children,
 	}
@@ -62,7 +62,18 @@ func NewWrapper(children ...Tag) Tag {
 	}
 }
 
-// WithContentsLines returns a tag but with the given lines of contents.
+// WithAttrs return the tag but with the given attributes. Previous attributes of the tag are discarded.
+//
+// This is a no-op for wrapper tags.
+func (t Tag) WithAttrs(attributes map[string]string) Tag {
+	if t.kind == wrapper {
+		return t
+	}
+	t.attributes = attributes
+	return t
+}
+
+// WithContentsLines returns the tag but with the given lines of contents.
 //
 // Contents is like children, but just text, not tags.
 //

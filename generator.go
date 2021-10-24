@@ -15,18 +15,21 @@ const maxRecursionLevel = 3
 // V3 Kinda hard to get rid of that
 func generateHTML(ctx mycocontext.Context, ast []blocks.Block, counter *blocks.IDCounter) (html string) {
 	if ctx.RecursionLevel() > maxRecursionLevel {
-		return tag.NewClosed("section", map[string]string{
-			"class": "transclusion transclusion_failed transclusion_not-exists",
-		},
-			tag.NewClosed("p", map[string]string{})).WithContentsStrings("Transclusion depth limit").String()
+		return tag.NewClosed("section",
+			tag.NewClosed("p"),
+		).
+			WithContentsStrings("Transclusion depth limit").
+			WithAttrs(map[string]string{
+				"class": "transclusion transclusion_failed transclusion_not-exists",
+			}).
+			String()
 	}
 	for _, line := range ast {
 		switch v := line.(type) {
 		case blocks.Quote:
-			html += tag.NewClosed(
-				"blockquote",
-				map[string]string{"id": v.ID(counter)},
-			).WithContentsStrings(generateHTML(ctx, v.Contents(), counter.UnusableCopy())).String()
+			html += tag.NewClosed("blockquote").
+				WithAttrs(map[string]string{"id": v.ID(counter)}).
+				WithContentsStrings(generateHTML(ctx, v.Contents(), counter.UnusableCopy())).String()
 		case blocks.List:
 			var ret string
 			for _, item := range v.Items {
@@ -91,22 +94,26 @@ func transclusionToHTML(ctx mycocontext.Context, xcl blocks.Transclusion, counte
 		xclText = binaryHtml + xclText
 	}
 
-	return tag.NewClosed("section", map[string]string{
+	return tag.NewClosed("section",
+		tag.NewClosed("a").
+			WithContentsStrings(xcl.Target).
+			WithAttrs(map[string]string{
+				"class": "transclusion__link",
+				"href":  "/hypha/" + xcl.Target,
+			}),
+		tag.NewClosed("div").
+			WithContentsStrings(xclText).
+			WithAttrs(map[string]string{
+				"class": "transclusion__content",
+			}),
+	).WithAttrs(map[string]string{
 		"id": xcl.ID(counter),
 		"class": "transclusion transclusion_ok transclusion_" + util.TernaryConditionString(
 			xcl.Blend,
 			"blend",
 			"stand-out",
 		),
-	},
-		tag.NewClosed("a", map[string]string{
-			"class": "transclusion__link",
-			"href":  "/hypha/" + xcl.Target,
-		}).WithContentsStrings(xcl.Target),
-		tag.NewClosed("div", map[string]string{
-			"class": "transclusion__content",
-		}).WithContentsStrings(xclText),
-	).String()
+	}).String()
 }
 
 func listToTemplate(list blocks.List) string {
