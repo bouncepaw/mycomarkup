@@ -3,6 +3,8 @@ package genhtml
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/v3/globals"
+	"github.com/bouncepaw/mycomarkup/v3/temporary_workaround"
 	"github.com/bouncepaw/mycomarkup/v3/util"
 	"github.com/bouncepaw/mycomarkup/v3/util/lines"
 	"html"
@@ -18,6 +20,15 @@ import (
 
 // BlockToTag turns the given Block into a Tag depending on the Context and IDCounter.
 func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDCounter) tag.Tag {
+	if ctx.RecursionLevel() > 3 {
+		return tag.NewClosed("section").
+			WithAttrs(map[string]string{
+				"class": "transclusion transclusion_failed transclusion_not-exists",
+			}).
+			WithChildren(tag.NewClosed("p").
+				WithContentsStrings("Transclusion depth limit"))
+	}
+
 	var attrs = map[string]string{}
 	if counter.ShouldUseResults() {
 		attrs["id"] = block.ID(counter)
@@ -234,6 +245,56 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 		return tag.NewClosed("table").WithAttrs(map[string]string{
 			"id": block.ID(counter.UnusableCopy()),
 		}).WithChildren(children...)
+
+	case blocks.Transclusion:
+		xcl := block
+		if xcl.HasError() {
+			return MapTransclusionErrorToTag(xcl)
+		}
+
+		// V4 This part is awful, bloody hell. Move to the parser module
+		// Now, to real transclusion:
+		rawText, binaryHtml, err := globals.HyphaAccess(xcl.Target)
+		if err != nil {
+			xcl.TransclusionError.Reason = blocks.TransclusionErrorNotExists
+			return MapTransclusionErrorToTag(xcl)
+		}
+		xclVisistor, result := temporary_workaround.TransclusionVisitor(xcl)
+		xclctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText) // FIXME: it will bite us one day UPDATE: is it the day? I don't feel the bite.
+		_ = temporary_workaround.BlockTree(xclctx, xclVisistor)              // Call for side-effects
+
+		var children []tag.Tag
+		for _, child := range result() {
+			children = append(children, BlockToTag(ctx, child, counter.UnusableCopy()))
+		}
+
+		return tag.NewClosed("section").
+			WithAttrs(map[string]string{
+				"id": xcl.ID(counter),
+				"class": "transclusion transclusion_ok transclusion_" + util.TernaryConditionString(
+					xcl.Blend,
+					"blend",
+					"stand-out",
+				),
+			}).
+			WithChildren(
+				tag.NewClosed("a").
+					WithContentsStrings(xcl.Target).
+					WithAttrs(map[string]string{
+						"class": "transclusion__link",
+						"href":  "/hypha/" + xcl.Target,
+					}),
+				tag.NewClosed("div").
+					WithContentsStrings(util.TernaryConditionString(
+						xcl.Selector == blocks.SelectorAttachment || xcl.Selector == blocks.SelectorFull || xcl.Selector == blocks.SelectorOverview,
+						binaryHtml,
+						"",
+					)).
+					WithAttrs(map[string]string{
+						"class": "transclusion__content",
+					}).
+					WithChildren(children...),
+			)
 
 	default:
 		return tag.NewUnclosed("error").WithAttrs(attrs)

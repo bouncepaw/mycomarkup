@@ -1,7 +1,9 @@
 // Package globals provides global variables.
 package globals
 
-import "errors"
+import (
+	"errors"
+)
 
 // TODO: get rid of these three ⤵. It requires quite an amount of work.︎
 

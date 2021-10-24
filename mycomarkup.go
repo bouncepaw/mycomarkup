@@ -3,8 +3,10 @@ package mycomarkup
 
 import (
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
+	"github.com/bouncepaw/mycomarkup/v3/genhtml"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/parser"
+	"github.com/bouncepaw/mycomarkup/v3/temporary_workaround"
 )
 
 // BlockTree returns a slice of blocks parsed from the Mycomarkup document contained in ctx.
@@ -42,7 +44,11 @@ func BlockTree(ctx mycocontext.Context, visitors ...func(block blocks.Block)) []
 // BlocksToHTML turns the blocks into their HTML representation.
 func BlocksToHTML(ctx mycocontext.Context, ast []blocks.Block) string {
 	counter := blocks.NewIDCounter()
-	return generateHTML(ctx, ast, counter)
+	var res string
+	for _, block := range ast {
+		res += genhtml.BlockToTag(ctx, block, counter).String()
+	}
+	return res
 }
 
 // transclusionVisitor returns a visitor to pass to BlockTree and a function to get the results.
@@ -75,4 +81,9 @@ func transclusionVisitor(xcl blocks.Transclusion) (
 		return collected
 	}
 	return
+}
+
+func init() {
+	temporary_workaround.BlockTree = BlockTree
+	temporary_workaround.TransclusionVisitor = transclusionVisitor
 }
