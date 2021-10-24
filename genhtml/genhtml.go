@@ -169,10 +169,120 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			WithAttrs(map[string]string{"class": "img-gallery__entry"}).
 			WithChildren(children...)
 
+	case blocks.Quote:
+		var children []tag.Tag
+		for _, child := range block.Contents() {
+			children = append(children, BlockToTag(ctx, child, counter.UnusableCopy()))
+		}
+		return tag.NewClosed("blockquote").
+			WithAttrs(map[string]string{"id": block.ID(counter)}).
+			WithChildren(children...)
+
+	case blocks.List:
+		var items []tag.Tag
+		for _, item := range block.Items {
+			var children []tag.Tag
+			for _, child := range item.Contents {
+				children = append(children, BlockToTag(ctx, child, counter.UnusableCopy()))
+			}
+			items = append(items, listMarkerToItemTag(item.Marker).WithChildren(children...))
+		}
+		return listMarkerToParentTag(block.Marker).
+			WithAttrs(map[string]string{
+				"id": block.ID(counter),
+			}).WithChildren(items...)
+
 	case blocks.HorizontalLine:
 		return tag.NewUnclosed("hr").WithAttrs(attrs)
+
+	case blocks.TableCell:
+		cell := tag.NewClosed(util.TernaryConditionString(block.IsHeaderCell(), "th", "td"))
+
+		if block.Colspan() > 1 {
+			cell = cell.WithAttrs(map[string]string{
+				"colspan": fmt.Sprintf("%d", block.Colspan()),
+			})
+		}
+
+		var children []tag.Tag
+		for _, child := range block.Contents() {
+			children = append(children, BlockToTag(ctx, child, counter))
+		}
+		return cell.WithChildren(children...)
+
+	case blocks.TableRow:
+		var cells []tag.Tag
+		for _, cell := range block.Cells() {
+			cells = append(cells, BlockToTag(ctx, cell, counter))
+		}
+		return tag.NewClosed("tr").WithChildren(cells...)
+
+	case blocks.Table:
+		var children []tag.Tag
+		if block.Caption() != "" {
+			children = append(children, tag.NewClosed("caption").WithContentsStrings(block.Caption()))
+		}
+
+		var rows []tag.Tag
+		for _, row := range block.Rows() {
+			rows = append(rows, BlockToTag(ctx, row, counter))
+		}
+		if len(rows) > 0 {
+			children = append(children, tag.NewClosed("tbody").WithChildren(rows...))
+		}
+
+		return tag.NewClosed("table").WithAttrs(map[string]string{
+			"id": block.ID(counter.UnusableCopy()),
+		}).WithChildren(children...)
 
 	default:
 		return tag.NewUnclosed("error").WithAttrs(attrs)
 	}
+}
+
+func listMarkerToParentTag(m blocks.ListMarker) tag.Tag {
+	switch m {
+	case blocks.MarkerOrdered:
+		return tag.NewClosed("ol")
+	default:
+		return tag.NewClosed("ul")
+	}
+}
+
+func listMarkerToItemTag(m blocks.ListMarker) tag.Tag {
+	t := tag.NewClosed("li")
+	switch m {
+	case blocks.MarkerUnordered:
+		return t.WithAttrs(map[string]string{
+			"class": "item_unordered",
+		})
+	case blocks.MarkerOrdered:
+		return t.WithAttrs(map[string]string{
+			"class": "item_ordered",
+		})
+	case blocks.MarkerTodo:
+		return t.WithAttrs(map[string]string{
+			"class": "item_todo",
+		}).WithContentsLines(
+			tag.NewUnclosed("checkbox").
+				WithAttrs(map[string]string{
+					"type":     "checkbox",
+					"disabled": "disabled",
+				}).
+				Lines()...,
+		)
+	case blocks.MarkerTodoDone:
+		return t.WithAttrs(map[string]string{
+			"class": "item_todo item_todo-done",
+		}).WithContentsLines(
+			tag.NewUnclosed("checkbox").
+				WithAttrs(map[string]string{
+					"type":     "checkbox",
+					"disabled": "disabled",
+					"checked":  "checked",
+				}).
+				Lines()...,
+		)
+	}
+	panic("unreachable")
 }

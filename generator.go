@@ -16,52 +16,15 @@ const maxRecursionLevel = 3
 func generateHTML(ctx mycocontext.Context, ast []blocks.Block, counter *blocks.IDCounter) (html string) {
 	if ctx.RecursionLevel() > maxRecursionLevel {
 		return tag.NewClosed("section").
-			WithContentsStrings("Transclusion depth limit").
 			WithAttrs(map[string]string{
 				"class": "transclusion transclusion_failed transclusion_not-exists",
 			}).
-			WithChildren(tag.NewClosed("p")).
+			WithChildren(tag.NewClosed("p").
+				WithContentsStrings("Transclusion depth limit")).
 			String()
 	}
 	for _, line := range ast {
 		switch v := line.(type) {
-		case blocks.Quote:
-			html += tag.NewClosed("blockquote").
-				WithAttrs(map[string]string{"id": v.ID(counter)}).
-				WithContentsStrings(generateHTML(ctx, v.Contents(), counter.UnusableCopy())).String()
-		case blocks.List:
-			var ret string
-			for _, item := range v.Items {
-				ret += fmt.Sprintf(
-					markerToTemplate(item.Marker),
-					generateHTML(ctx, item.Contents, counter.UnusableCopy()),
-				)
-			}
-			html += fmt.Sprintf(listToTemplate(v), idAttribute(v, counter), ret)
-		case blocks.Table:
-			var ret string
-			if v.Caption() != "" {
-				ret = fmt.Sprintf("<caption>%s</caption>", v.Caption())
-			}
-			ret += "<tbody>\n"
-			for _, tr := range v.Rows() {
-				ret += "<tr>"
-				for _, tc := range tr.Cells() {
-					ret += fmt.Sprintf(
-						"\n\t<%[1]s%[3]s>%[2]s</%[1]s>",
-						util.TernaryConditionString(tc.IsHeaderCell(), "th", "td"),
-						generateHTML(ctx, tc.Contents(), counter.UnusableCopy()),
-						util.TernaryConditionString(
-							tc.Colspan() <= 1,
-							"",
-							fmt.Sprintf(` colspan="%d"`, tc.Colspan()),
-						),
-					)
-				}
-				ret += "</tr>\n"
-			}
-			html += fmt.Sprintf(`
-<table%s>%s</tbody></table>`, idAttribute(v, counter), ret)
 		case blocks.Transclusion:
 			html += transclusionToHTML(ctx, v, counter.UnusableCopy())
 		default:
@@ -116,35 +79,6 @@ func transclusionToHTML(ctx mycocontext.Context, xcl blocks.Transclusion, counte
 				}),
 		).
 		String()
-}
-
-func listToTemplate(list blocks.List) string {
-	switch list.Marker {
-	case blocks.MarkerOrdered:
-		return `
-<ol%s>%s</ol>`
-	default:
-		return `
-<ul%s>%s</ul>`
-	}
-}
-
-func markerToTemplate(m blocks.ListMarker) string {
-	switch m {
-	case blocks.MarkerUnordered:
-		return `
-	<li class="item_unordered">%s</li>`
-	case blocks.MarkerOrdered:
-		return `
-	<li class="item_ordered">%s</li>`
-	case blocks.MarkerTodoDone:
-		return `
-	<li class="item_todo item_todo-done"><input type="checkbox" disabled checked>%s</li>`
-	case blocks.MarkerTodo:
-		return `
-	<li class="item_todo"><input type="checkbox" disabled>%s</li>`
-	}
-	panic("unreachable")
 }
 
 func idAttribute(b blocks.Block, counter *blocks.IDCounter) string {
