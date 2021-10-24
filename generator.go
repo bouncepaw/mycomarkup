@@ -8,6 +8,7 @@ import (
 	"github.com/bouncepaw/mycomarkup/v3/globals"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/util"
+	"github.com/bouncepaw/mycomarkup/v3/util/lines"
 )
 
 const maxRecursionLevel = 3
@@ -17,8 +18,8 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, counter *blocks.I
 	if ctx.RecursionLevel() > maxRecursionLevel {
 		return tag.NewClosed("section", map[string]string{
 			"class": "transclusion transclusion_failed transclusion_not-exists",
-		}, "",
-			tag.NewClosed("p", map[string]string{}, "Transclusion depth limit")).String()
+		}, []lines.Line{},
+			tag.NewClosed("p", map[string]string{}, []lines.Line{lines.IndentableFrom("Transclusion depth limit")})).String()
 	}
 	for _, line := range ast {
 		switch v := line.(type) {
@@ -26,7 +27,7 @@ func generateHTML(ctx mycocontext.Context, ast []blocks.Block, counter *blocks.I
 			html += tag.NewClosed(
 				"blockquote",
 				map[string]string{"id": v.ID(counter)},
-				generateHTML(ctx, v.Contents(), counter.UnusableCopy()),
+				[]lines.Line{lines.IndentableFrom(generateHTML(ctx, v.Contents(), counter.UnusableCopy()))},
 			).String()
 		case blocks.List:
 			var ret string
@@ -99,14 +100,14 @@ func transclusionToHTML(ctx mycocontext.Context, xcl blocks.Transclusion, counte
 			"blend",
 			"stand-out",
 		),
-	}, "",
+	}, []lines.Line{},
 		tag.NewClosed("a", map[string]string{
 			"class": "transclusion__link",
 			"href":  "/hypha/" + xcl.Target,
-		}, xcl.Target),
+		}, []lines.Line{lines.IndentableFrom(xcl.Target)}),
 		tag.NewClosed("div", map[string]string{
 			"class": "transclusion__content",
-		}, xclText),
+		}, []lines.Line{lines.IndentableFrom(xclText)}),
 	).String()
 }
 

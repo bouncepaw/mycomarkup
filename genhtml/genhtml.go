@@ -4,7 +4,9 @@ package genhtml
 import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v3/util"
+	"github.com/bouncepaw/mycomarkup/v3/util/lines"
 	"html"
+	"strings"
 
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
 	"github.com/bouncepaw/mycomarkup/v3/genhtml/tag"
@@ -41,7 +43,9 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					contents += tag.NewClosed("a", map[string]string{
 						"href":  s.Href(),
 						"class": s.Classes(),
-					}, s.Display()).String()
+					},
+						[]lines.Line{lines.IndentableFrom(s.Display())},
+					).String()
 
 				case blocks.InlineText:
 					contents += html.EscapeString(s.Contents)
@@ -57,18 +61,18 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 				}
 			}
 		}
-		return tag.NewWrapper(contents)
+		return tag.NewWrapper([]lines.Line{lines.IndentableFrom(contents)})
 
 	case blocks.Paragraph:
-		return tag.NewClosed("p", attrs, "", BlockToTag(ctx, block.Formatted, counter))
+		return tag.NewClosed("p", attrs, []lines.Line{}, BlockToTag(ctx, block.Formatted, counter))
 
 	case blocks.Heading:
 		return tag.NewClosed(
 			fmt.Sprintf("h%d", block.Level()),
 			attrs,
-			"",
+			[]lines.Line{},
 			BlockToTag(ctx, block.Contents(), counter),
-			tag.NewClosed("a", map[string]string{"href": "#" + attrs["id"], "class": "heading__link"}, ""),
+			tag.NewClosed("a", map[string]string{"href": "#" + attrs["id"], "class": "heading__link"}, []lines.Line{}),
 		)
 
 	case blocks.RocketLink:
@@ -76,14 +80,14 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			"li",
 			map[string]string{
 				"class": "launchpad__entry",
-			}, "",
+			}, []lines.Line{},
 			tag.NewClosed(
 				"a",
 				map[string]string{
 					"class": "rocketlink " + block.Classes(),
 					"href":  block.Href(),
 				},
-				html.EscapeString(block.Display()),
+				[]lines.Line{lines.IndentableFrom(html.EscapeString(block.Display()))},
 			),
 		)
 
@@ -94,15 +98,19 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			rockets = append(rockets, BlockToTag(ctx, rocket, counter))
 		}
 		attrs["class"] = "launchpad"
-		return tag.NewClosed("ul", attrs, "", rockets...)
+		return tag.NewClosed("ul", attrs, []lines.Line{}, rockets...)
 
 	case blocks.CodeBlock:
+		var contentsLines []lines.Line
+		for _, line := range strings.Split(block.Contents(), "\n") {
+			contentsLines = append(contentsLines, lines.UnindentableFrom(line))
+		}
 		attrs["class"] = "codeblock"
-		return tag.NewClosed("pre", attrs, "",
+		return tag.NewClosed("pre", attrs, []lines.Line{},
 			tag.NewClosed(
 				"code",
 				map[string]string{"class": "language-" + block.Language()},
-				block.Contents(),
+				contentsLines,
 			))
 
 	case blocks.Img:
@@ -112,7 +120,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			children = append(children, BlockToTag(ctx, entry, counter))
 		}
 		attrs["class"] = "img-gallery " + util.TernaryConditionString(block.HasOneImage(), "img-gallery_one-image", "img-gallery_many-images")
-		return tag.NewClosed("section", attrs, "", children...)
+		return tag.NewClosed("section", attrs, []lines.Line{}, children...)
 
 	case blocks.ImgEntry:
 		var children []tag.Tag
@@ -132,7 +140,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 				tag.NewClosed(
 					"a",
 					map[string]string{"href": block.Target.Href()},
-					"",
+					[]lines.Line{},
 					tag.NewUnclosed("img", imgAttrs),
 				),
 			)
@@ -145,19 +153,21 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 						"class": block.Target.Classes(),
 						"href":  block.Target.Href(),
 					},
-					fmt.Sprintf("Hypha <i>%s</i> does not exist", block.Target.TargetHypha()),
+					[]lines.Line{
+						lines.IndentableFrom(fmt.Sprintf("Hypha <i>%s</i> does not exist", block.Target.TargetHypha())),
+					},
 				),
 			)
 		}
 		if block.Description != "" {
-			figcaption := tag.NewClosed("figcaption", nil, "", BlockToTag(
+			figcaption := tag.NewClosed("figcaption", nil, []lines.Line{}, BlockToTag(
 				ctx,
 				parser.MakeFormatted(block.Description, ctx.HyphaName()),
 				counter,
 			))
 			children = append(children, figcaption)
 		}
-		return tag.NewClosed("figure", map[string]string{"class": "img-gallery__entry"}, "", children...)
+		return tag.NewClosed("figure", map[string]string{"class": "img-gallery__entry"}, []lines.Line{}, children...)
 
 	case blocks.HorizontalLine:
 		return tag.NewUnclosed("hr", attrs)

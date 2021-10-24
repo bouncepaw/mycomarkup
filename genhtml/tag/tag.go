@@ -3,6 +3,7 @@ package tag
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/v3/util/lines"
 	"sort"
 	"strings"
 )
@@ -24,7 +25,7 @@ type Tag struct {
 	name       string
 	kind       tagKind
 	attributes map[string]string
-	contents   string
+	contents   []lines.Line
 	children   []Tag
 }
 
@@ -34,13 +35,13 @@ func NewUnclosed(name string, attributes map[string]string) Tag {
 		name:       name,
 		kind:       unclosed,
 		attributes: attributes,
-		contents:   "",
+		contents:   nil,
 		children:   nil,
 	}
 }
 
 // NewClosed returns a new closed tag.
-func NewClosed(name string, attributes map[string]string, contents string, children ...Tag) Tag {
+func NewClosed(name string, attributes map[string]string, contents []lines.Line, children ...Tag) Tag {
 	return Tag{
 		name:       name,
 		kind:       closed,
@@ -51,7 +52,7 @@ func NewClosed(name string, attributes map[string]string, contents string, child
 }
 
 // NewWrapper returns a new wrapper tag.
-func NewWrapper(contents string, children ...Tag) Tag {
+func NewWrapper(contents []lines.Line, children ...Tag) Tag {
 	return Tag{
 		name:       "",
 		kind:       wrapper,
@@ -61,38 +62,47 @@ func NewWrapper(contents string, children ...Tag) Tag {
 	}
 }
 
-// String returns an indented pretty-printed representation of the Tag.
-func (t Tag) String() (res string) {
+// String returns a string representation of the tag.
+func (t Tag) String() string {
+	var res string
+	for _, line := range t.Lines() {
+		res += line.String()
+	}
+	return res
+}
+
+// Lines returns rendered lines of the tag.
+func (t Tag) Lines() (res []lines.Line) {
 	switch t.kind {
 	case unclosed:
-		return fmt.Sprintf("<%s%s/>\n", t.name, attrs(t.attributes))
-	case closed:
-		res += fmt.Sprintf("<%s%s>\n", t.name, attrs(t.attributes))
-		var tmp string
-		if t.contents != "" {
-			tmp += t.contents + "\n"
+		return []lines.Line{
+			lines.IndentableFrom(fmt.Sprintf("<%s%s/>", t.name, attrs(t.attributes))),
 		}
-		for i, child := range t.children {
-			if i > 0 {
-				tmp += "\n"
-			}
-			tmp += child.String()
-		}
-		res += eachLineIndented(tmp)
-		res += fmt.Sprintf("</%s>\n", t.name) // FIXME: Extra indent is printed for some reason
-		return res
+
 	case wrapper:
-		res += t.contents
-		for i, child := range t.children {
-			if i > 0 || (i == 0 && t.contents != "") {
-				res += "\n"
-			}
-			res += child.String()
+		res = t.contents
+		for _, child := range t.children {
+			res = append(res, child.Lines()...)
 		}
 		return res
+
+	case closed:
+		res = []lines.Line{
+			lines.IndentableFrom(fmt.Sprintf("<%s%s>", t.name, attrs(t.attributes))),
+		}
+		res = append(res, t.contents...)
+		for _, child := range t.children {
+			for _, line := range child.Lines() {
+				res = append(res, line.Indented())
+			}
+		}
+		res = append(res, lines.IndentableFrom(fmt.Sprintf("</%s>\n", t.name)))
+		return res
+
 	default:
-		return "ERROR"
+		res = append(res, lines.UnindentableFrom("ERROR"))
 	}
+	return res
 }
 
 func attrs(m map[string]string) (res string) {
@@ -107,18 +117,4 @@ func attrs(m map[string]string) (res string) {
 	// Sort so the output is the same for the same input.
 	sort.Strings(parts)
 	return strings.Join(parts, "")
-}
-
-func eachLineIndented(s string) (res string) {
-	lines := strings.Split(s, "\n")
-	if lines[len(lines)-1] == "" {
-		lines = lines[:len(lines)-1]
-	}
-	for i, line := range lines {
-		if i > 0 {
-			res += "\n"
-		}
-		res += "\t" + line
-	}
-	return res + "\n"
 }
