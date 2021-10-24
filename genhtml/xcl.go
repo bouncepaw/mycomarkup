@@ -8,12 +8,11 @@ import (
 )
 
 func wrapInTransclusionError(errParagraph string) tag.Tag {
-	return tag.NewClosed("section",
-		tag.NewClosed("p").WithContentsStrings(errParagraph),
-	).
+	return tag.NewClosed("section").
 		WithAttrs(map[string]string{
 			"class": "transclusion transclusion_failed transclusion_not-exists",
-		})
+		}).
+		WithChildren(tag.NewClosed("p").WithContentsStrings(errParagraph))
 }
 
 // MapTransclusionErrorToTag returns an error tag that you should display to the user. If there is no error in the transclusion, bad things will happen, so verify with xcl.HasError beforehand.

@@ -15,13 +15,12 @@ const maxRecursionLevel = 3
 // V3 Kinda hard to get rid of that
 func generateHTML(ctx mycocontext.Context, ast []blocks.Block, counter *blocks.IDCounter) (html string) {
 	if ctx.RecursionLevel() > maxRecursionLevel {
-		return tag.NewClosed("section",
-			tag.NewClosed("p"),
-		).
+		return tag.NewClosed("section").
 			WithContentsStrings("Transclusion depth limit").
 			WithAttrs(map[string]string{
 				"class": "transclusion transclusion_failed transclusion_not-exists",
 			}).
+			WithChildren(tag.NewClosed("p")).
 			String()
 	}
 	for _, line := range ast {
@@ -94,26 +93,29 @@ func transclusionToHTML(ctx mycocontext.Context, xcl blocks.Transclusion, counte
 		xclText = binaryHtml + xclText
 	}
 
-	return tag.NewClosed("section",
-		tag.NewClosed("a").
-			WithContentsStrings(xcl.Target).
-			WithAttrs(map[string]string{
-				"class": "transclusion__link",
-				"href":  "/hypha/" + xcl.Target,
-			}),
-		tag.NewClosed("div").
-			WithContentsStrings(xclText).
-			WithAttrs(map[string]string{
-				"class": "transclusion__content",
-			}),
-	).WithAttrs(map[string]string{
-		"id": xcl.ID(counter),
-		"class": "transclusion transclusion_ok transclusion_" + util.TernaryConditionString(
-			xcl.Blend,
-			"blend",
-			"stand-out",
-		),
-	}).String()
+	return tag.NewClosed("section").
+		WithAttrs(map[string]string{
+			"id": xcl.ID(counter),
+			"class": "transclusion transclusion_ok transclusion_" + util.TernaryConditionString(
+				xcl.Blend,
+				"blend",
+				"stand-out",
+			),
+		}).
+		WithChildren(
+			tag.NewClosed("a").
+				WithContentsStrings(xcl.Target).
+				WithAttrs(map[string]string{
+					"class": "transclusion__link",
+					"href":  "/hypha/" + xcl.Target,
+				}),
+			tag.NewClosed("div").
+				WithContentsStrings(xclText).
+				WithAttrs(map[string]string{
+					"class": "transclusion__content",
+				}),
+		).
+		String()
 }
 
 func listToTemplate(list blocks.List) string {

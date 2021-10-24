@@ -41,25 +41,36 @@ func NewUnclosed(name string) Tag {
 }
 
 // NewClosed returns a new closed tag.
-func NewClosed(name string, children ...Tag) Tag {
+func NewClosed(name string) Tag {
 	return Tag{
 		name:       name,
 		kind:       closed,
 		attributes: nil,
 		contents:   nil,
-		children:   children,
+		children:   nil,
 	}
 }
 
 // NewWrapper returns a new wrapper tag.
-func NewWrapper(children ...Tag) Tag {
+func NewWrapper() Tag {
 	return Tag{
 		name:       "",
 		kind:       wrapper,
-		attributes: map[string]string{},
+		attributes: nil,
 		contents:   nil,
-		children:   children,
+		children:   nil,
 	}
+}
+
+// WithChildren returns the tag but with the given children. Previous children of the tag are discarded.
+//
+// This is a no-op for unclosed tags.
+func (t Tag) WithChildren(children ...Tag) Tag {
+	if t.kind == unclosed {
+		return t
+	}
+	t.children = children
+	return t
 }
 
 // WithAttrs return the tag but with the given attributes. Previous attributes of the tag are discarded.
