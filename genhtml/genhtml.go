@@ -20,15 +20,6 @@ import (
 
 // BlockToTag turns the given Block into a Tag depending on the Context and IDCounter.
 func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDCounter) tag.Tag {
-	if ctx.RecursionLevel() > 3 {
-		return tag.NewClosed("section").
-			WithAttrs(map[string]string{
-				"class": "transclusion transclusion_failed transclusion_not-exists",
-			}).
-			WithChildren(tag.NewClosed("p").
-				WithContentsStrings("Transclusion depth limit"))
-	}
-
 	var attrs = map[string]string{}
 	if counter.ShouldUseResults() {
 		attrs["id"] = block.ID(counter)
@@ -248,6 +239,15 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 
 	case blocks.Transclusion:
 		xcl := block
+		if ctx.RecursionLevel() > 3 {
+			return tag.NewClosed("section").
+				WithAttrs(map[string]string{
+					"class": "transclusion transclusion_failed transclusion_not-exists",
+				}).
+				WithChildren(tag.NewClosed("p").
+					WithContentsStrings("Transclusion depth limit"))
+		}
+
 		if xcl.HasError() {
 			return MapTransclusionErrorToTag(xcl)
 		}
@@ -265,7 +265,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 
 		var children []tag.Tag
 		for _, child := range result() {
-			children = append(children, BlockToTag(ctx, child, counter.UnusableCopy()))
+			children = append(children, BlockToTag(ctx.WithIncrementedRecursionLevel(), child, counter.UnusableCopy()))
 		}
 
 		return tag.NewClosed("section").
