@@ -131,6 +131,45 @@ func (t Tag) Lines() (res []lines.Line) {
 		return res
 
 	case closed:
+		// codeblock-specific stuff first. This is pain 🥲
+		if t.name == "pre" {
+			for i, child := range t.children {
+				childLines := child.Lines()
+				for j, line := range childLines {
+					text := line.Contents()
+					if i+j == 0 { // First line
+						text = fmt.Sprintf(`<pre%s>%s`, attrs(t.attributes), text)
+					}
+					if i+j == len(t.children)+len(childLines)-2 { // Last line
+						text += `</pre>`
+					}
+					res = append(res, lines.UnindentableFrom(text))
+				}
+			}
+			return res
+		}
+		if t.name == "code" {
+			// open tag
+			if len(t.contents) > 0 {
+				t.contents[0] = lines.IndentableFrom(fmt.Sprintf(`<%s%s>%s`, t.name, attrs(t.attributes), t.contents[0].Contents()))
+			} else { // empty codeblock
+				t.contents = []lines.Line{
+					lines.IndentableFrom(fmt.Sprintf(`<%s%s>`, t.name, attrs(t.attributes))),
+				}
+			}
+
+			// close tag
+			// t.contents has at least one element here
+			lastElemIdx := len(t.contents) - 1
+			text := fmt.Sprintf("%s</%s>", t.contents[lastElemIdx].Contents(), t.name)
+			if t.contents[lastElemIdx].IsIndentable() {
+				t.contents[lastElemIdx] = lines.IndentableFrom(text)
+			} else {
+				t.contents[lastElemIdx] = lines.UnindentableFrom(text)
+			}
+			return t.contents
+		}
+		// normal closed tags:
 		res = []lines.Line{
 			lines.IndentableFrom(fmt.Sprintf("<%s%s>", t.name, attrs(t.attributes))),
 		}

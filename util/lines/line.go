@@ -37,7 +37,17 @@ func (l Line) Indented() Line {
 	return l
 }
 
-// String returns the line with the appropriate number of indentations (\n) and a newline.
+// Contents returns line's contents
+func (l Line) Contents() string {
+	return l.contents
+}
+
+// IsIndentable is true if the line is indentable.
+func (l Line) IsIndentable() bool {
+	return l.indentable
+}
+
+// String returns the line with the appropriate number of indentations (\t) and a newline.
 func (l Line) String() string {
 	return strings.Repeat("\t", int(l.indentCount)) + l.contents + "\n"
 }
