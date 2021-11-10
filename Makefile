@@ -31,6 +31,9 @@ test_tables: build
 test_death: build
 	./mycomarkup -hypha-name "test doc" -file-name "testdata/death.myco"
 
+test_new_headings: build
+	./mycomarkup -hypha-name "test doc" -file-name "testdata/test_new_headings.myco"
+
 generate:
 	# stringer -type=TokenKind -trimprefix Token ./parser
 

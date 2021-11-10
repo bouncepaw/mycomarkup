@@ -127,24 +127,37 @@ func NextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 		line, done := mycocontext.NextLine(ctx)
 		return blocks.NewHorizontalLine(line), done
 
-	case isPrefixedBy(ctx, "###### "):
-		line, done := mycocontext.NextLine(ctx)
-		return parseHeading(line, ctx.HyphaName(), 6), done
-	case isPrefixedBy(ctx, "##### "):
+	case isPrefixedBy(ctx, "==== "):
 		line, done := mycocontext.NextLine(ctx)
 		return parseHeading(line, ctx.HyphaName(), 5), done
-	case isPrefixedBy(ctx, "#### "):
+	case isPrefixedBy(ctx, "=== "):
 		line, done := mycocontext.NextLine(ctx)
 		return parseHeading(line, ctx.HyphaName(), 4), done
-	case isPrefixedBy(ctx, "### "):
+	case isPrefixedBy(ctx, "== "):
 		line, done := mycocontext.NextLine(ctx)
 		return parseHeading(line, ctx.HyphaName(), 3), done
-	case isPrefixedBy(ctx, "## "):
+	case isPrefixedBy(ctx, "= "):
 		line, done := mycocontext.NextLine(ctx)
 		return parseHeading(line, ctx.HyphaName(), 2), done
+
+	case isPrefixedBy(ctx, "###### "):
+		line, done := mycocontext.NextLine(ctx)
+		return parseLegacyHeading(line, ctx.HyphaName(), 6), done
+	case isPrefixedBy(ctx, "##### "):
+		line, done := mycocontext.NextLine(ctx)
+		return parseLegacyHeading(line, ctx.HyphaName(), 5), done
+	case isPrefixedBy(ctx, "#### "):
+		line, done := mycocontext.NextLine(ctx)
+		return parseLegacyHeading(line, ctx.HyphaName(), 4), done
+	case isPrefixedBy(ctx, "### "):
+		line, done := mycocontext.NextLine(ctx)
+		return parseLegacyHeading(line, ctx.HyphaName(), 3), done
+	case isPrefixedBy(ctx, "## "):
+		line, done := mycocontext.NextLine(ctx)
+		return parseLegacyHeading(line, ctx.HyphaName(), 2), done
 	case isPrefixedBy(ctx, "# "):
 		line, done := mycocontext.NextLine(ctx)
-		return parseHeading(line, ctx.HyphaName(), 1), done
+		return parseLegacyHeading(line, ctx.HyphaName(), 1), done
 
 	case matchesImg(ctx):
 		return nextImg(ctx)

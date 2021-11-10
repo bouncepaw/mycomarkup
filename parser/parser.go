@@ -22,8 +22,13 @@ func parseSubdocumentForEachBlock(ctx mycocontext.Context, buf *bytes.Buffer, f 
 	}
 }
 
-// parseHeading parses the heading on the given line and returns it. Find its level by yourself though.
-func parseHeading(line, hyphaName string, level uint) blocks.Heading {
+// parseLegacyHeading is like parseHeading but for #headings.
+func parseLegacyHeading(line, hyphaName string, level uint) blocks.Heading {
 	return blocks.NewHeading(level, MakeFormatted(line[level+1:], hyphaName), line)
-	// TODO: figure out the level here.
+}
+
+// parseHeading parses the =heading on the given line and returns it. Find its level by yourself though.
+func parseHeading(line, hyphaName string, level uint) blocks.Heading {
+	return blocks.NewHeading(level, MakeFormatted(line[level:], hyphaName), line)
+	// TODO: figure out the level here. Maybe?
 }
