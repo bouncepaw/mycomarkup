@@ -264,7 +264,21 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 		_ = temporary_workaround.BlockTree(xclctx, xclVisistor)              // Call for side-effects
 
 		var children []tag.Tag
-		for _, child := range result() {
+		collected, err := result()
+		if err != nil {
+			return tag.NewClosed("section").
+				WithAttrs(map[string]string{
+					"class": "transclusion transclusion_failed transclusion_no-description",
+				}).
+				WithChildren(tag.NewClosed("p").
+					WithContentsStrings(
+						fmt.Sprintf(
+							`Hypha <a href="/hypha/%s" class="wikilink">%s</a> has no description`,
+							xcl.Target,
+							util.BeautifulName(xcl.Target),
+						)))
+		}
+		for _, child := range collected {
 			children = append(children, BlockToTag(ctx.WithIncrementedRecursionLevel(), child, counter.UnusableCopy()))
 		}
 

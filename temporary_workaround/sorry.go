@@ -10,7 +10,7 @@ import (
 
 var TransclusionVisitor func(xcl blocks.Transclusion) (
 	visitor func(block blocks.Block),
-	result func() []blocks.Block,
+	result func() ([]blocks.Block, error),
 )
 
 var BlockTree func(ctx mycocontext.Context, visitors ...func(block blocks.Block)) []blocks.Block

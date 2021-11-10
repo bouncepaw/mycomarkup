@@ -2,6 +2,7 @@
 package mycomarkup
 
 import (
+	"errors"
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
 	"github.com/bouncepaw/mycomarkup/v3/genhtml"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
@@ -54,7 +55,7 @@ func BlocksToHTML(ctx mycocontext.Context, ast []blocks.Block) string {
 // transclusionVisitor returns a visitor to pass to BlockTree and a function to get the results.
 func transclusionVisitor(xcl blocks.Transclusion) (
 	visitor func(block blocks.Block),
-	result func() []blocks.Block,
+	result func() ([]blocks.Block, error),
 ) {
 	var (
 		collected             []blocks.Block
@@ -77,8 +78,14 @@ func transclusionVisitor(xcl blocks.Transclusion) (
 			}
 		}
 	}
-	result = func() []blocks.Block {
-		return collected
+	result = func() ([]blocks.Block, error) {
+		// Asked for a description, got no description.
+		if len(collected) == 0 &&
+			(xcl.Selector == blocks.SelectorOverview || xcl.Selector == blocks.SelectorDescription) {
+			return nil, errors.New("found no description")
+		}
+
+		return collected, nil
 	}
 	return
 }
