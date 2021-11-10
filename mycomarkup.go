@@ -79,10 +79,15 @@ func transclusionVisitor(xcl blocks.Transclusion) (
 		}
 	}
 	result = func() ([]blocks.Block, error) {
-		// Asked for a description, got no description.
-		if len(collected) == 0 &&
-			(xcl.Selector == blocks.SelectorOverview || xcl.Selector == blocks.SelectorDescription) {
-			return nil, errors.New("found no description")
+		if len(collected) == 0 {
+			switch xcl.Selector {
+			case blocks.SelectorOverview, blocks.SelectorDescription:
+				// Asked for a description, got no description.
+				return nil, errors.New("no description")
+			case blocks.SelectorFull, blocks.SelectorText:
+				// Asked for a text, found emptiness...
+				return nil, errors.New("no text")
+			}
 		}
 
 		return collected, nil

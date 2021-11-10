@@ -266,17 +266,32 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 		var children []tag.Tag
 		collected, err := result()
 		if err != nil {
-			return tag.NewClosed("section").
-				WithAttrs(map[string]string{
-					"class": "transclusion transclusion_failed transclusion_no-description",
-				}).
-				WithChildren(tag.NewClosed("p").
-					WithContentsStrings(
-						fmt.Sprintf(
-							`Hypha <a href="/hypha/%s" class="wikilink">%s</a> has no description`,
-							xcl.Target,
-							util.BeautifulName(xcl.Target),
-						)))
+			switch err.Error() {
+			case "no description":
+				return tag.NewClosed("section").
+					WithAttrs(map[string]string{
+						"class": "transclusion transclusion_failed transclusion_no-description",
+					}).
+					WithChildren(tag.NewClosed("p").
+						WithContentsStrings(
+							fmt.Sprintf(
+								`Hypha <a href="/hypha/%s" class="wikilink">%s</a> has no description`,
+								xcl.Target,
+								util.BeautifulName(xcl.Target),
+							)))
+			case "no text":
+				return tag.NewClosed("section").
+					WithAttrs(map[string]string{
+						"class": "transclusion transclusion_failed transclusion_no-text",
+					}).
+					WithChildren(tag.NewClosed("p").
+						WithContentsStrings(
+							fmt.Sprintf(
+								`Hypha <a href="/hypha/%s" class="wikilink">%s</a> has no text`,
+								xcl.Target,
+								util.BeautifulName(xcl.Target),
+							)))
+			}
 		}
 		for _, child := range collected {
 			children = append(children, BlockToTag(ctx.WithIncrementedRecursionLevel(), child, counter.UnusableCopy()))
