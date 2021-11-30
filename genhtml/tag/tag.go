@@ -169,6 +169,13 @@ func (t Tag) Lines() (res []lines.Line) {
 			}
 			return t.contents
 		}
+		// more pain
+		if (t.name == "a") && (len(t.children) == 0) && (len(t.contents) == 1) {
+			res = []lines.Line{
+				lines.IndentableFrom(fmt.Sprintf(`<%[1]s%[2]s>%[3]s</%[1]s>`, t.name, attrs(t.attributes), t.contents[0].Contents())),
+			}
+			return res
+		}
 		// normal closed tags:
 		res = []lines.Line{
 			lines.IndentableFrom(fmt.Sprintf("<%s%s>", t.name, attrs(t.attributes))),

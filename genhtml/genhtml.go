@@ -42,13 +42,13 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					contents += blocks.TagFromState(s.Kind(), tagState)
 
 				case blocks.InlineLink:
-					contents += tag.NewClosed("a").
+					contents += strings.TrimSuffix(tag.NewClosed("a").
 						WithAttrs(map[string]string{
 							"href":  s.Href(),
 							"class": s.Classes(),
 						}).
 						WithContentsStrings(s.Display()).
-						String()
+						String(), "\n")
 
 				case blocks.InlineText:
 					contents += html.EscapeString(s.Contents)
