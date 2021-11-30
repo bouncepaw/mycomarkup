@@ -259,9 +259,9 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			xcl.TransclusionError.Reason = blocks.TransclusionErrorNotExists
 			return MapTransclusionErrorToTag(xcl)
 		}
-		xclVisistor, result := temporary_workaround.TransclusionVisitor(xcl)
+		xclVisitor, result := temporary_workaround.TransclusionVisitor(xcl)
 		xclctx, _ := mycocontext.ContextFromStringInput(xcl.Target, rawText) // FIXME: it will bite us one day UPDATE: is it the day? I don't feel the bite.
-		_ = temporary_workaround.BlockTree(xclctx, xclVisistor)              // Call for side-effects
+		_ = temporary_workaround.BlockTree(xclctx, xclVisitor)               // Call for side-effects
 
 		var children []tag.Tag
 		collected, err := result()
