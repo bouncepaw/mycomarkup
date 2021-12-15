@@ -198,8 +198,6 @@ func parseImgUntilCurlyBrace(ctx mycocontext.Context) (img blocks.Img) {
 	// Ignore stuff for now. TODO: https://github.com/bouncepaw/mycomarkup/issues/6
 	_ = stuff
 
-	return blocks.Img{
-		Entries:   make([]blocks.ImgEntry, 0),
-		HyphaName: ctx.HyphaName(),
-	}
+	// TODO: handle arrangement and position.
+	return blocks.NewImg(make([]blocks.ImgEntry, 0), 0, 0)
 }

@@ -8,9 +8,9 @@ import (
 
 // Img is an image gallery, consisting of zero or more images.
 type Img struct {
-	// All entries
-	Entries   []ImgEntry
-	HyphaName string
+	Entries     []ImgEntry
+	arrangement ImgArrangement
+	position    ImgPosition
 }
 
 // ID returns the gallery's id which is img- and a number.
@@ -19,7 +19,24 @@ func (img Img) ID(counter *IDCounter) string {
 	return fmt.Sprintf("img-%d", counter.imgs)
 }
 
+// NewImg returns a new Img.
+func NewImg(entries []ImgEntry, arrangement ImgArrangement, position ImgPosition) Img {
+	return Img{
+		Entries:     entries,
+		arrangement: arrangement,
+		position:    position,
+	}
+}
+
+// Arrangement returns Img's arrangement.
+func (img Img) Arrangement() ImgArrangement { return img.arrangement }
+
+// Position returns Img's position.
+func (img Img) Position() ImgPosition { return img.position }
+
 // HasOneImage returns true if img has exactly one image. The image may have a description.
+//
+// TODO: get rid of the concept.
 func (img Img) HasOneImage() bool {
 	return len(img.Entries) == 1
 }
@@ -66,8 +83,5 @@ func (img Img) WithExistingTargetsMarked() Img {
 		entries = append(entries, entry)
 	}
 
-	return Img{
-		Entries:   entries,
-		HyphaName: img.HyphaName,
-	}
+	return NewImg(entries, img.Arrangement(), img.Position())
 }
