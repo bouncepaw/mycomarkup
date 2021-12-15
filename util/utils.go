@@ -35,10 +35,10 @@ func SanitizedName(unsafeName string) string {
 // BeautifulName makes the ugly name beautiful by replacing _ with spaces and using title case
 func BeautifulName(uglyName string) string {
 	uglyName = SanitizedName(uglyName)
-	// What other transformations can we apply for a better beautifying process?
 	if uglyName == "" {
 		return uglyName
 	}
+	// What other transformations can we apply for a better beautifying process?
 	return strings.Title(strings.ReplaceAll(uglyName, "_", " "))
 }
 

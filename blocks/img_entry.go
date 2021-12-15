@@ -7,19 +7,31 @@ import (
 // ImgEntry is an entry of an image gallery. It can only be nested into Img. V3: proper readers, encapsulate
 type ImgEntry struct {
 	Target      links.Link
-	HyphaName   string
-	Width       string
-	Height      string
-	Description string // TODO: change to Formatted type.
+	hyphaName   string
+	width       string
+	height      string
+	description string // TODO: change to Formatted type.
+}
+
+// NewImgEntry returns a new ImgEntry.
+func NewImgEntry(target links.Link, hyphaName, width, height, description string) ImgEntry {
+	return ImgEntry{
+		Target:      target,
+		hyphaName:   hyphaName,
+		width:       width,
+		height:      height,
+		description: description,
+	}
 }
 
 // ID returns an empty string because images do not have ids. Image galleries do have them, by the way, see Img.
-func (entry ImgEntry) ID(_ *IDCounter) string {
-	return ""
-}
+func (entry ImgEntry) ID(_ *IDCounter) string { return "" }
 
-// GetWidth returns the width property of the entry. TODO: rename to Width.
-func (entry ImgEntry) GetWidth() string { return entry.Width }
+// Width returns the width property of the entry.
+func (entry ImgEntry) Width() string { return entry.width }
 
-// GetHeight returns the height property of the entry. TODO: rename to Height.
-func (entry ImgEntry) GetHeight() string { return entry.Height }
+// Height returns the height property of the entry.
+func (entry ImgEntry) Height() string { return entry.height }
+
+// Description returns the description of the entry. The description is unparsed Mycomarkup string.
+func (entry ImgEntry) Description() string { return entry.description }

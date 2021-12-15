@@ -80,6 +80,7 @@ func nextImgEntry(ctx mycocontext.Context) (
 		state = imgEntryOnStart
 
 		target, width, height strings.Builder
+		descbuf               string
 	)
 	entryFound = true
 
@@ -121,7 +122,7 @@ runewalker:
 			case '|':
 				state = imgEntryCollectingDimensionWidth
 			case '{':
-				imgEntry.Description = nextImgEntryDescription(ctx)
+				descbuf = nextImgEntryDescription(ctx)
 				break runewalker
 			default:
 				// I am confident in myself, thus I ignore errors
@@ -140,7 +141,7 @@ runewalker:
 			case '*':
 				state = imgEntryCollectingDimensionHeight
 			case '{':
-				imgEntry.Description = nextImgEntryDescription(ctx)
+				descbuf = nextImgEntryDescription(ctx)
 				break runewalker
 			default: // Ignore the garbage!
 			}
@@ -155,7 +156,7 @@ runewalker:
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				_, _ = height.WriteRune(r)
 			case '{':
-				imgEntry.Description = nextImgEntryDescription(ctx)
+				descbuf = nextImgEntryDescription(ctx)
 				break runewalker
 			default: // Ignore the garbage!
 			}
@@ -164,12 +165,14 @@ runewalker:
 		}
 	}
 
-	imgEntry.Target = links.From(target.String(), "", ctx.HyphaName())
-	imgEntry.HyphaName = ctx.HyphaName()
-	imgEntry.Width = width.String()
-	imgEntry.Height = height.String()
-
-	return imgEntry, entryFound, imgDone
+	return blocks.NewImgEntry(
+			links.From(target.String(), "", ctx.HyphaName()),
+			ctx.HyphaName(),
+			width.String(),
+			height.String(),
+			descbuf),
+		entryFound,
+		imgDone
 }
 
 // Call this function if and only if matchesImg(ctx) == true.

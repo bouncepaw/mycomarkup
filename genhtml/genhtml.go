@@ -134,11 +134,11 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			imgAttrs := map[string]string{
 				"src": block.Target.ImgSrc(),
 			}
-			if block.GetWidth() != "" {
-				imgAttrs["width"] = block.GetWidth()
+			if block.Width() != "" {
+				imgAttrs["width"] = block.Width()
 			}
-			if block.GetHeight() != "" {
-				imgAttrs["height"] = block.GetHeight()
+			if block.Height() != "" {
+				imgAttrs["height"] = block.Height()
 			}
 			children = append(
 				children,
@@ -158,11 +158,11 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					}),
 			)
 		}
-		if block.Description != "" {
+		if block.Description() != "" {
 			figcaption := tag.NewClosed("figcaption").
 				WithChildren(BlockToTag(
 					ctx,
-					parser.MakeFormatted(block.Description, ctx.HyphaName()),
+					parser.MakeFormatted(block.Description(), ctx.HyphaName()),
 					counter,
 				))
 			children = append(children, figcaption)

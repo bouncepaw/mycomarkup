@@ -12,7 +12,7 @@ import (
 
 // BlockTree returns a slice of blocks parsed from the Mycomarkup document contained in ctx.
 //
-// Pass visitors. Visitors are functions (usually closures) that are called on every top-pevep found block.
+// Pass visitors. Visitors are functions (usually closures) that are called on every top-level found block.
 //
 // Some pre-implemented visitors are in the tools package.
 func BlockTree(ctx mycocontext.Context, visitors ...func(block blocks.Block)) []blocks.Block {

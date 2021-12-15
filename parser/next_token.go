@@ -104,7 +104,7 @@ func nextQuote(ctx mycocontext.Context) (blocks.Quote, bool) {
 }
 
 func nextLineIsSomething(ctx mycocontext.Context) bool {
-	prefices := []string{"=>", "<=", "```", "* ", "*. ", "*v ", "*x ", "# ", "## ", "### ", "#### ", "##### ", "###### ", ">", "----"}
+	prefices := []string{"=>", "<=", "```", "* ", "*. ", "*v ", "*x ", "# ", "## ", "### ", "#### ", "##### ", "###### ", ">", "----", "= ", "== ", "=== ", "==== "}
 	for _, prefix := range prefices {
 		if isPrefixedBy(ctx, prefix) {
 			return true
@@ -127,6 +127,7 @@ func matchesEmptyLine(ctx mycocontext.Context) bool {
 	return true
 }
 
+// NextToken returns the next found block in the input. The second value is true if eof.
 func NextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 	switch {
 	case matchesEmptyLine(ctx):

@@ -13,7 +13,7 @@ import (
 
 // OpenGraphVisitors returns visitors you should pass to BlockTree. They will figure out what should go to the final opengraph. Call resultHTML to get that result.
 //
-// Description is the first root paragraph of the document. If there is no such paragraph, the description is empty string.
+// description is the first root paragraph of the document. If there is no such paragraph, the description is empty string.
 func OpenGraphVisitors(ctx mycocontext.Context) (
 	resultHTML func() string,
 	descVisitor func(blocks.Block),
