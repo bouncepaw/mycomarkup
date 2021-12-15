@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
+	"github.com/bouncepaw/mycomarkup/v3/links"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"strings"
 )
@@ -13,16 +14,35 @@ func isPrefixedBy(ctx mycocontext.Context, s string) bool { // This function has
 
 func nextLaunchPad(ctx mycocontext.Context) (blocks.LaunchPad, bool) {
 	var (
-		hyphaName   = ctx.HyphaName()
 		line        string
 		done        bool
 		rocketLinks = make([]blocks.RocketLink, 0)
 	)
 	for isPrefixedBy(ctx, "=>") {
 		line, done = mycocontext.NextLine(ctx)
-		rocketLinks = append(rocketLinks, blocks.ParseRocketLink(line, hyphaName))
+		rocketLinks = append(rocketLinks, lineToRocketLink(ctx, line))
 	}
 	return blocks.NewLaunchPad(rocketLinks), done
+}
+
+func lineToRocketLink(ctx mycocontext.Context, line string) blocks.RocketLink {
+	line = strings.TrimSpace(line[2:]) // Drop =>
+	if line == "" {
+		return blocks.RocketLink{IsEmpty: true}
+	}
+
+	var (
+		// Address is text after => till first whitespace
+		addr = strings.Fields(line)[0]
+		// Display text is what is left
+		display = strings.TrimPrefix(line, addr)
+		rl      = blocks.RocketLink{
+			IsEmpty: false,
+			Link:    links.From(addr, display, ctx.HyphaName()),
+		}
+	)
+
+	return rl
 }
 
 func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, eof bool) {
