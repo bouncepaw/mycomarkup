@@ -45,5 +45,5 @@ func (h Heading) Contents() Formatted {
 
 // ID returns the Heading's id which is basically a stripped version of its contents. See util.StringID.
 func (h Heading) ID(_ *IDCounter) string {
-	return util.StringID(h.srcLine[h.level+1:])
+	return util.StringID(h.srcLine[h.level:])
 }
