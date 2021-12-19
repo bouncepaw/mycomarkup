@@ -178,26 +178,41 @@ runewalker:
 // Call this function if and only if matchesImg(ctx) == true.
 func parseImgUntilCurlyBrace(ctx mycocontext.Context) (img blocks.Img) {
 	// Input:
-	// img<stuff>{<rest...>
+	// img<layout>{<rest...>
 
 	// Read img first. Sorry for party rocking 😎
 	_, _ = mycocontext.NextRune(ctx)
 	_, _ = mycocontext.NextRune(ctx)
 	_, _ = mycocontext.NextRune(ctx)
 
-	var stuff strings.Builder
+	var layout strings.Builder
 	for {
 		// It must be safe to ignore the error as long as parseImgUntilCurlyBrace is called correctly.
 		r, _ := mycocontext.NextRune(ctx)
 		if r == '{' {
 			break
 		}
-		_, _ = stuff.WriteRune(r)
+		_, _ = layout.WriteRune(r)
 	}
 
-	// Ignore stuff for now. TODO: https://github.com/bouncepaw/mycomarkup/issues/6
-	_ = stuff
+	arrangement, position := parseImgLayout(layout.String())
+	return blocks.NewImg(make([]blocks.ImgEntry, 0), arrangement, position)
+}
 
-	// TODO: handle arrangement and position.
-	return blocks.NewImg(make([]blocks.ImgEntry, 0), 0, 0)
+func parseImgLayout(layout string) (arrangement blocks.ImgArrangement, position blocks.ImgPosition) {
+	if strings.Contains(layout, "grid") {
+		arrangement = blocks.ImgArrangementGrid
+	} else { // "column"
+		arrangement = blocks.ImgArrangementColumn
+	}
+
+	if strings.Contains(layout, "start") {
+		position = blocks.ImgPositionStart
+	} else if strings.Contains(layout, "end") {
+		position = blocks.ImgPositionEnd
+	} else { // "stretch
+		position = blocks.ImgPositionStretch
+	}
+
+	return arrangement, position
 }

@@ -14,6 +14,15 @@ const (
 	ImgArrangementGrid
 )
 
+func (arrangement ImgArrangement) String() string {
+	switch arrangement {
+	case ImgArrangementGrid:
+		return "grid"
+	default:
+		return "column"
+	}
+}
+
 // ImgPosition is an enumeration of possible Img external placements.
 //
 // Keywords:
@@ -30,3 +39,14 @@ const (
 	// ImgPositionEnd places the gallery to the ‘end’. For LTR environments, that would be the right side. For RTL environments, that would be the left side.
 	ImgPositionEnd
 )
+
+func (pos ImgPosition) String() string {
+	switch pos {
+	case ImgPositionStart:
+		return "start"
+	case ImgPositionEnd:
+		return "end"
+	default:
+		return "stretch"
+	}
+}
