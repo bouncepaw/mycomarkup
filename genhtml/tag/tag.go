@@ -186,7 +186,7 @@ func (t Tag) Lines() (res []lines.Line) {
 				res = append(res, line.Indented())
 			}
 		}
-		res = append(res, lines.IndentableFrom(fmt.Sprintf("</%s>\n", t.name)))
+		res = append(res, lines.IndentableFrom(fmt.Sprintf("</%s>", t.name)))
 		return res
 
 	default:
