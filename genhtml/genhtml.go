@@ -359,7 +359,7 @@ func listMarkerToItemTag(m blocks.ListMarker) tag.Tag {
 		return t.WithAttrs(map[string]string{
 			"class": "item_todo",
 		}).WithContentsLines(
-			tag.NewUnclosed("checkbox").
+			tag.NewUnclosed("input").
 				WithAttrs(map[string]string{
 					"type":     "checkbox",
 					"disabled": "disabled",
@@ -370,7 +370,7 @@ func listMarkerToItemTag(m blocks.ListMarker) tag.Tag {
 		return t.WithAttrs(map[string]string{
 			"class": "item_todo item_todo-done",
 		}).WithContentsLines(
-			tag.NewUnclosed("checkbox").
+			tag.NewUnclosed("input").
 				WithAttrs(map[string]string{
 					"type":     "checkbox",
 					"disabled": "disabled",
