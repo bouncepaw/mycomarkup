@@ -33,9 +33,11 @@ func lineToRocketLink(ctx mycocontext.Context, line string) blocks.RocketLink {
 
 	var (
 		// Address is text after => till first whitespace
-		addr = strings.Fields(line)[0]
+		addr = strings.FieldsFunc(line, func(r rune) bool {
+			return r == '|'
+		})[0]
 		// Display text is what is left
-		display = strings.TrimPrefix(line, addr)
+		display = strings.TrimPrefix(strings.TrimPrefix(line, addr), "|")
 		rl      = blocks.RocketLink{
 			IsEmpty: false,
 			Link:    links.From(addr, display, ctx.HyphaName()),

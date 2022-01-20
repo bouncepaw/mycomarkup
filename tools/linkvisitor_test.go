@@ -11,7 +11,7 @@ import (
 const inputLinks = `[[ TODO ]]
 
 => links
-=> links/Games Games
+=> links/Games | Games
 
 * [[ideas]]
 * => links/Anime
@@ -29,7 +29,6 @@ func TestLinkVisitor(t *testing.T) {
 		hyphaName = "test"
 	)
 	ctx, _ := mycocontext.ContextFromStringInput(hyphaName, inputLinks)
-	ctx = mycocontext.WithCalledInShell(ctx)
 	linkVisitor, getLinks := LinkVisitor(ctx)
 	mycomarkup.BlockTree(ctx, linkVisitor)
 	foundLinks := getLinks()
