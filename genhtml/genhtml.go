@@ -125,10 +125,9 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			children = append(children, BlockToTag(ctx, entry, counter))
 		}
 		attrs["class"] = fmt.Sprintf(
-			`img-gallery img-gallery_%s img-gallery_arrangement-%s img-gallery_position-%s`,
+			`img-gallery img-gallery_%s img-gallery_layout-%s`,
 			util.TernaryConditionString(block.HasOneImage(), "one-image", "many-images"),
-			block.Arrangement().String(),
-			block.Position().String(),
+			block.Layout().String(),
 		)
 		return tag.NewClosed("section").WithAttrs(attrs).WithChildren(children...)
 

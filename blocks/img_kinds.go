@@ -1,52 +1,24 @@
 package blocks
 
-// ImgArrangement is an enumeration of possible Img internal arrangements.
-//
-// Keywords:
-//     column   ImgArrangementColumn
-//     grid     ImgArrangementGrid
-type ImgArrangement int
+// ImgLayout represents the layout of the Img element
+type ImgLayout int
 
 const (
-	// ImgArrangementColumn is the default arrangement. Images are in one column, text is below the images.
-	ImgArrangementColumn ImgArrangement = iota
-	// ImgArrangementGrid places the images in a grid. The grid size is unspecified.
-	ImgArrangementGrid
+	// ImgLayoutNormal is a main-column-wide one-column stack of images.
+	ImgLayoutNormal ImgLayout = iota
+	// ImgLayoutGrid is main-column-wide two-column stack of images.
+	ImgLayoutGrid
+	// ImgLayoutSide is a thin right-floating stack of images.
+	ImgLayoutSide
 )
 
-func (arrangement ImgArrangement) String() string {
-	switch arrangement {
-	case ImgArrangementGrid:
+func (l ImgLayout) String() string {
+	switch l {
+	case ImgLayoutSide:
+		return "side"
+	case ImgLayoutGrid:
 		return "grid"
 	default:
-		return "column"
-	}
-}
-
-// ImgPosition is an enumeration of possible Img external placements.
-//
-// Keywords:
-//     stretch  ImgPositionStretch
-//     start    ImgPositionStart
-//     end      ImgPositionEnd
-type ImgPosition int
-
-const (
-	// ImgPositionStretch is the default placement. The gallery is stretched horizontally.
-	ImgPositionStretch ImgPosition = iota
-	// ImgPositionStart places the gallery to the ‘start’. For LTR environments, that would be the left side. For RTL environments, that would be the right side.
-	ImgPositionStart
-	// ImgPositionEnd places the gallery to the ‘end’. For LTR environments, that would be the right side. For RTL environments, that would be the left side.
-	ImgPositionEnd
-)
-
-func (pos ImgPosition) String() string {
-	switch pos {
-	case ImgPositionStart:
-		return "start"
-	case ImgPositionEnd:
-		return "end"
-	default:
-		return "stretch"
+		return "normal"
 	}
 }

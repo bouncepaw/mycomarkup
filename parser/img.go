@@ -178,41 +178,33 @@ runewalker:
 // Call this function if and only if matchesImg(ctx) == true.
 func parseImgUntilCurlyBrace(ctx mycocontext.Context) (img blocks.Img) {
 	// Input:
-	// img<layout>{<rest...>
+	// img<attr>{<rest...>
 
 	// Read img first. Sorry for party rocking 😎
 	_, _ = mycocontext.NextRune(ctx)
 	_, _ = mycocontext.NextRune(ctx)
 	_, _ = mycocontext.NextRune(ctx)
 
-	var layout strings.Builder
+	var attr strings.Builder
 	for {
 		// It must be safe to ignore the error as long as parseImgUntilCurlyBrace is called correctly.
 		r, _ := mycocontext.NextRune(ctx)
 		if r == '{' {
 			break
 		}
-		_, _ = layout.WriteRune(r)
+		_, _ = attr.WriteRune(r)
 	}
 
-	arrangement, position := parseImgLayout(layout.String())
-	return blocks.NewImg(make([]blocks.ImgEntry, 0), arrangement, position)
+	return blocks.NewImg(make([]blocks.ImgEntry, 0), parseImgLayout(attr.String()))
 }
 
-func parseImgLayout(layout string) (arrangement blocks.ImgArrangement, position blocks.ImgPosition) {
-	if strings.Contains(layout, "grid") {
-		arrangement = blocks.ImgArrangementGrid
-	} else { // "column"
-		arrangement = blocks.ImgArrangementColumn
+func parseImgLayout(attr string) blocks.ImgLayout {
+	switch {
+	case strings.Contains(attr, "side"):
+		return blocks.ImgLayoutSide
+	case strings.Contains(attr, "grid"):
+		return blocks.ImgLayoutGrid
+	default:
+		return blocks.ImgLayoutNormal
 	}
-
-	if strings.Contains(layout, "start") {
-		position = blocks.ImgPositionStart
-	} else if strings.Contains(layout, "end") {
-		position = blocks.ImgPositionEnd
-	} else { // "stretch
-		position = blocks.ImgPositionStretch
-	}
-
-	return arrangement, position
 }
