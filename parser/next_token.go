@@ -5,6 +5,7 @@ import (
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
 	"github.com/bouncepaw/mycomarkup/v3/links"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"html"
 	"strings"
 )
 
@@ -57,7 +58,7 @@ func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, eof bool) {
 		if strings.HasPrefix(line, "```") {
 			break
 		}
-		contents += "\n" + line // Note: newline added every time
+		contents += "\n" + html.EscapeString(line) // Note: newline added every time
 	}
 	if len(contents) > 0 {
 		contents = contents[1:] // Drop the leading newline
