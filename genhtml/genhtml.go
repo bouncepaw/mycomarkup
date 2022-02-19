@@ -226,7 +226,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 	case blocks.Table:
 		var children []tag.Tag
 		if block.Caption() != "" {
-			children = append(children, tag.NewClosed("caption").WithContentsStrings(block.Caption()))
+			children = append(children, tag.NewClosed("caption").WithContentsStrings(html.EscapeString(block.Caption())))
 		}
 
 		var rows []tag.Tag
