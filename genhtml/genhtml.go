@@ -47,7 +47,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 							"href":  s.Href(),
 							"class": s.Classes(),
 						}).
-						WithContentsStrings(s.Display()).
+						WithContentsStrings(html.EscapeString(s.Display())).
 						String(), "\n")
 
 				case blocks.InlineText:
