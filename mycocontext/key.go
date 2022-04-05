@@ -5,14 +5,9 @@ type key int
 
 // These are keys for the context that floats around.
 const (
-	// keyHyphaName is for storing current hypha name as a string here.
-	keyHyphaName key = iota
 	// keyInputBuffer is for storing *bytes.Buffer with unread bytes of the source document.
-	keyInputBuffer
+	keyInputBuffer key = iota
 	// KeyRecursionLevel stores current level of transclusion recursion.
 	keyRecursionLevel
-	//
-	keyWebSiteURL
-	//
-	keyCalledInShell
+	keyOptions
 )

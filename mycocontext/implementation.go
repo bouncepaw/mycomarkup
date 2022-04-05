@@ -3,6 +3,7 @@ package mycocontext
 import (
 	"bytes"
 	"context"
+	"github.com/bouncepaw/mycomarkup/v3/options"
 )
 
 // I'm very well aware that storing context.Context inside structs is discouraged in most cases. But it should be ok this time.
@@ -13,7 +14,7 @@ type mycoContext struct {
 // See interface.go for description of the methods.
 
 func (ctx *mycoContext) HyphaName() string {
-	return ctx.Value(keyHyphaName).(string)
+	return ctx.Value(keyOptions).(options.Options).HyphaName
 }
 
 func (ctx *mycoContext) Input() *bytes.Buffer {
@@ -29,9 +30,9 @@ func (ctx *mycoContext) WithIncrementedRecursionLevel() Context {
 }
 
 func (ctx *mycoContext) WebSiteURL() string {
-	return ctx.Value(keyWebSiteURL).(string)
+	return ctx.Value(keyOptions).(options.Options).WebSiteURL
 }
 
-func (ctx *mycoContext) CalledInShell() bool {
-	return ctx.Value(keyCalledInShell).(bool)
+func (ctx *mycoContext) TransclusionSupported() bool {
+	return ctx.Value(keyOptions).(options.Options).TransclusionSupported
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v3"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v3/options"
 	"io/ioutil"
 )
 
@@ -16,8 +17,11 @@ func main() {
 	}
 
 	// TODO: provide a similar function but for []byte and use it here.
-	ctx, _ := mycocontext.ContextFromStringInput(hyphaName, string(contents))
-	ctx = mycocontext.WithCalledInShell(ctx)
+	ctx, _ := mycocontext.ContextFromStringInput(string(contents), options.Options{
+		HyphaName:             hyphaName,
+		WebSiteURL:            "",
+		TransclusionSupported: false,
+	})
 	ast := mycomarkup.BlockTree(ctx)
 	fmt.Println(mycomarkup.BlocksToHTML(ctx, ast))
 }
