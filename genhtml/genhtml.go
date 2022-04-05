@@ -98,7 +98,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					}))
 
 	case blocks.LaunchPad:
-		block.ColorRockets() // TODO: fumu fumu
+		block.ColorRockets(ctx) // TODO: fumu fumu
 		var rockets []tag.Tag
 		for _, rocket := range block.Rockets {
 			rockets = append(rockets, BlockToTag(ctx, rocket, counter))
@@ -120,7 +120,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					WithAttrs(map[string]string{"class": "language-" + block.Language()}))
 
 	case blocks.Img:
-		block = block.WithExistingTargetsMarked()
+		block = block.WithExistingTargetsMarked(ctx)
 		var children []tag.Tag
 		for _, entry := range block.Entries {
 			children = append(children, BlockToTag(ctx, entry, counter))

@@ -2,8 +2,8 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v3/globals"
 	"github.com/bouncepaw/mycomarkup/v3/links"
+	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 )
 
 // Img is an image gallery, consisting of zero or more images.
@@ -39,7 +39,7 @@ func (img Img) HasOneImage() bool {
 // WithExistingTargetsMarked returns a new Img with its ImgEntries colored according to their existence.
 //
 // This functions iterates over hyphae once.
-func (img Img) WithExistingTargetsMarked() Img {
+func (img Img) WithExistingTargetsMarked(ctx mycocontext.Context) Img {
 	// bouncepaw: I'm so sorry this function is this complex.
 
 	// We create this structure to keep track of what targets we have ‘ticked‘ ✅.
@@ -57,7 +57,7 @@ func (img Img) WithExistingTargetsMarked() Img {
 		})
 	}
 
-	globals.HyphaIterate(func(hn string) {
+	mycocontext.IterateHyphaNamesWith(ctx, func(hn string) {
 		// Go through every entry and mark them accordingly.
 		for i, entryCheck := range entryCheckList {
 			shouldCheck, target := entryCheck.shouldCheck, entryCheck.target

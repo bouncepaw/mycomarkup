@@ -2,8 +2,8 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v3/globals"
 	"github.com/bouncepaw/mycomarkup/v3/links"
+	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/util"
 )
 
@@ -24,8 +24,8 @@ func NewLaunchPad(rockets []RocketLink) LaunchPad {
 }
 
 // ColorRockets marks links to existing hyphae as existing. V3
-func (lp *LaunchPad) ColorRockets() {
-	globals.HyphaIterate(func(hyphaName string) {
+func (lp *LaunchPad) ColorRockets(ctx mycocontext.Context) {
+	mycocontext.IterateHyphaNamesWith(ctx, func(hyphaName string) {
 		for i, rocket := range lp.Rockets {
 			// TODO: do not canonize every time
 			if util.CanonicalName(rocket.TargetHypha()) == hyphaName {

@@ -11,7 +11,8 @@ type Options struct {
 
 	TransclusionSupported bool
 
-	HyphaExists func(string) bool
+	HyphaExists           func(string) bool
+	IterateHyphaNamesWith func(func(string))
 }
 
 func (opts Options) FillTheRest() Options {
@@ -19,6 +20,9 @@ func (opts Options) FillTheRest() Options {
 		opts.HyphaExists = func(hyphaName string) bool {
 			return true
 		}
+	}
+	if opts.IterateHyphaNamesWith == nil {
+		opts.IterateHyphaNamesWith = func(func(string)) {}
 	}
 	return opts
 }

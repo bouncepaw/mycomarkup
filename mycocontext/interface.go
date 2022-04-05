@@ -64,3 +64,7 @@ func WithBuffer(ctx Context, buf *bytes.Buffer) Context {
 func HyphaExists(ctx Context, hyphaName string) bool {
 	return ctx.Value(keyOptions).(options.Options).HyphaExists(hyphaName)
 }
+
+func IterateHyphaNamesWith(ctx Context, f func(string)) {
+	ctx.Value(keyOptions).(options.Options).IterateHyphaNamesWith(f)
+}
