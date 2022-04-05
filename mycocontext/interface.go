@@ -60,3 +60,7 @@ func ContextFromStringInput(input string, opts options.Options) (Context, Cancel
 func WithBuffer(ctx Context, buf *bytes.Buffer) Context {
 	return &mycoContext{context.WithValue(ctx, keyInputBuffer, buf)}
 }
+
+func HyphaExists(ctx Context, hyphaName string) bool {
+	return ctx.Value(keyOptions).(options.Options).HyphaExists(hyphaName)
+}

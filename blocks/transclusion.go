@@ -2,7 +2,6 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v3/globals"
 	"github.com/bouncepaw/mycomarkup/v3/links"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/util"
@@ -60,7 +59,7 @@ func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
 		}
 		// Sorry for party rocking
 		targetHypha = links.From(targetHypha, "", ctx.HyphaName()).TargetHypha()
-		if !globals.HyphaExists(targetHypha) {
+		if !mycocontext.HyphaExists(ctx, targetHypha) {
 			return Transclusion{
 				Target:            targetHypha,
 				Blend:             false,

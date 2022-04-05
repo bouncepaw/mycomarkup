@@ -21,7 +21,7 @@ func main() {
 		HyphaName:             hyphaName,
 		WebSiteURL:            "",
 		TransclusionSupported: false,
-	})
+	}.FillTheRest())
 	ast := mycomarkup.BlockTree(ctx)
 	fmt.Println(mycomarkup.BlocksToHTML(ctx, ast))
 }

@@ -10,4 +10,15 @@ type Options struct {
 	WebSiteURL string
 
 	TransclusionSupported bool
+
+	HyphaExists func(string) bool
+}
+
+func (opts Options) FillTheRest() Options {
+	if opts.HyphaExists == nil {
+		opts.HyphaExists = func(hyphaName string) bool {
+			return true
+		}
+	}
+	return opts
 }

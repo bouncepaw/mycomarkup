@@ -6,7 +6,6 @@ import (
 	"unicode"
 
 	"github.com/bouncepaw/mycomarkup/v3/blocks"
-	"github.com/bouncepaw/mycomarkup/v3/globals"
 	"github.com/bouncepaw/mycomarkup/v3/links"
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
 	"github.com/bouncepaw/mycomarkup/v3/util"
@@ -14,7 +13,7 @@ import (
 
 func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
 	line, done := mycocontext.NextLine(ctx)
-	p = blocks.Paragraph{MakeFormatted(line, ctx.HyphaName())}
+	p = blocks.Paragraph{MakeFormatted(ctx, line)}
 	if nextLineIsSomething(ctx) {
 		return
 	}
@@ -23,7 +22,7 @@ func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
 		if done && line == "" {
 			break
 		}
-		spans := spansFromLine(p.HyphaName, line)
+		spans := spansFromLine(ctx, p.HyphaName, line)
 		p.AddLine(spans)
 		if nextLineIsSomething(ctx) {
 			break
@@ -33,7 +32,7 @@ func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
 }
 
 // nextInlineLink returns an HTML representation of the next link in the input. Set isBracketedLink if the input starts with [[.
-func nextInlineLink(input *bytes.Buffer, hyphaName string, isBracketedLink bool) blocks.InlineLink {
+func nextInlineLink(ctx mycocontext.Context, input *bytes.Buffer, hyphaName string, isBracketedLink bool) blocks.InlineLink {
 	if isBracketedLink {
 		input.Next(2) // drop those [[
 	}
@@ -62,21 +61,22 @@ func nextInlineLink(input *bytes.Buffer, hyphaName string, isBracketedLink bool)
 	}
 
 	link := links.From(addrBuf.String(), displayBuf.String(), hyphaName)
-	if globals.HyphaExists(util.CanonicalName(link.TargetHypha())) {
+	if mycocontext.HyphaExists(ctx, util.CanonicalName(link.TargetHypha())) {
 		link = link.CopyMarkedAsExisting()
 	}
 	return blocks.InlineLink{Link: link}
 }
 
 // MakeFormatted parses the formatted text in the input and returns it. Does it?
-func MakeFormatted(firstLine, hyphaName string) blocks.Formatted {
+func MakeFormatted(ctx mycocontext.Context, firstLine string) blocks.Formatted {
+	hyphaName := ctx.HyphaName()
 	return blocks.Formatted{
 		HyphaName: hyphaName,
-		Lines:     [][]blocks.Span{spansFromLine(hyphaName, firstLine)},
+		Lines:     [][]blocks.Span{spansFromLine(ctx, hyphaName, firstLine)},
 	}
 }
 
-func spansFromLine(hyphaName, line string) []blocks.Span {
+func spansFromLine(ctx mycocontext.Context, hyphaName, line string) []blocks.Span {
 	var (
 		input      = bytes.NewBufferString(line)
 		spans      = make([]blocks.Span, 0)
@@ -107,9 +107,9 @@ runeWalker:
 		}
 		switch {
 		case startsWith("[["):
-			spans = append(spans, nextInlineLink(input, hyphaName, true))
+			spans = append(spans, nextInlineLink(ctx, input, hyphaName, true))
 		case (startsWith("https://") || startsWith("http://") || startsWith("gemini://") || startsWith("gopher://") || startsWith("ftp://")) && noTagsActive():
-			spans = append(spans, nextInlineLink(input, hyphaName, false))
+			spans = append(spans, nextInlineLink(ctx, input, hyphaName, false))
 		default:
 			spans = append(spans, nextInlineText(input))
 		}

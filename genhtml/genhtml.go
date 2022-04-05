@@ -167,7 +167,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			figcaption := tag.NewClosed("figcaption").
 				WithChildren(BlockToTag(
 					ctx,
-					parser.MakeFormatted(block.Description(), ctx.HyphaName()),
+					parser.MakeFormatted(ctx, block.Description()),
 					counter,
 				))
 			children = append(children, figcaption)
@@ -269,7 +269,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			HyphaName:             xcl.Target,
 			WebSiteURL:            ctx.WebSiteURL(),
 			TransclusionSupported: true,
-		}) // FIXME: it will bite us one day UPDATE: is it the day? I don't feel the bite.
+		}.FillTheRest()) // FIXME: it will bite us one day UPDATE: is it the day? I don't feel the bite.
 		_ = temporary_workaround.BlockTree(xclctx, xclVisitor) // Call for side-effects
 
 		var children []tag.Tag
