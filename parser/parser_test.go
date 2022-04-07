@@ -2,11 +2,18 @@ package parser
 
 import (
 	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v3/options"
 	"testing"
 )
 
+var opts = options.Options{
+	HyphaName:             "test",
+	WebSiteURL:            "",
+	TransclusionSupported: false,
+}.FillTheRest()
+
 func TestIsPrefixedBy(t *testing.T) {
-	ctx, _ := mycocontext.ContextFromStringInput("test", "input input")
+	ctx, _ := mycocontext.ContextFromStringInput("input input", opts)
 	res := isPrefixedBy(ctx, "input")
 	if !res {
 		t.Errorf("wrong")
@@ -14,7 +21,7 @@ func TestIsPrefixedBy(t *testing.T) {
 }
 
 func TestLooksLikeList1(t *testing.T) {
-	ctx, _ := mycocontext.ContextFromStringInput("test", "* i got drip")
+	ctx, _ := mycocontext.ContextFromStringInput("* i got drip", opts)
 	res := looksLikeList(ctx)
 	if !res {
 		t.Errorf("wrong")
@@ -22,7 +29,7 @@ func TestLooksLikeList1(t *testing.T) {
 }
 
 func TestLooksLikeList2(t *testing.T) {
-	ctx, _ := mycocontext.ContextFromStringInput("test", "* { what you gonna do\n when they come for you }")
+	ctx, _ := mycocontext.ContextFromStringInput("* { what you gonna do\n when they come for you }", opts)
 	res := looksLikeList(ctx)
 	if !res {
 		t.Errorf("wrong")
@@ -30,7 +37,7 @@ func TestLooksLikeList2(t *testing.T) {
 }
 
 func TestLooksLikeList3(t *testing.T) {
-	ctx, _ := mycocontext.ContextFromStringInput("test", "*{ what you gonna do\n when they come for you }")
+	ctx, _ := mycocontext.ContextFromStringInput("*{ what you gonna do\n when they come for you }", opts)
 	res := looksLikeList(ctx)
 	if res {
 		t.Errorf("wrong")
@@ -38,7 +45,7 @@ func TestLooksLikeList3(t *testing.T) {
 }
 
 func TestList1(t *testing.T) {
-	ctx, _ := mycocontext.ContextFromStringInput("test", "* li")
+	ctx, _ := mycocontext.ContextFromStringInput("* li", opts)
 	mycocontext.EatUntilSpace(ctx)
 	text, _ := readNextListItemsContents(ctx)
 	if text.String() != "li" {
@@ -47,7 +54,7 @@ func TestList1(t *testing.T) {
 }
 
 func TestList2(t *testing.T) {
-	ctx, _ := mycocontext.ContextFromStringInput("test", "* {dreamy\n   sky} ")
+	ctx, _ := mycocontext.ContextFromStringInput("* {dreamy\n   sky} ", opts)
 	mycocontext.EatUntilSpace(ctx)
 	text, _ := readNextListItemsContents(ctx)
 	if text.String() != "dreamy\nsky " {
@@ -56,7 +63,7 @@ func TestList2(t *testing.T) {
 }
 
 func TestNextLineIsSomething1(t *testing.T) {
-	ctx, _ := mycocontext.ContextFromStringInput("test", "=> space")
+	ctx, _ := mycocontext.ContextFromStringInput("=> space", opts)
 	res := nextLineIsSomething(ctx)
 	if !res {
 		t.Errorf("wrong")
@@ -64,7 +71,7 @@ func TestNextLineIsSomething1(t *testing.T) {
 }
 
 func TestNextLineIsSomething2(t *testing.T) {
-	ctx, _ := mycocontext.ContextFromStringInput("test", "* line")
+	ctx, _ := mycocontext.ContextFromStringInput("* line", opts)
 	res := nextLineIsSomething(ctx)
 	if !res {
 		t.Errorf("wrong")
@@ -72,7 +79,7 @@ func TestNextLineIsSomething2(t *testing.T) {
 }
 
 func TestNextLineIsSomething3(t *testing.T) {
-	ctx, _ := mycocontext.ContextFromStringInput("test", " \r\n")
+	ctx, _ := mycocontext.ContextFromStringInput(" \r\n", opts)
 	res := nextLineIsSomething(ctx)
 	if !res {
 		t.Errorf("wrong")
@@ -80,27 +87,27 @@ func TestNextLineIsSomething3(t *testing.T) {
 }
 
 func TestEmptyLine(t *testing.T) {
-	ctx1, _ := mycocontext.ContextFromStringInput("test", "")
+	ctx1, _ := mycocontext.ContextFromStringInput("", opts)
 	if !matchesEmptyLine(ctx1) {
 		t.Errorf("Wrong 1")
 	}
 
-	ctx2, _ := mycocontext.ContextFromStringInput("test", "\r\n")
+	ctx2, _ := mycocontext.ContextFromStringInput("\r\n", opts)
 	if !matchesEmptyLine(ctx2) {
 		t.Errorf("Wrong 2")
 	}
 
-	ctx3, _ := mycocontext.ContextFromStringInput("test", "aboba\r\n")
+	ctx3, _ := mycocontext.ContextFromStringInput("aboba\r\n", opts)
 	if matchesEmptyLine(ctx3) {
 		t.Errorf("Wrong 3")
 	}
 
-	ctx4, _ := mycocontext.ContextFromStringInput("test", " \r\n")
+	ctx4, _ := mycocontext.ContextFromStringInput(" \r\n", opts)
 	if !matchesEmptyLine(ctx4) {
 		t.Errorf("Wrong 4")
 	}
 
-	ctx5, _ := mycocontext.ContextFromStringInput("test", "aboba\r\n")
+	ctx5, _ := mycocontext.ContextFromStringInput("aboba\r\n", opts)
 	if matchesEmptyLine(ctx5) {
 		t.Errorf("Wrong 5")
 	}

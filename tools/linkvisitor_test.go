@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"github.com/bouncepaw/mycomarkup/v3/options"
 	"testing"
 
 	"github.com/bouncepaw/mycomarkup/v3"
@@ -27,8 +28,11 @@ img {
 func TestLinkVisitor(t *testing.T) {
 	var (
 		hyphaName = "test"
+		opts      = options.Options{
+			HyphaName: hyphaName,
+		}.FillTheRest()
 	)
-	ctx, _ := mycocontext.ContextFromStringInput(hyphaName, inputLinks)
+	ctx, _ := mycocontext.ContextFromStringInput(inputLinks, opts)
 	linkVisitor, getLinks := LinkVisitor(ctx)
 	mycomarkup.BlockTree(ctx, linkVisitor)
 	foundLinks := getLinks()
