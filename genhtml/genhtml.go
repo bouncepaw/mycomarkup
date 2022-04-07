@@ -3,7 +3,6 @@ package genhtml
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v3/globals"
 	"github.com/bouncepaw/mycomarkup/v3/options"
 	"github.com/bouncepaw/mycomarkup/v3/temporary_workaround"
 	"github.com/bouncepaw/mycomarkup/v3/util"
@@ -259,7 +258,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 
 		// V4 This part is awful, bloody hell. Move to the parser module
 		// Now, to real transclusion:
-		rawText, binaryHtml, err := globals.HyphaAccess(xcl.Target)
+		rawText, binaryHtml, err := mycocontext.HyphaHTMLData(ctx, xcl.Target)
 		if err != nil {
 			xcl.TransclusionError.Reason = blocks.TransclusionErrorNotExists
 			return MapTransclusionErrorToTag(xcl)

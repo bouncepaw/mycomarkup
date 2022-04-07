@@ -61,10 +61,16 @@ func WithBuffer(ctx Context, buf *bytes.Buffer) Context {
 	return &mycoContext{context.WithValue(ctx, keyInputBuffer, buf)}
 }
 
+// TODO: get rid of these three below
+
 func HyphaExists(ctx Context, hyphaName string) bool {
 	return ctx.Value(keyOptions).(options.Options).HyphaExists(hyphaName)
 }
 
 func IterateHyphaNamesWith(ctx Context, f func(string)) {
 	ctx.Value(keyOptions).(options.Options).IterateHyphaNamesWith(f)
+}
+
+func HyphaHTMLData(ctx Context, name string) (rawText, binaryHtml string, err error) {
+	return ctx.Value(keyOptions).(options.Options).HyphaHTMLData(name)
 }
