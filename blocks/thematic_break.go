@@ -5,17 +5,17 @@ import (
 	"github.com/bouncepaw/mycomarkup/v3/util"
 )
 
-// HorizontalLine represents the horizontal line block.
+// ThematicBreak represents the thematic line block, represented by a horizontal line.
 //
 // In Mycomarkup it is written like that:
 //     ----
-type HorizontalLine struct {
+type ThematicBreak struct {
 	src string
 }
 
-// NewHorizontalLine parses the horizontal line block on the given text line and returns it.
-func NewHorizontalLine(line string) HorizontalLine {
-	return HorizontalLine{
+// NewThematicBreak parses the horizontal line block on the given text line and returns it.
+func NewThematicBreak(line string) ThematicBreak {
+	return ThematicBreak{
 		src: line,
 	}
 }
@@ -23,7 +23,7 @@ func NewHorizontalLine(line string) HorizontalLine {
 // ID returns the line's id. By default, it is hr- and a number. If the line was written like that:
 //    ----id
 // , the specified id is returned instead.
-func (h HorizontalLine) ID(counter *IDCounter) string {
+func (h ThematicBreak) ID(counter *IDCounter) string {
 	counter.hrs++
 	if len(h.src) > 4 {
 		return util.StringID(h.src[4:])

@@ -149,7 +149,7 @@ func NextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 		return blocks.MakeTransclusion(ctx, line), done
 	case isPrefixedBy(ctx, "----"):
 		line, done := mycocontext.NextLine(ctx)
-		return blocks.NewHorizontalLine(line), done
+		return blocks.NewThematicBreak(line), done
 
 	case isPrefixedBy(ctx, "==== "):
 		line, done := mycocontext.NextLine(ctx)

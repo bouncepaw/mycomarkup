@@ -198,7 +198,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 				"id": block.ID(counter),
 			}).WithChildren(items...)
 
-	case blocks.HorizontalLine:
+	case blocks.ThematicBreak:
 		return tag.NewUnclosed("hr").WithAttrs(attrs)
 
 	case blocks.TableCell:
