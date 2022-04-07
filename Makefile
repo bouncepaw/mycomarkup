@@ -34,12 +34,6 @@ test_death: build
 test_new_headings: build
 	./mycomarkup -hypha-name "test doc" -file-name "testdata/test_new_headings.myco"
 
-generate:
-	# stringer -type=TokenKind -trimprefix Token ./parser
-
-indent:
-	go run . | indent
-
 help:
-	@echo "Mycomarkup: https://mycorrhiza.lesarbr.es/hypha/mycomarkup."
+	@echo "Mycomarkup: https://mycorrhiza.wiki/hypha/mycomarkup."
 	@echo "Read Makefile too see what you can do."
