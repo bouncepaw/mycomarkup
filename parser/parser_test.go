@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v3/options"
+	"github.com/bouncepaw/mycomarkup/v4/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v4/options"
 	"testing"
 )
 

@@ -2,8 +2,8 @@ package parser
 
 import (
 	"bytes"
-	"github.com/bouncepaw/mycomarkup/v3/blocks"
-	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v4/blocks"
+	"github.com/bouncepaw/mycomarkup/v4/mycocontext"
 )
 
 // Call only if there is a list item on the line.

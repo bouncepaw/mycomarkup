@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/bouncepaw/mycomarkup/v3/util"
+	"github.com/bouncepaw/mycomarkup/v4/util"
 )
 
 // LinkType tells what type the given link is.

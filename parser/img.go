@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"github.com/bouncepaw/mycomarkup/v3/blocks"
-	"github.com/bouncepaw/mycomarkup/v3/links"
-	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v4/blocks"
+	"github.com/bouncepaw/mycomarkup/v4/links"
+	"github.com/bouncepaw/mycomarkup/v4/mycocontext"
 	"regexp"
 	"strings"
 )

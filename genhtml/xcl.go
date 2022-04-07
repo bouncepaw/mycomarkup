@@ -2,8 +2,8 @@ package genhtml
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v3/blocks"
-	"github.com/bouncepaw/mycomarkup/v3/genhtml/tag"
+	"github.com/bouncepaw/mycomarkup/v4/blocks"
+	"github.com/bouncepaw/mycomarkup/v4/genhtml/tag"
 	"log"
 )
 

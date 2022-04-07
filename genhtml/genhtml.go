@@ -3,17 +3,17 @@ package genhtml
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v3/options"
-	"github.com/bouncepaw/mycomarkup/v3/temporary_workaround"
-	"github.com/bouncepaw/mycomarkup/v3/util"
-	"github.com/bouncepaw/mycomarkup/v3/util/lines"
+	"github.com/bouncepaw/mycomarkup/v4/options"
+	"github.com/bouncepaw/mycomarkup/v4/temporary_workaround"
+	"github.com/bouncepaw/mycomarkup/v4/util"
+	"github.com/bouncepaw/mycomarkup/v4/util/lines"
 	"html"
 	"strings"
 
-	"github.com/bouncepaw/mycomarkup/v3/blocks"
-	"github.com/bouncepaw/mycomarkup/v3/genhtml/tag"
-	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v3/parser"
+	"github.com/bouncepaw/mycomarkup/v4/blocks"
+	"github.com/bouncepaw/mycomarkup/v4/genhtml/tag"
+	"github.com/bouncepaw/mycomarkup/v4/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v4/parser"
 )
 
 // This package shall not depend on anything other than blocks, links, mycocontext, util, tag.

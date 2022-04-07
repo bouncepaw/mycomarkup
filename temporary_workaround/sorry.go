@@ -4,8 +4,8 @@
 package temporary_workaround
 
 import (
-	"github.com/bouncepaw/mycomarkup/v3/blocks"
-	"github.com/bouncepaw/mycomarkup/v3/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v4/blocks"
+	"github.com/bouncepaw/mycomarkup/v4/mycocontext"
 )
 
 var TransclusionVisitor func(xcl blocks.Transclusion) (
