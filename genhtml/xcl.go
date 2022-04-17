@@ -23,7 +23,7 @@ func MapTransclusionErrorToTag(xcl blocks.Transclusion) tag.Tag {
 
 	case blocks.TransclusionErrorNoTarget:
 		return wrapInTransclusionError("Transclusion target not specified")
-	case blocks.TransclusionInTerminal:
+	case blocks.TransclusionNotSupported:
 		return wrapInTransclusionError("Transclusion is not supported in documents generated using Mycomarkup CLI")
 	case blocks.TransclusionErrorOldSyntax:
 		return wrapInTransclusionError("This transclusion is using the old syntax. Please update it to the new one")

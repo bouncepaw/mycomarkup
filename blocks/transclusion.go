@@ -25,12 +25,12 @@ func (t Transclusion) ID(counter *IDCounter) string {
 
 // MakeTransclusion parses the line and returns a transclusion block. V3
 func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
-	if ctx.TransclusionSupported() {
+	if !ctx.TransclusionSupported() {
 		return Transclusion{
 			"",
 			false,
 			SelectorOverview,
-			TransclusionError{TransclusionInTerminal},
+			TransclusionError{TransclusionNotSupported},
 		}
 	}
 	line = strings.TrimSpace(line[2:])
@@ -87,8 +87,8 @@ type TransclusionErrorReason int
 const (
 	// TransclusionNoError means there is no error.
 	TransclusionNoError TransclusionErrorReason = iota
-	// TransclusionInTerminal means that Mycomarkup CLI is used. Transclusion is not supported in it.
-	TransclusionInTerminal
+	// TransclusionNotSupported means that transclusion is not supported.
+	TransclusionNotSupported
 	// TransclusionErrorNoTarget means that no target hypha was specified.
 	TransclusionErrorNoTarget
 	// TransclusionErrorOldSyntax means : was found in the target.
