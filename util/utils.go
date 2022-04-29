@@ -44,15 +44,11 @@ func BeautifulName(uglyName string) string {
 
 // CanonicalName returns the canonical form of the name. A name is canonical if it is lowercase, all left and right whitespace is trimmed and all spaces are replaced with underscores.
 func CanonicalName(name string) string {
-	return strings.ToLower(
-		strings.ReplaceAll(
-			strings.TrimRight(
-				strings.TrimLeft(
-					SanitizedName(name),
-					"_",
-				),
-				"_",
-			), " ", "_"))
+	var (
+		spaceless = strings.ReplaceAll(SanitizedName(name), " ", "_")
+		trimmed   = strings.Trim(spaceless, "_")
+	)
+	return strings.ToLower(trimmed)
 }
 
 // DefaultString returns d if s is an empty string, s otherwise.
