@@ -107,7 +107,8 @@ func nextQuote(ctx mycocontext.Context) (blocks.Quote, bool) {
 }
 
 func nextLineIsSomething(ctx mycocontext.Context) bool {
-	prefices := []string{"=>", "<=", "```", "* ", "*. ", "*v ", "*x ", "# ", "## ", "### ", "#### ", "##### ", "###### ", ">", "----", "= ", "== ", "=== ", "==== "}
+	// Maybe sort them by how often they used? How to count?
+	prefices := []string{"=>", "<=", "```", "* ", "*. ", "*v ", "*x ", ">", "----", "= ", "== ", "=== ", "==== "}
 	for _, prefix := range prefices {
 		if isPrefixedBy(ctx, prefix) {
 			return true
@@ -163,25 +164,6 @@ func NextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 	case isPrefixedBy(ctx, "= "):
 		line, done := mycocontext.NextLine(ctx)
 		return parseHeading(ctx, line, 2), done
-
-	case isPrefixedBy(ctx, "###### "):
-		line, done := mycocontext.NextLine(ctx)
-		return parseLegacyHeading(ctx, line, 6), done
-	case isPrefixedBy(ctx, "##### "):
-		line, done := mycocontext.NextLine(ctx)
-		return parseLegacyHeading(ctx, line, 5), done
-	case isPrefixedBy(ctx, "#### "):
-		line, done := mycocontext.NextLine(ctx)
-		return parseLegacyHeading(ctx, line, 4), done
-	case isPrefixedBy(ctx, "### "):
-		line, done := mycocontext.NextLine(ctx)
-		return parseLegacyHeading(ctx, line, 3), done
-	case isPrefixedBy(ctx, "## "):
-		line, done := mycocontext.NextLine(ctx)
-		return parseLegacyHeading(ctx, line, 2), done
-	case isPrefixedBy(ctx, "# "):
-		line, done := mycocontext.NextLine(ctx)
-		return parseLegacyHeading(ctx, line, 1), done
 
 	case matchesImg(ctx):
 		return nextImg(ctx)
