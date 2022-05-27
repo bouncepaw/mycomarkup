@@ -20,13 +20,18 @@ const (
 	LinkLocalHypha
 	// LinkExternal is an external link with specified protocol.
 	LinkExternal
+	// LinkInterwiki is an interwiki link
+	LinkInterwiki
 )
 
 // Link is an abstraction for universal representation of links, be they links in mycomarkup links or whatever.
+//
+// ADT would help out a lot.
 type Link struct {
 	// Parsed stuff
 	kind     LinkType
 	protocol string
+	hostSite string
 	address  string //
 	anchor   string // # and everything after it
 
@@ -52,8 +57,6 @@ func From(srcAddress, srcDisplay, srcHypha string) Link {
 		link.address = link.address[:pos]
 	}
 
-	// NOTE: This part will need some extending with introduction of interwiki.
-
 	switch {
 	// If is an external link
 	case strings.ContainsRune(link.address, ':'):
@@ -73,6 +76,12 @@ func From(srcAddress, srcDisplay, srcHypha string) Link {
 		link.kind = LinkLocalHypha
 		link.display = link.address + link.anchor
 		link.address = util.CanonicalName(path.Join(srcHypha, link.address[2:]))
+	case strings.ContainsRune(link.address, '>'):
+		gtpos := strings.IndexRune(link.address, '>')
+		link.kind = LinkInterwiki
+		link.display = link.address
+		link.hostSite = link.address[:gtpos]
+		link.address = link.address[gtpos+1:]
 	case link.address == "..":
 		link.kind = LinkLocalHypha
 		link.address = util.CanonicalName(path.Dir(srcHypha))
@@ -124,6 +133,8 @@ func (link Link) Classes() (classes string) {
 			" wikilink_external wikilink_%s",
 			strings.TrimSuffix(strings.TrimSuffix(link.protocol, "://"), ":"),
 		)
+	case LinkInterwiki:
+		classes += " wikilink_interwiki"
 	}
 	return classes
 }
@@ -134,6 +145,7 @@ func (link Link) Href() string {
 	case LinkExternal, LinkLocalRoot:
 		return html.EscapeString(link.protocol + link.address + link.anchor)
 	default:
+		// TODO: interwiki
 		// TODO: configure the path
 		return "/hypha/" + html.EscapeString(link.address+link.anchor)
 	}
@@ -145,6 +157,7 @@ func (link Link) ImgSrc() string {
 	case LinkExternal, LinkLocalRoot:
 		return html.EscapeString(link.protocol + link.address + link.anchor)
 	default:
+		// TODO: interwiki
 		// TODO: configure the path
 		return "/binary/" + html.EscapeString(link.address)
 	}
