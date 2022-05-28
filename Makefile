@@ -37,6 +37,9 @@ test_new_headings: build
 test_interwiki: build
 	./mycomarkup -hypha-name "test doc" -file-name "testdata/test_interwiki.myco"
 
+test_launchpad: build
+	./mycomarkup -hypha-name "test doc" -file-name "testdata/test_launchpad.myco"
+
 help:
 	@echo "Mycomarkup: https://mycorrhiza.wiki/hypha/mycomarkup."
 	@echo "Read Makefile too see what you can do."

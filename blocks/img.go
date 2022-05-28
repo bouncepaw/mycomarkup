@@ -47,7 +47,7 @@ func (img Img) WithExistingTargetsMarked(ctx mycocontext.Context) Img {
 	// Important: the structure retains the same order as the original img.Entries.
 	type check struct {
 		shouldCheck bool
-		target      links.Link
+		target      links.LegacyLink
 	}
 	var entryCheckList []check
 	for _, entry := range img.Entries {

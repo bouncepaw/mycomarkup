@@ -34,6 +34,10 @@ type Context interface {
 	TransclusionSupported() bool
 }
 
+func Options(ctx Context) options.Options {
+	return ctx.Value(keyOptions).(options.Options)
+}
+
 // CancelFunc is a function you call to cancel the context. Why would you, though?
 type CancelFunc context.CancelFunc
 
