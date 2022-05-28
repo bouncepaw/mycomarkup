@@ -12,10 +12,10 @@ import (
 // We consider inline link, rocket link, image gallery and transclusion targets to be links.
 func LinkVisitor(ctx mycocontext.Context) (
 	visitor func(block blocks.Block),
-	result func() []links.Link,
+	result func() []links.LegacyLink,
 ) {
 	var (
-		collected    []links.Link
+		collected    []links.LegacyLink
 		extractLinks func(block blocks.Block)
 	)
 	extractLinks = func(block blocks.Block) {
@@ -48,20 +48,20 @@ func LinkVisitor(ctx mycocontext.Context) (
 				for _, span := range line {
 					switch s := span.(type) {
 					case blocks.InlineLink:
-						collected = append(collected, s.Link)
+						collected = append(collected, s.LegacyLink)
 					}
 				}
 			}
 		case blocks.RocketLink:
-			if !b.IsEmpty {
-				collected = append(collected, b.Link)
-			}
+			/*if !b.IsEmpty {
+				collected = append(collected, b.LegacyLink)
+			}TODO: fix*/
 		}
 	}
 	visitor = func(block blocks.Block) {
 		extractLinks(block)
 	}
-	result = func() []links.Link {
+	result = func() []links.LegacyLink {
 		return collected
 	}
 	return

@@ -37,7 +37,7 @@ func TestLinkVisitor(t *testing.T) {
 	mycomarkup.BlockTree(ctx, linkVisitor)
 	foundLinks := getLinks()
 
-	expectedLinks := []links.Link{
+	expectedLinks := []links.LegacyLink{
 		links.From("TODO", "", hyphaName),
 		links.From("links", "", hyphaName),
 		links.From("links/Games", "Games", hyphaName),

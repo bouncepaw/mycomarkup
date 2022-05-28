@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v4/links"
 	"github.com/bouncepaw/mycomarkup/v4/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v4/util"
 )
 
 // LaunchPad is a container for RocketLinks.
@@ -25,13 +24,15 @@ func NewLaunchPad(rockets []RocketLink) LaunchPad {
 
 // ColorRockets marks links to existing hyphae as existing. V3
 func (lp *LaunchPad) ColorRockets(ctx mycocontext.Context) {
+	var probes []func(string)
+	for _, rocket := range lp.Rockets {
+		if probe := rocket.Link.HyphaProbe(); probe != nil {
+			probes = append(probes, probe)
+		}
+	}
 	mycocontext.IterateHyphaNamesWith(ctx, func(hyphaName string) {
-		for i, rocket := range lp.Rockets {
-			// TODO: do not canonize every time
-			if util.CanonicalName(rocket.TargetHypha()) == hyphaName {
-				rocket.Link = rocket.Link.CopyMarkedAsExisting()
-			}
-			lp.Rockets[i] = rocket
+		for _, probe := range probes {
+			probe(hyphaName)
 		}
 	})
 }

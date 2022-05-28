@@ -41,7 +41,7 @@ func lineToRocketLink(ctx mycocontext.Context, line string) blocks.RocketLink {
 		display = strings.TrimPrefix(strings.TrimPrefix(line, addr), "|")
 		rl      = blocks.RocketLink{
 			IsEmpty: false,
-			Link:    links.From(addr, display, ctx.HyphaName()),
+			Link:    links.LinkFrom(ctx, addr, display),
 		}
 	)
 

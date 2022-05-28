@@ -64,7 +64,7 @@ func nextInlineLink(ctx mycocontext.Context, input *bytes.Buffer, hyphaName stri
 	if mycocontext.HyphaExists(ctx, util.CanonicalName(link.TargetHypha())) {
 		link = link.CopyMarkedAsExisting()
 	}
-	return blocks.InlineLink{Link: link}
+	return blocks.InlineLink{LegacyLink: link}
 }
 
 // MakeFormatted parses the formatted text in the input and returns it. Does it?

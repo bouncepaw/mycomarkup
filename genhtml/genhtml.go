@@ -90,14 +90,14 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			}).
 			WithChildren(
 				tag.NewClosed("a").
-					WithContentsStrings(html.EscapeString(block.Display())).
+					WithContentsStrings(html.EscapeString(block.DisplayedText())).
 					WithAttrs(map[string]string{
-						"class": "rocketlink " + block.Classes(),
-						"href":  block.Href(),
+						"class": "rocketlink " + block.Classes(ctx),
+						"href":  block.LinkHref(ctx),
 					}))
 
 	case blocks.LaunchPad:
-		block.ColorRockets(ctx) // TODO: fumu fumu
+		block.ColorRockets(ctx)
 		var rockets []tag.Tag
 		for _, rocket := range block.Rockets {
 			rockets = append(rockets, BlockToTag(ctx, rocket, counter))
