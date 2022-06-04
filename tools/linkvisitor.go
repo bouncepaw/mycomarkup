@@ -35,7 +35,7 @@ func LinkVisitor(ctx mycocontext.Context) (
 				extractLinks(entry)
 			}
 		case blocks.ImgEntry:
-			collected = append(collected, b.Target)
+			//collected = append(collected, b.Target)
 		case blocks.Transclusion:
 			link := links.From(b.Target, "", ctx.HyphaName())
 			collected = append(collected, link)

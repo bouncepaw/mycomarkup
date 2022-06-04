@@ -58,7 +58,7 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 			switch block := block.(type) {
 			case blocks.Img:
 				if len(block.Entries) > 0 {
-					imageUrl = ctx.WebSiteURL() + block.Entries[0].Target.ImgSrc()
+					imageUrl = ctx.WebSiteURL() + block.Entries[0].Target.ImgSrc(ctx)
 				}
 			}
 		}

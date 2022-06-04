@@ -2,7 +2,6 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v4/links"
 	"github.com/bouncepaw/mycomarkup/v4/mycocontext"
 )
 
@@ -40,43 +39,57 @@ func (img Img) HasOneImage() bool {
 //
 // This functions iterates over hyphae once.
 func (img Img) WithExistingTargetsMarked(ctx mycocontext.Context) Img {
-	// bouncepaw: I'm so sorry this function is this complex.
-
-	// We create this structure to keep track of what targets we have ‘ticked‘ ✅.
-	// We do not compare hypha names with ticked targets.
-	// Important: the structure retains the same order as the original img.Entries.
-	type check struct {
-		shouldCheck bool
-		target      links.LegacyLink
-	}
-	var entryCheckList []check
+	var probes []func(string)
 	for _, entry := range img.Entries {
-		entryCheckList = append(entryCheckList, check{
-			shouldCheck: entry.Target.OfKind(links.LinkLocalHypha), // Other kinds are blue by definition
-			target:      entry.Target,
-		})
-	}
 
-	mycocontext.IterateHyphaNamesWith(ctx, func(hn string) {
-		// Go through every entry and mark them accordingly.
-		for i, entryCheck := range entryCheckList {
-			shouldCheck, target := entryCheck.shouldCheck, entryCheck.target
-			if shouldCheck && hn == target.TargetHypha() {
-				entryCheckList[i] = check{
-					shouldCheck: false,
-					target:      target.CopyMarkedAsExisting(),
-				}
-			}
+		if probe := entry.Target.HyphaProbe(); probe != nil {
+			probes = append(probes, probe)
+		}
+	}
+	mycocontext.IterateHyphaNamesWith(ctx, func(hyphaName string) {
+		for _, probe := range probes {
+			probe(hyphaName)
 		}
 	})
+	/*
+		// bouncepaw: I'm so sorry this function is this complex.
 
-	// Collect the results. Some entries are left unmarked. It means they are red.
-	var entries []ImgEntry
-	for i, entry := range img.Entries {
-		// Indices of entryCheckList and img.Entries are the same for the corresponding elements.
-		entry.Target = entryCheckList[i].target
-		entries = append(entries, entry)
-	}
+		// We create this structure to keep track of what targets we have ‘ticked‘ ✅.
+		// We do not compare hypha names with ticked targets.
+		// Important: the structure retains the same order as the original img.Entries.
+		type check struct {
+			shouldCheck bool
+			target      links.LegacyLink
+		}
+		var entryCheckList []check
+		for _, entry := range img.Entries {
+			entryCheckList = append(entryCheckList, check{
+				shouldCheck: entry.Target.OfKind(links.LinkLocalHypha), // Other kinds are blue by definition
+				target:      entry.Target,
+			})
+		}
 
-	return NewImg(entries, img.Layout())
+		mycocontext.IterateHyphaNamesWith(ctx, func(hn string) {
+			// Go through every entry and mark them accordingly.
+			for i, entryCheck := range entryCheckList {
+				shouldCheck, target := entryCheck.shouldCheck, entryCheck.target
+				if shouldCheck && hn == target.TargetHypha() {
+					entryCheckList[i] = check{
+						shouldCheck: false,
+						target:      target.CopyMarkedAsExisting(),
+					}
+				}
+			}
+		})
+
+		// Collect the results. Some entries are left unmarked. It means they are red.
+		var entries []ImgEntry
+		for i, entry := range img.Entries {
+			// Indices of entryCheckList and img.Entries are the same for the corresponding elements.
+			entry.Target = entryCheckList[i].target
+			entries = append(entries, entry)
+		}
+
+		return NewImg(entries, img.Layout())*/
+	return img
 }

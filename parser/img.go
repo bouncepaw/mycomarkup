@@ -166,7 +166,7 @@ runewalker:
 	}
 
 	return blocks.NewImgEntry(
-			links.From(target.String(), "", ctx.HyphaName()),
+			links.LinkFrom(ctx, target.String(), ""),
 			ctx.HyphaName(),
 			width.String(),
 			height.String(),
