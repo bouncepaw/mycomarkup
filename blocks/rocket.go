@@ -29,7 +29,7 @@ func (lp LaunchPad) LinksColored(ctx mycocontext.Context) LaunchPad {
 		if rocket.IsEmpty {
 			continue
 		}
-		if probe := rocket.Link.HyphaProbe(); probe != nil {
+		if probe := rocket.Link.HyphaProbe(ctx); probe != nil {
 			probes = append(probes, probe)
 		}
 	}
