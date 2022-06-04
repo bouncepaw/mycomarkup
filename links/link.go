@@ -23,7 +23,7 @@ type Link interface {
 	DisplayedText() string
 
 	// HyphaProbe returns a function that captures the Link. Probes are checked against all existing hyphae. This is Mycorrhiza-specific. If it is nil, do not check this link for existence. TODO: make it optional.
-	HyphaProbe() func(string)
+	HyphaProbe(ctx mycocontext.Context) func(string)
 }
 
 func LinkFrom(ctx mycocontext.Context, target, display string) Link {
@@ -138,16 +138,17 @@ func (l *LocalLink) DisplayedText() string {
 	return l.display
 }
 
-func (l *LocalLink) HyphaProbe() func(string) {
+func (l *LocalLink) HyphaProbe(ctx mycocontext.Context) func(string) {
 	if l.target == "" {
 		return nil
 	}
+	target := mycocontext.Options(ctx).LocalTargetCanonicalName(l.Target())
 	done := false
 	return func(docName string) {
 		if done {
 			return
 		}
-		if docName == l.target {
+		if docName == target {
 			l.existing = true
 			done = true
 		}
@@ -158,15 +159,15 @@ type LocalRootedLink struct {
 	target, display string
 }
 
-func (l *LocalRootedLink) Classes(ctx mycocontext.Context) string {
+func (l *LocalRootedLink) Classes(_ mycocontext.Context) string {
 	return "wikilink wikilink_internal"
 }
 
-func (l *LocalRootedLink) LinkHref(ctx mycocontext.Context) string {
+func (l *LocalRootedLink) LinkHref(_ mycocontext.Context) string {
 	return l.target
 }
 
-func (l *LocalRootedLink) ImgSrc(ctx mycocontext.Context) string {
+func (l *LocalRootedLink) ImgSrc(_ mycocontext.Context) string {
 	return l.target
 }
 
@@ -177,7 +178,7 @@ func (l *LocalRootedLink) DisplayedText() string {
 	return l.display
 }
 
-func (l *LocalRootedLink) HyphaProbe() func(string) {
+func (l *LocalRootedLink) HyphaProbe(_ mycocontext.Context) func(string) {
 	return nil
 }
 
@@ -190,18 +191,18 @@ func (l *URLLink) protocol() string {
 	return l.target[:strings.IndexRune(l.target, ':')]
 }
 
-func (l *URLLink) Classes(ctx mycocontext.Context) string {
+func (l *URLLink) Classes(_ mycocontext.Context) string {
 	return fmt.Sprintf(
 		"wikilink wikilink_external wikilink_%s",
 		l.protocol(),
 	)
 }
 
-func (l *URLLink) LinkHref(ctx mycocontext.Context) string {
+func (l *URLLink) LinkHref(_ mycocontext.Context) string {
 	return l.target
 }
 
-func (l *URLLink) ImgSrc(ctx mycocontext.Context) string {
+func (l *URLLink) ImgSrc(_ mycocontext.Context) string {
 	return l.target
 }
 
@@ -212,7 +213,7 @@ func (l *URLLink) DisplayedText() string {
 	return l.display
 }
 
-func (l *URLLink) HyphaProbe() func(string) {
+func (l *URLLink) HyphaProbe(_ mycocontext.Context) func(string) {
 	return nil
 }
 
@@ -249,7 +250,7 @@ func (l *InterwikiLink) Err() error {
 	return l.err
 }
 
-func (l *InterwikiLink) Classes(ctx mycocontext.Context) string {
+func (l *InterwikiLink) Classes(_ mycocontext.Context) string {
 	return "wikilink wikilink_interwiki"
 }
 
@@ -270,6 +271,6 @@ func (l *InterwikiLink) DisplayedText() string {
 	return l.display
 }
 
-func (l *InterwikiLink) HyphaProbe() func(string) {
+func (l *InterwikiLink) HyphaProbe(mycocontext.Context) func(string) {
 	return nil
 }

@@ -21,6 +21,7 @@ type Options struct {
 	IterateHyphaNamesWith func(func(string))
 	HyphaHTMLData         func(string) (rawText, binaryHtml string, err error)
 
+	LocalTargetCanonicalName         func(string) string
 	LocalLinkHref                    func(string) string
 	LocalImgSrc                      func(string) string
 	LinkHrefFormatForInterwikiPrefix func(string) (string, InterwikiError)
@@ -49,6 +50,11 @@ func (opts Options) FillTheRest() Options {
 	if opts.LocalImgSrc == nil {
 		opts.LocalImgSrc = func(hyphaName string) string {
 			return hyphaName
+		}
+	}
+	if opts.LocalTargetCanonicalName == nil {
+		opts.LocalTargetCanonicalName = func(target string) string {
+			return target
 		}
 	}
 	if opts.LinkHrefFormatForInterwikiPrefix == nil {

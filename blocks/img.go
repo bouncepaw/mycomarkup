@@ -41,8 +41,7 @@ func (img Img) HasOneImage() bool {
 func (img Img) WithExistingTargetsMarked(ctx mycocontext.Context) Img {
 	var probes []func(string)
 	for _, entry := range img.Entries {
-
-		if probe := entry.Target.HyphaProbe(); probe != nil {
+		if probe := entry.Target.HyphaProbe(ctx); probe != nil {
 			probes = append(probes, probe)
 		}
 	}
@@ -51,45 +50,5 @@ func (img Img) WithExistingTargetsMarked(ctx mycocontext.Context) Img {
 			probe(hyphaName)
 		}
 	})
-	/*
-		// bouncepaw: I'm so sorry this function is this complex.
-
-		// We create this structure to keep track of what targets we have ‘ticked‘ ✅.
-		// We do not compare hypha names with ticked targets.
-		// Important: the structure retains the same order as the original img.Entries.
-		type check struct {
-			shouldCheck bool
-			target      links.LegacyLink
-		}
-		var entryCheckList []check
-		for _, entry := range img.Entries {
-			entryCheckList = append(entryCheckList, check{
-				shouldCheck: entry.Target.OfKind(links.LinkLocalHypha), // Other kinds are blue by definition
-				target:      entry.Target,
-			})
-		}
-
-		mycocontext.IterateHyphaNamesWith(ctx, func(hn string) {
-			// Go through every entry and mark them accordingly.
-			for i, entryCheck := range entryCheckList {
-				shouldCheck, target := entryCheck.shouldCheck, entryCheck.target
-				if shouldCheck && hn == target.TargetHypha() {
-					entryCheckList[i] = check{
-						shouldCheck: false,
-						target:      target.CopyMarkedAsExisting(),
-					}
-				}
-			}
-		})
-
-		// Collect the results. Some entries are left unmarked. It means they are red.
-		var entries []ImgEntry
-		for i, entry := range img.Entries {
-			// Indices of entryCheckList and img.Entries are the same for the corresponding elements.
-			entry.Target = entryCheckList[i].target
-			entries = append(entries, entry)
-		}
-
-		return NewImg(entries, img.Layout())*/
 	return img
 }
