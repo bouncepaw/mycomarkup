@@ -41,6 +41,12 @@ func LinkFrom(ctx mycocontext.Context, target, display string) Link {
 		}
 	case strings.ContainsRune(target, '>'):
 		gtpos := strings.IndexRune(target, '>')
+		if gtpos == 0 {
+			return &LocalLink{
+				target:  target[1:],
+				display: display,
+			}
+		}
 		return &InterwikiLink{
 			prefix:  target[:gtpos],
 			target:  target[gtpos+1:],
@@ -228,8 +234,6 @@ func (l *InterwikiLink) TryToGetError(ctx mycocontext.Context) bool {
 	switch {
 	case !mycocontext.Options(ctx).InterwikiSupported:
 		l.err = options.NotSetUp
-	case l.prefix == "":
-		l.err = options.EmptyPrefix // TODO: get rid of
 	default:
 		_, l.err = mycocontext.Options(ctx).LinkHrefFormatForInterwikiPrefix(l.prefix)
 	}
