@@ -2,9 +2,9 @@ package parser
 
 import (
 	"bytes"
-	"github.com/bouncepaw/mycomarkup/v4/blocks"
-	"github.com/bouncepaw/mycomarkup/v4/links"
-	"github.com/bouncepaw/mycomarkup/v4/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v5/blocks"
+	"github.com/bouncepaw/mycomarkup/v5/links"
+	"github.com/bouncepaw/mycomarkup/v5/mycocontext"
 	"html"
 	"strings"
 )

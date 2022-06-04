@@ -1,7 +1,7 @@
 package mycocontext
 
 import (
-	"github.com/bouncepaw/mycomarkup/v4/options"
+	"github.com/bouncepaw/mycomarkup/v5/options"
 	"testing"
 )
 
