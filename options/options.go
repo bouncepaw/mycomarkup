@@ -72,8 +72,6 @@ func (i InterwikiError) Error() string {
 		return "ok"
 	case UnknownPrefix:
 		return "unknown prefix"
-	case EmptyPrefix:
-		return "empty prefix"
 	case NotSetUp:
 		return "interwiki not set up"
 	}
@@ -83,6 +81,5 @@ func (i InterwikiError) Error() string {
 const (
 	Ok InterwikiError = iota
 	UnknownPrefix
-	EmptyPrefix
 	NotSetUp
 )
