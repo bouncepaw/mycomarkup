@@ -3,6 +3,7 @@ package links
 import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v4/mycocontext"
+	"github.com/bouncepaw/mycomarkup/v4/options"
 	"path"
 	"strings"
 )
@@ -119,6 +120,12 @@ func (l *LocalLink) ImgSrc(ctx mycocontext.Context) string {
 }
 
 func (l *LocalLink) DisplayedText() string {
+	if l.display == "" && l.anchor != "" {
+		return l.target + "#" + l.anchor
+	}
+	if l.display == "" {
+		return l.target
+	}
 	return l.display
 }
 
@@ -128,6 +135,7 @@ func (l *LocalLink) HyphaProbe() func(string) {
 		if done {
 			return
 		}
+		fmt.Println(l)
 		if docName == l.target {
 			l.existing = true
 			done = true
@@ -152,6 +160,9 @@ func (l *LocalRootedLink) ImgSrc(ctx mycocontext.Context) string {
 }
 
 func (l *LocalRootedLink) DisplayedText() string {
+	if l.display == "" {
+		return l.target
+	}
 	return l.display
 }
 
@@ -164,30 +175,33 @@ type URLLink struct {
 	display string
 }
 
-func (U *URLLink) protocol() string {
-	return U.target[:strings.IndexRune(U.target, ':')]
+func (l *URLLink) protocol() string {
+	return l.target[:strings.IndexRune(l.target, ':')]
 }
 
-func (U *URLLink) Classes(ctx mycocontext.Context) string {
+func (l *URLLink) Classes(ctx mycocontext.Context) string {
 	return fmt.Sprintf(
 		"wikilink wikilink_external wikilink_%s",
-		U.protocol(),
+		l.protocol(),
 	)
 }
 
-func (U *URLLink) LinkHref(ctx mycocontext.Context) string {
-	return U.target
+func (l *URLLink) LinkHref(ctx mycocontext.Context) string {
+	return l.target
 }
 
-func (U *URLLink) ImgSrc(ctx mycocontext.Context) string {
-	return U.target
+func (l *URLLink) ImgSrc(ctx mycocontext.Context) string {
+	return l.target
 }
 
-func (U *URLLink) DisplayedText() string {
-	return U.display
+func (l *URLLink) DisplayedText() string {
+	if l.display == "" {
+		return l.target
+	}
+	return l.display
 }
 
-func (U *URLLink) HyphaProbe() func(string) {
+func (l *URLLink) HyphaProbe() func(string) {
 	return nil
 }
 
@@ -207,6 +221,23 @@ Supported instructions are (more will be added):
 */
 type InterwikiLink struct {
 	prefix, target, display string
+	err                     options.InterwikiError
+}
+
+func (l *InterwikiLink) TryToGetError(ctx mycocontext.Context) bool {
+	switch {
+	case !mycocontext.Options(ctx).InterwikiSupported:
+		l.err = options.NotSetUp
+	case l.prefix == "":
+		l.err = options.EmptyPrefix // TODO: get rid of
+	default:
+		_, l.err = mycocontext.Options(ctx).LinkHrefFormatForInterwikiPrefix(l.prefix)
+	}
+	return l.err != options.Ok
+}
+
+func (l *InterwikiLink) Err() error {
+	return l.err
 }
 
 func (l *InterwikiLink) Classes(ctx mycocontext.Context) string {
@@ -214,16 +245,19 @@ func (l *InterwikiLink) Classes(ctx mycocontext.Context) string {
 }
 
 func (l *InterwikiLink) LinkHref(ctx mycocontext.Context) string {
-	format := mycocontext.Options(ctx).LinkHrefFormatForInterwikiPrefix(l.prefix)
+	format, _ := mycocontext.Options(ctx).LinkHrefFormatForInterwikiPrefix(l.prefix)
 	return strings.ReplaceAll(format, "{NAME}", l.target)
 }
 
 func (l *InterwikiLink) ImgSrc(ctx mycocontext.Context) string {
-	format := mycocontext.Options(ctx).ImgSrcFormatForInterwikiPrefix(l.prefix)
+	format, _ := mycocontext.Options(ctx).ImgSrcFormatForInterwikiPrefix(l.prefix)
 	return strings.ReplaceAll(format, "{NAME}", l.target)
 }
 
 func (l *InterwikiLink) DisplayedText() string {
+	if l.display == "" {
+		return l.prefix + ">" + l.target
+	}
 	return l.display
 }
 

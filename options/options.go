@@ -15,6 +15,7 @@ type Options struct {
 
 	TransclusionSupported bool
 	RedLinksSupported     bool
+	InterwikiSupported    bool
 
 	HyphaExists           func(string) bool
 	IterateHyphaNamesWith func(func(string))
@@ -22,8 +23,8 @@ type Options struct {
 
 	LocalLinkHref                    func(string) string
 	LocalImgSrc                      func(string) string
-	LinkHrefFormatForInterwikiPrefix func(string) string
-	ImgSrcFormatForInterwikiPrefix   func(string) string
+	LinkHrefFormatForInterwikiPrefix func(string) (string, InterwikiError)
+	ImgSrcFormatForInterwikiPrefix   func(string) (string, InterwikiError)
 }
 
 func (opts Options) FillTheRest() Options {
@@ -51,14 +52,37 @@ func (opts Options) FillTheRest() Options {
 		}
 	}
 	if opts.LinkHrefFormatForInterwikiPrefix == nil {
-		opts.LinkHrefFormatForInterwikiPrefix = func(prefix string) string {
-			return "{NAME}"
+		opts.LinkHrefFormatForInterwikiPrefix = func(prefix string) (string, InterwikiError) {
+			return "", NotSetUp
 		}
 	}
 	if opts.ImgSrcFormatForInterwikiPrefix == nil {
-		opts.ImgSrcFormatForInterwikiPrefix = func(prefix string) string {
-			return "{NAME}"
+		opts.ImgSrcFormatForInterwikiPrefix = func(prefix string) (string, InterwikiError) {
+			return "", NotSetUp
 		}
 	}
 	return opts
 }
+
+type InterwikiError int
+
+func (i InterwikiError) Error() string {
+	switch i {
+	case Ok:
+		return "ok"
+	case UnknownPrefix:
+		return "unknown prefix"
+	case EmptyPrefix:
+		return "empty prefix"
+	case NotSetUp:
+		return "interwiki not set up"
+	}
+	return "naughty"
+}
+
+const (
+	Ok InterwikiError = iota
+	UnknownPrefix
+	EmptyPrefix
+	NotSetUp
+)
