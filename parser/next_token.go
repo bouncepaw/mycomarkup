@@ -29,7 +29,7 @@ func nextLaunchPad(ctx mycocontext.Context) (blocks.LaunchPad, bool) {
 func lineToRocketLink(ctx mycocontext.Context, line string) blocks.RocketLink {
 	line = strings.TrimSpace(line[2:]) // Drop =>
 	if line == "" {
-		return blocks.RocketLink{IsEmpty: true}
+		return blocks.RocketLink{IsEmpty: true, Link: links.LinkFrom(ctx, "", "")}
 	}
 
 	var (
