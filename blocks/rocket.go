@@ -26,6 +26,9 @@ func NewLaunchPad(rockets []RocketLink) LaunchPad {
 func (lp LaunchPad) LinksColored(ctx mycocontext.Context) LaunchPad {
 	var probes []func(string)
 	for _, rocket := range lp.Rockets {
+		if rocket.IsEmpty {
+			continue
+		}
 		if probe := rocket.Link.HyphaProbe(); probe != nil {
 			probes = append(probes, probe)
 		}

@@ -136,12 +136,14 @@ func (l *LocalLink) DisplayedText() string {
 }
 
 func (l *LocalLink) HyphaProbe() func(string) {
+	if l.target == "" {
+		return nil
+	}
 	done := false
 	return func(docName string) {
 		if done {
 			return
 		}
-		fmt.Println(l)
 		if docName == l.target {
 			l.existing = true
 			done = true
