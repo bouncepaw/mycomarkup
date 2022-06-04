@@ -22,8 +22,8 @@ func NewLaunchPad(rockets []RocketLink) LaunchPad {
 	return LaunchPad{Rockets: rockets}
 }
 
-// ColorRockets marks links to existing hyphae as existing. V3
-func (lp *LaunchPad) ColorRockets(ctx mycocontext.Context) {
+// LinksColored marks links to existing hyphae as existing. V3
+func (lp LaunchPad) LinksColored(ctx mycocontext.Context) LaunchPad {
 	var probes []func(string)
 	for _, rocket := range lp.Rockets {
 		if probe := rocket.Link.HyphaProbe(); probe != nil {
@@ -35,6 +35,7 @@ func (lp *LaunchPad) ColorRockets(ctx mycocontext.Context) {
 			probe(hyphaName)
 		}
 	})
+	return lp
 }
 
 // RocketLink is a rocket link which is meant to be nested inside LaunchPad.

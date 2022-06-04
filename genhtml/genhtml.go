@@ -3,6 +3,7 @@ package genhtml
 
 import (
 	"fmt"
+	"github.com/bouncepaw/mycomarkup/v4/links"
 	"github.com/bouncepaw/mycomarkup/v4/options"
 	"github.com/bouncepaw/mycomarkup/v4/temporary_workaround"
 	"github.com/bouncepaw/mycomarkup/v4/util"
@@ -84,6 +85,16 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					}))
 
 	case blocks.RocketLink:
+		li := tag.NewClosed("li")
+		switch link := block.Link.(type) {
+		case *links.InterwikiLink:
+			if link.TryToGetError(ctx) {
+				return li.
+					WithAttrs(map[string]string{
+						"class": "launchpad__entry launchpad__entry_failed-interwiki",
+					}).WithContentsStrings("Invalid interwiki: " + link.Err().Error())
+			}
+		}
 		return tag.NewClosed("li").
 			WithAttrs(map[string]string{
 				"class": "launchpad__entry",
@@ -97,7 +108,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					}))
 
 	case blocks.LaunchPad:
-		block.ColorRockets(ctx)
+		block = block.LinksColored(ctx)
 		var rockets []tag.Tag
 		for _, rocket := range block.Rockets {
 			rockets = append(rockets, BlockToTag(ctx, rocket, counter))
