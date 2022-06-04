@@ -145,9 +145,39 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 	case blocks.ImgEntry:
 		var children []tag.Tag
 
-		if block.Target.IsBlueLink() {
+		switch target := block.Target.(type) {
+		case *links.LocalLink:
+			if target.Existing() {
+				imgAttrs := map[string]string{
+					"src": block.Target.ImgSrc(ctx),
+				}
+				if block.Width() != "" {
+					imgAttrs["width"] = block.Width()
+				}
+				if block.Height() != "" {
+					imgAttrs["height"] = block.Height()
+				}
+				children = append(
+					children,
+					tag.NewClosed("a").
+						WithAttrs(map[string]string{"href": block.Target.LinkHref(ctx)}).
+						WithChildren(
+							tag.NewUnclosed("img").WithAttrs(imgAttrs)),
+				)
+			} else {
+				children = append(
+					children,
+					tag.NewClosed("a").
+						WithContentsStrings(fmt.Sprintf("Hypha <i>%s</i> does not exist", target.Target())).
+						WithAttrs(map[string]string{
+							"class": block.Target.Classes(ctx),
+							"href":  block.Target.LinkHref(ctx),
+						}),
+				)
+			}
+		default:
 			imgAttrs := map[string]string{
-				"src": block.Target.ImgSrc(),
+				"src": block.Target.ImgSrc(ctx),
 			}
 			if block.Width() != "" {
 				imgAttrs["width"] = block.Width()
@@ -158,19 +188,9 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			children = append(
 				children,
 				tag.NewClosed("a").
-					WithAttrs(map[string]string{"href": block.Target.Href()}).
+					WithAttrs(map[string]string{"href": block.Target.LinkHref(ctx)}).
 					WithChildren(
 						tag.NewUnclosed("img").WithAttrs(imgAttrs)),
-			)
-		} else {
-			children = append(
-				children,
-				tag.NewClosed("a").
-					WithContentsStrings(fmt.Sprintf("Hypha <i>%s</i> does not exist", block.Target.TargetHypha())).
-					WithAttrs(map[string]string{
-						"class": block.Target.Classes(),
-						"href":  block.Target.Href(),
-					}),
 			)
 		}
 		if block.Description() != "" {

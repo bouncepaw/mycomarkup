@@ -103,6 +103,9 @@ type LocalLink struct {
 	existing bool
 }
 
+func (l *LocalLink) Existing() bool { return l.existing }
+func (l *LocalLink) Target() string { return l.target }
+
 func (l *LocalLink) Classes(ctx mycocontext.Context) string {
 	res := "wikilink wikilink_internal"
 	if !l.existing && mycocontext.Options(ctx).RedLinksSupported {

@@ -6,7 +6,7 @@ import (
 
 // ImgEntry is an entry of an image gallery. It can only be nested into Img. V3: proper readers, encapsulate
 type ImgEntry struct {
-	Target      links.LegacyLink
+	Target      links.Link
 	hyphaName   string
 	width       string
 	height      string
@@ -14,7 +14,7 @@ type ImgEntry struct {
 }
 
 // NewImgEntry returns a new ImgEntry.
-func NewImgEntry(target links.LegacyLink, hyphaName, width, height, description string) ImgEntry {
+func NewImgEntry(target links.Link, hyphaName, width, height, description string) ImgEntry {
 	return ImgEntry{
 		Target:      target,
 		hyphaName:   hyphaName,
