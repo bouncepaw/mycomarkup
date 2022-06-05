@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v5/links"
 	"github.com/bouncepaw/mycomarkup/v5/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v5/util"
 	"strings"
 )
 
@@ -25,17 +24,17 @@ func (t Transclusion) ID(counter *IDCounter) string {
 
 // MakeTransclusion parses the line and returns a transclusion block. V3
 func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
-	if !ctx.TransclusionSupported() {
+	line = strings.TrimSpace(line[2:])
+	switch {
+	case !ctx.TransclusionSupported():
 		return Transclusion{
 			"",
 			false,
 			SelectorOverview,
 			TransclusionError{TransclusionNotSupported},
 		}
-	}
-	line = strings.TrimSpace(line[2:])
-	// The second operand matches transclusion like <= | tututu or <= |
-	if line == "" || strings.HasPrefix(line, "|") {
+	case line == "" || strings.HasPrefix(line, "|"):
+		// The second operand matches transclusion like <= | tututu or <= |
 		return Transclusion{
 			"",
 			false,
@@ -44,41 +43,58 @@ func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
 		}
 	}
 
-	if strings.ContainsRune(line, '|') {
-		var (
-			parts       = strings.SplitN(line, "|", 2)
-			targetHypha = util.CanonicalName(strings.TrimSpace(parts[0]))
-		)
-		if strings.ContainsRune(targetHypha, ':') {
-			return Transclusion{
-				Target:            targetHypha,
-				Blend:             false,
-				Selector:          SelectorOverview,
-				TransclusionError: TransclusionError{TransclusionCannotTranscludeURL},
-			}
-		}
+	var target string
+	if pipepos := strings.IndexRune(line, '|'); pipepos >= 0 {
+		target = line[0:pipepos]
+	} else {
+		target = line
+	}
 
-		targetHypha = links.LegacyFrom(targetHypha, "", ctx.HyphaName()).TargetHypha()
-		if !mycocontext.HyphaExists(ctx, targetHypha) {
+	link := links.LinkFrom(ctx, target, "") // Don't care about display, never happens
+	switch link := link.(type) {
+	case *links.InterwikiLink:
+		return Transclusion{
+			Target:            target,
+			Blend:             false,
+			Selector:          SelectorOverview,
+			TransclusionError: TransclusionError{TransclusionCannotTranscludeInterwiki},
+		}
+	case *links.URLLink, *links.LocalRootedLink:
+		return Transclusion{
+			Target:            target,
+			Blend:             false,
+			Selector:          SelectorOverview,
+			TransclusionError: TransclusionError{TransclusionCannotTranscludeURL},
+		}
+	case *links.LocalLink:
+		target = link.Target(ctx)
+		if !mycocontext.HyphaExists(ctx, target) {
 			return Transclusion{
-				Target:            targetHypha,
+				Target:            target,
 				Blend:             false,
 				Selector:          SelectorOverview,
 				TransclusionError: TransclusionError{TransclusionErrorNotExists},
 			}
 		}
+
+		var (
+			selector TransclusionSelector
+			blend    bool
+		)
+		if pipepos := strings.IndexRune(line, '|'); pipepos >= 0 {
+			selector = selectorFrom(line[pipepos+1:])
+			blend = strings.Contains(line[pipepos+1:], "blend")
+		} else {
+			selector = SelectorOverview
+		}
+
 		return Transclusion{
-			Target:   links.LegacyFrom(targetHypha, "", ctx.HyphaName()).TargetHypha(),
-			Blend:    strings.Contains(parts[1], "blend"),
-			Selector: selectorFrom(parts[1]),
+			Target:   target,
+			Blend:    blend,
+			Selector: selector,
 		}
 	}
-
-	return Transclusion{
-		Target:   links.LegacyFrom(strings.TrimSpace(line), "", ctx.HyphaName()).TargetHypha(),
-		Blend:    false,
-		Selector: SelectorOverview,
-	}
+	panic("unreachable")
 }
 
 // TransclusionErrorReason is the reason why the transclusion failed during parsing.
@@ -93,6 +109,8 @@ const (
 	TransclusionErrorNoTarget
 	// TransclusionCannotTranscludeURL means : was found in the target.
 	TransclusionCannotTranscludeURL
+	// TransclusionCannotTranscludeInterwiki means an interwiki transclusion was attempted.
+	TransclusionCannotTranscludeInterwiki
 	// TransclusionErrorNotExists means the target hypha does not exist.
 	TransclusionErrorNotExists
 )

@@ -168,7 +168,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 				children = append(
 					children,
 					tag.NewClosed("a").
-						WithContentsStrings(fmt.Sprintf("Hypha <i>%s</i> does not exist", target.Target())).
+						WithContentsStrings(fmt.Sprintf("Hypha <i>%s</i> does not exist", target.Target(ctx))).
 						WithAttrs(map[string]string{
 							"class": block.Target.Classes(ctx),
 							"href":  block.Target.LinkHref(ctx),

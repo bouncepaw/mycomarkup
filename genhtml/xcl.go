@@ -27,6 +27,8 @@ func MapTransclusionErrorToTag(xcl blocks.Transclusion) tag.Tag {
 		return wrapInTransclusionError("Transclusion is not supported")
 	case blocks.TransclusionCannotTranscludeURL:
 		return wrapInTransclusionError("Cannot transclude URL")
+	case blocks.TransclusionCannotTranscludeInterwiki:
+		return wrapInTransclusionError("Cannot transclude interwiki")
 	}
 	log.Printf("MapTransclusionErrorToTag: unknown kind of transclusion error %d\n", xcl.TransclusionError.Reason)
 	return tag.Tag{}
