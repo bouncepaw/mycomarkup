@@ -8,7 +8,6 @@ import (
 	"github.com/bouncepaw/mycomarkup/v5/blocks"
 	"github.com/bouncepaw/mycomarkup/v5/links"
 	"github.com/bouncepaw/mycomarkup/v5/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v5/util"
 )
 
 func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
@@ -60,11 +59,13 @@ func nextInlineLink(ctx mycocontext.Context, input *bytes.Buffer, hyphaName stri
 		}
 	}
 
-	link := links.LegacyFrom(addrBuf.String(), displayBuf.String(), hyphaName)
-	if mycocontext.HyphaExists(ctx, util.CanonicalName(link.TargetHypha())) {
-		link = link.CopyMarkedAsExisting()
+	link := links.LinkFrom(ctx, addrBuf.String(), displayBuf.String())
+	// Color if needed. One hypha storage iteration.
+	if probe := link.HyphaProbe(ctx); probe != nil {
+		mycocontext.Options(ctx).IterateHyphaNamesWith(probe)
+
 	}
-	return blocks.InlineLink{LegacyLink: link}
+	return blocks.InlineLink{Link: link}
 }
 
 // MakeFormatted parses the formatted text in the input and returns it. Does it?

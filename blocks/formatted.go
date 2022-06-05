@@ -82,7 +82,7 @@ func entryForSpan(kind SpanKind) SpanTableEntry {
 
 // InlineLink is a link that is part of a Formatted text. Basically a wrapper over links.LegacyLink.
 type InlineLink struct {
-	links.LegacyLink
+	links.Link
 }
 
 // Kind returns SpanLink.

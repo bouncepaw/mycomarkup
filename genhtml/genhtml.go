@@ -43,13 +43,26 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 					contents += blocks.TagFromState(s.Kind(), tagState)
 
 				case blocks.InlineLink:
+					switch link := s.Link.(type) {
+					case *links.InterwikiLink:
+						if link.TryToGetError(ctx) {
+							contents += strings.TrimSuffix(tag.NewClosed("mark").
+								WithAttrs(map[string]string{
+									"class": s.Classes(ctx) + " wikilink_failed-interwiki",
+								}).WithContentsStrings("Invalid interwiki: "+link.Err().Error()).
+								String(), "\n")
+							goto ok
+						}
+					}
 					contents += strings.TrimSuffix(tag.NewClosed("a").
 						WithAttrs(map[string]string{
-							"href":  s.Href(),
-							"class": s.Classes(),
+							"href":  s.LinkHref(ctx),
+							"class": s.Classes(ctx),
 						}).
-						WithContentsStrings(html.EscapeString(s.Display())).
+						WithContentsStrings(html.EscapeString(s.DisplayedText())).
 						String(), "\n")
+				ok:
+					continue
 
 				case blocks.InlineText:
 					contents += html.EscapeString(s.Contents)
