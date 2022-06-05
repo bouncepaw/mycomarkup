@@ -104,7 +104,9 @@ type LocalLink struct {
 }
 
 func (l *LocalLink) Existing() bool { return l.existing }
-func (l *LocalLink) Target() string { return l.target }
+func (l *LocalLink) Target(ctx mycocontext.Context) string {
+	return mycocontext.Options(ctx).LocalTargetCanonicalName(l.target)
+}
 
 func (l *LocalLink) Classes(ctx mycocontext.Context) string {
 	res := "wikilink wikilink_internal"
@@ -142,7 +144,7 @@ func (l *LocalLink) HyphaProbe(ctx mycocontext.Context) func(string) {
 	if l.target == "" {
 		return nil
 	}
-	target := mycocontext.Options(ctx).LocalTargetCanonicalName(l.Target())
+	target := mycocontext.Options(ctx).LocalTargetCanonicalName(l.Target(ctx))
 	done := false
 	return func(docName string) {
 		if done {
