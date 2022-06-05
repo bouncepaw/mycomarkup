@@ -46,9 +46,9 @@ func LinkVisitor(ctx mycocontext.Context) (
 		case blocks.Formatted:
 			for _, line := range b.Lines {
 				for _, span := range line {
-					switch s := span.(type) {
+					switch span.(type) {
 					case blocks.InlineLink:
-						collected = append(collected, s.LegacyLink)
+						//collected = append(collected, s.LegacyLink)
 					}
 				}
 			}
