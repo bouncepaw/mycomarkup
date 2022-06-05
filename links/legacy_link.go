@@ -40,8 +40,8 @@ type LegacyLink struct {
 	destinationKnown bool // set to true when you have //checked// that the target hypha exists. It might be false for non-hypha links.
 }
 
-// From makes a link from the given source address and display text on the given hypha. The arguments are stripped of whitespace on both sides before further processing.
-func From(srcAddress, srcDisplay, srcHypha string) LegacyLink {
+// LegacyFrom makes a link from the given source address and display text on the given hypha. The arguments are stripped of whitespace on both sides before further processing.
+func LegacyFrom(srcAddress, srcDisplay, srcHypha string) LegacyLink {
 	srcAddress = strings.TrimSpace(srcAddress)
 	srcDisplay = strings.TrimSpace(srcDisplay)
 	srcHypha = strings.TrimSpace(srcHypha)

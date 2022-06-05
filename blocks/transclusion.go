@@ -54,11 +54,11 @@ func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
 				Target:            targetHypha,
 				Blend:             false,
 				Selector:          SelectorOverview,
-				TransclusionError: TransclusionError{TransclusionErrorOldSyntax},
+				TransclusionError: TransclusionError{TransclusionCannotTranscludeURL},
 			}
 		}
-		// Sorry for party rocking
-		targetHypha = links.From(targetHypha, "", ctx.HyphaName()).TargetHypha()
+
+		targetHypha = links.LegacyFrom(targetHypha, "", ctx.HyphaName()).TargetHypha()
 		if !mycocontext.HyphaExists(ctx, targetHypha) {
 			return Transclusion{
 				Target:            targetHypha,
@@ -68,14 +68,14 @@ func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
 			}
 		}
 		return Transclusion{
-			Target:   links.From(targetHypha, "", ctx.HyphaName()).TargetHypha(),
+			Target:   links.LegacyFrom(targetHypha, "", ctx.HyphaName()).TargetHypha(),
 			Blend:    strings.Contains(parts[1], "blend"),
 			Selector: selectorFrom(parts[1]),
 		}
 	}
 
 	return Transclusion{
-		Target:   links.From(strings.TrimSpace(line), "", ctx.HyphaName()).TargetHypha(),
+		Target:   links.LegacyFrom(strings.TrimSpace(line), "", ctx.HyphaName()).TargetHypha(),
 		Blend:    false,
 		Selector: SelectorOverview,
 	}
@@ -91,8 +91,8 @@ const (
 	TransclusionNotSupported
 	// TransclusionErrorNoTarget means that no target hypha was specified.
 	TransclusionErrorNoTarget
-	// TransclusionErrorOldSyntax means : was found in the target.
-	TransclusionErrorOldSyntax
+	// TransclusionCannotTranscludeURL means : was found in the target.
+	TransclusionCannotTranscludeURL
 	// TransclusionErrorNotExists means the target hypha does not exist.
 	TransclusionErrorNotExists
 )

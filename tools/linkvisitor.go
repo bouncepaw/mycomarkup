@@ -37,7 +37,7 @@ func LinkVisitor(ctx mycocontext.Context) (
 		case blocks.ImgEntry:
 			//collected = append(collected, b.Target)
 		case blocks.Transclusion:
-			link := links.From(b.Target, "", ctx.HyphaName())
+			link := links.LegacyFrom(b.Target, "", ctx.HyphaName())
 			collected = append(collected, link)
 		case blocks.LaunchPad:
 			for _, rocket := range b.Rockets {

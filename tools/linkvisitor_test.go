@@ -38,15 +38,15 @@ func TestLinkVisitor(t *testing.T) {
 	foundLinks := getLinks()
 
 	expectedLinks := []links.LegacyLink{
-		links.From("TODO", "", hyphaName),
-		links.From("links", "", hyphaName),
-		links.From("links/Games", "Games", hyphaName),
-		links.From("ideas", "", hyphaName),
-		links.From("links/Anime", "", hyphaName),
-		links.From("./kittens", "", hyphaName),
-		links.From("../puppies", "", hyphaName),
-		links.From("https://example.com/favicon.ico", "", hyphaName),
-		links.From("home", "", hyphaName),
+		links.LegacyFrom("TODO", "", hyphaName),
+		links.LegacyFrom("links", "", hyphaName),
+		links.LegacyFrom("links/Games", "Games", hyphaName),
+		links.LegacyFrom("ideas", "", hyphaName),
+		links.LegacyFrom("links/Anime", "", hyphaName),
+		links.LegacyFrom("./kittens", "", hyphaName),
+		links.LegacyFrom("../puppies", "", hyphaName),
+		links.LegacyFrom("https://example.com/favicon.ico", "", hyphaName),
+		links.LegacyFrom("home", "", hyphaName),
 	}
 	// a little dirty hack for destinationKnown
 	expectedLinks[0] = expectedLinks[0].CopyMarkedAsExisting()
