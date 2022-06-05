@@ -60,7 +60,7 @@ func nextInlineLink(ctx mycocontext.Context, input *bytes.Buffer, hyphaName stri
 		}
 	}
 
-	link := links.From(addrBuf.String(), displayBuf.String(), hyphaName)
+	link := links.LegacyFrom(addrBuf.String(), displayBuf.String(), hyphaName)
 	if mycocontext.HyphaExists(ctx, util.CanonicalName(link.TargetHypha())) {
 		link = link.CopyMarkedAsExisting()
 	}

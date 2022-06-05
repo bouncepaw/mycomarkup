@@ -24,9 +24,9 @@ func MapTransclusionErrorToTag(xcl blocks.Transclusion) tag.Tag {
 	case blocks.TransclusionErrorNoTarget:
 		return wrapInTransclusionError("Transclusion target not specified")
 	case blocks.TransclusionNotSupported:
-		return wrapInTransclusionError("Transclusion is not supported in documents generated using Mycomarkup CLI")
-	case blocks.TransclusionErrorOldSyntax:
-		return wrapInTransclusionError("This transclusion is using the old syntax. Please update it to the new one")
+		return wrapInTransclusionError("Transclusion is not supported")
+	case blocks.TransclusionCannotTranscludeURL:
+		return wrapInTransclusionError("Cannot transclude URL")
 	}
 	log.Printf("MapTransclusionErrorToTag: unknown kind of transclusion error %d\n", xcl.TransclusionError.Reason)
 	return tag.Tag{}

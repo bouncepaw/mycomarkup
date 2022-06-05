@@ -30,7 +30,7 @@ func TestLink(t *testing.T) {
 	}
 	for _, mapping := range mappings {
 		var (
-			link    = From(mapping.srcAddress, mapping.srcDisplay, mapping.srcHypha)
+			link    = LegacyFrom(mapping.srcAddress, mapping.srcDisplay, mapping.srcHypha)
 			kind    = link.kind
 			href    = link.Href()
 			display = link.Display()
