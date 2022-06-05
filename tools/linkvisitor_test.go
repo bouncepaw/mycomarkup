@@ -2,6 +2,7 @@ package tools
 
 import (
 	"github.com/bouncepaw/mycomarkup/v5/options"
+	"reflect"
 	"testing"
 
 	"github.com/bouncepaw/mycomarkup/v5"
@@ -27,9 +28,9 @@ img {
 
 func TestLinkVisitor(t *testing.T) {
 	var (
-		hyphaName = "test"
-		opts      = options.Options{
-			HyphaName: hyphaName,
+		opts = options.Options{
+			HyphaName:         "test",
+			RedLinksSupported: true,
 		}.FillTheRest()
 	)
 	ctx, _ := mycocontext.ContextFromStringInput(inputLinks, opts)
@@ -37,27 +38,24 @@ func TestLinkVisitor(t *testing.T) {
 	mycomarkup.BlockTree(ctx, linkVisitor)
 	foundLinks := getLinks()
 
-	expectedLinks := []links.LegacyLink{
-		links.LegacyFrom("TODO", "", hyphaName),
-		links.LegacyFrom("links", "", hyphaName),
-		links.LegacyFrom("links/Games", "Games", hyphaName),
-		links.LegacyFrom("ideas", "", hyphaName),
-		links.LegacyFrom("links/Anime", "", hyphaName),
-		links.LegacyFrom("./kittens", "", hyphaName),
-		links.LegacyFrom("../puppies", "", hyphaName),
-		links.LegacyFrom("https://example.com/favicon.ico", "", hyphaName),
-		links.LegacyFrom("home", "", hyphaName),
+	expectedLinks := []links.Link{
+		links.LinkFrom(ctx, "TODO", ""),
+		links.LinkFrom(ctx, "links", ""),
+		links.LinkFrom(ctx, "links/Games", "Games"),
+		links.LinkFrom(ctx, "ideas", ""),
+		links.LinkFrom(ctx, "links/Anime", ""),
+		links.LinkFrom(ctx, "./kittens", ""),
+		links.LinkFrom(ctx, "../puppies", ""),
+		links.LinkFrom(ctx, "https://example.com/favicon.ico", ""),
+		links.LinkFrom(ctx, "home", ""),
 	}
-	// a little dirty hack for destinationKnown
-	expectedLinks[0] = expectedLinks[0].CopyMarkedAsExisting()
-	expectedLinks[3] = expectedLinks[3].CopyMarkedAsExisting()
 
 	if !(len(expectedLinks) == len(foundLinks)) {
 		t.Errorf("Links count mismatch: expected %d, got %d\n", len(expectedLinks), len(foundLinks))
 		return
 	}
 	for i, link := range foundLinks {
-		if !(link == expectedLinks[i]) {
+		if !(reflect.DeepEqual(link, expectedLinks[i])) {
 			t.Errorf("Link mismatch at %d:\nwanted %#v\ngot    %#v\n", i, expectedLinks[i], link)
 		}
 	}

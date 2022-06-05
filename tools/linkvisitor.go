@@ -12,10 +12,10 @@ import (
 // We consider inline link, rocket link, image gallery and transclusion targets to be links.
 func LinkVisitor(ctx mycocontext.Context) (
 	visitor func(block blocks.Block),
-	result func() []links.LegacyLink,
+	result func() []links.Link,
 ) {
 	var (
-		collected    []links.LegacyLink
+		collected    []links.Link
 		extractLinks func(block blocks.Block)
 	)
 	extractLinks = func(block blocks.Block) {
@@ -35,9 +35,9 @@ func LinkVisitor(ctx mycocontext.Context) (
 				extractLinks(entry)
 			}
 		case blocks.ImgEntry:
-			//collected = append(collected, b.Target)
+			collected = append(collected, b.Target)
 		case blocks.Transclusion:
-			link := links.LegacyFrom(b.Target, "", ctx.HyphaName())
+			link := links.LinkFrom(ctx, b.Target, "")
 			collected = append(collected, link)
 		case blocks.LaunchPad:
 			for _, rocket := range b.Rockets {
@@ -46,22 +46,22 @@ func LinkVisitor(ctx mycocontext.Context) (
 		case blocks.Formatted:
 			for _, line := range b.Lines {
 				for _, span := range line {
-					switch span.(type) {
+					switch s := span.(type) {
 					case blocks.InlineLink:
-						//collected = append(collected, s.LegacyLink)
+						collected = append(collected, s.Link)
 					}
 				}
 			}
 		case blocks.RocketLink:
-			/*if !b.IsEmpty {
-				collected = append(collected, b.LegacyLink)
-			}TODO: fix*/
+			if !b.IsEmpty {
+				collected = append(collected, b.Link)
+			}
 		}
 	}
 	visitor = func(block blocks.Block) {
 		extractLinks(block)
 	}
-	result = func() []links.LegacyLink {
+	result = func() []links.Link {
 		return collected
 	}
 	return
