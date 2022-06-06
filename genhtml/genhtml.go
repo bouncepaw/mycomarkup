@@ -2,9 +2,9 @@
 package genhtml
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v5/links"
-	"github.com/bouncepaw/mycomarkup/v5/options"
 	"github.com/bouncepaw/mycomarkup/v5/temporary_workaround"
 	"github.com/bouncepaw/mycomarkup/v5/util"
 	"github.com/bouncepaw/mycomarkup/v5/util/lines"
@@ -308,11 +308,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			return MapTransclusionErrorToTag(xcl)
 		}
 		xclVisitor, result := temporary_workaround.TransclusionVisitor(xcl)
-		xclctx, _ := mycocontext.ContextFromStringInput(rawText, options.Options{
-			HyphaName:             xcl.Target,
-			WebSiteURL:            ctx.WebSiteURL(),
-			TransclusionSupported: true,
-		}.FillTheRest()) // FIXME: it will bite us one day UPDATE: is it the day? I don't feel the bite.
+		xclctx := mycocontext.WithBuffer(ctx, bytes.NewBufferString(rawText))
 		_ = temporary_workaround.BlockTree(xclctx, xclVisitor) // Call for side-effects
 
 		var children []tag.Tag
