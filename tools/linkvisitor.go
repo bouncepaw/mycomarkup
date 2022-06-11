@@ -56,6 +56,16 @@ func LinkVisitor(ctx mycocontext.Context) (
 			if !b.IsEmpty {
 				collected = append(collected, b.Link)
 			}
+		case blocks.Table:
+			for _, row := range b.Rows() {
+				for _, cell := range row.Cells() {
+					extractLinks(cell)
+				}
+			}
+		case blocks.TableCell:
+			for _, block := range b.Contents() {
+				extractLinks(block)
+			}
 		}
 	}
 	visitor = func(block blocks.Block) {
