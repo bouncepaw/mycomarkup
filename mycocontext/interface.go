@@ -65,6 +65,10 @@ func WithBuffer(ctx Context, buf *bytes.Buffer) Context {
 	return &mycoContext{context.WithValue(ctx, keyInputBuffer, buf)}
 }
 
+func WithOptions(ctx Context, opts options.Options) Context {
+	return &mycoContext{context.WithValue(ctx, keyOptions, opts)}
+}
+
 // TODO: get rid of these three below
 
 func HyphaExists(ctx Context, hyphaName string) bool {

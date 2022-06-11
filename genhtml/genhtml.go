@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/bouncepaw/mycomarkup/v5/links"
+	"github.com/bouncepaw/mycomarkup/v5/options"
 	"github.com/bouncepaw/mycomarkup/v5/temporary_workaround"
 	"github.com/bouncepaw/mycomarkup/v5/util"
 	"github.com/bouncepaw/mycomarkup/v5/util/lines"
@@ -308,7 +309,14 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			return MapTransclusionErrorToTag(xcl)
 		}
 		xclVisitor, result := temporary_workaround.TransclusionVisitor(xcl)
-		xclctx := mycocontext.WithBuffer(ctx, bytes.NewBufferString(rawText))
+		xclctx := mycocontext.WithOptions(
+			mycocontext.WithBuffer(ctx, bytes.NewBufferString(rawText)),
+			func() options.Options {
+				opts := mycocontext.Options(ctx)
+				opts.HyphaName = xcl.Target
+				return opts
+			}(),
+		)
 		_ = temporary_workaround.BlockTree(xclctx, xclVisitor) // Call for side-effects
 
 		var children []tag.Tag
