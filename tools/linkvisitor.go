@@ -66,6 +66,10 @@ func LinkVisitor(ctx mycocontext.Context) (
 			for _, block := range b.Contents() {
 				extractLinks(block)
 			}
+		case blocks.Quote:
+			for _, block := range b.Contents() {
+				extractLinks(block)
+			}
 		}
 	}
 	visitor = func(block blocks.Block) {
