@@ -59,6 +59,9 @@ func LinkFrom(ctx mycocontext.Context, target, display string) Link {
 		}
 	case strings.HasPrefix(target, "./"):
 		var anchor string
+		if display == "" {
+			display = target
+		}
 		if hashPos := strings.IndexRune(target, '#'); hashPos != -1 {
 			anchor = target[hashPos+1:]
 			target = target[:hashPos]
@@ -70,6 +73,9 @@ func LinkFrom(ctx mycocontext.Context, target, display string) Link {
 		}
 	case strings.HasPrefix(target, "../"):
 		var anchor string
+		if display == "" {
+			display = target
+		}
 		if hashPos := strings.IndexRune(target, '#'); hashPos != -1 {
 			anchor = target[hashPos+1:]
 			target = target[:hashPos]
