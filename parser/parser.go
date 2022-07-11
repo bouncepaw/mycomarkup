@@ -24,6 +24,7 @@ func parseSubdocumentForEachBlock(ctx mycocontext.Context, buf *bytes.Buffer, f 
 
 // parseHeading parses the =heading on the given line and returns it. Find its level by yourself though.
 func parseHeading(ctx mycocontext.Context, line string, level uint) blocks.Heading {
-	return blocks.NewHeading(level, MakeFormatted(ctx, line[level:]), line)
+	// level is the number of =, then there is a space
+	return blocks.NewHeading(level, MakeFormatted(ctx, line[level+1:]), line)
 	// TODO: figure out the level here. Maybe?
 }

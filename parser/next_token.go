@@ -154,16 +154,16 @@ func NextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 
 	case isPrefixedBy(ctx, "==== "):
 		line, done := mycocontext.NextLine(ctx)
-		return parseHeading(ctx, line, 5), done
+		return parseHeading(ctx, line, 4), done
 	case isPrefixedBy(ctx, "=== "):
 		line, done := mycocontext.NextLine(ctx)
-		return parseHeading(ctx, line, 4), done
+		return parseHeading(ctx, line, 3), done
 	case isPrefixedBy(ctx, "== "):
 		line, done := mycocontext.NextLine(ctx)
-		return parseHeading(ctx, line, 3), done
+		return parseHeading(ctx, line, 2), done
 	case isPrefixedBy(ctx, "= "):
 		line, done := mycocontext.NextLine(ctx)
-		return parseHeading(ctx, line, 2), done
+		return parseHeading(ctx, line, 1), done
 
 	case matchesImg(ctx):
 		return nextImg(ctx)

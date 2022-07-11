@@ -88,7 +88,7 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 			WithChildren(BlockToTag(ctx, block.Formatted, counter))
 
 	case blocks.Heading:
-		return tag.NewClosed(fmt.Sprintf("h%d", block.Level())).
+		return tag.NewClosed(fmt.Sprintf("h%d", block.Level()+1)).
 			WithAttrs(attrs).
 			WithChildren(
 				BlockToTag(ctx, block.Contents(), counter),

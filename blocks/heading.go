@@ -6,7 +6,7 @@ import (
 
 // Heading is a formatted heading in the document.
 type Heading struct {
-	// level is a number between 1 and 6.
+	// level is a number between 1 and 4.
 	level    uint
 	contents Formatted
 	srcLine  string
@@ -24,16 +24,10 @@ func NewHeading(level uint, contents Formatted, srcLine string) Heading {
 // Level returns the Heading's level, 1 from 6.
 //
 //     Prefix  | Level
-//     =      | 2
-//     ==     | 3
-//     ===    | 4
-//     ====   | 5
-//     #      | 1
-//     ##     | 2
-//     ###    | 3
-//     ####   | 4
-//     #####  | 5
-//     ###### | 6
+//     =      | 1
+//     ==     | 2
+//     ===    | 3
+//     ====   | 4
 func (h Heading) Level() uint {
 	return h.level
 }
