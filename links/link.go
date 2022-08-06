@@ -124,14 +124,14 @@ func (l *LocalLink) Classes(ctx mycocontext.Context) string {
 
 func (l *LocalLink) LinkHref(ctx mycocontext.Context) string {
 	if l.anchor != "" {
-		return mycocontext.Options(ctx).LocalLinkHref(l.target + "#" + l.anchor)
+		return mycocontext.Options(ctx).LocalLinkHref(l.target) + "#" + l.anchor
 	}
 	return mycocontext.Options(ctx).LocalLinkHref(l.target)
 }
 
 func (l *LocalLink) ImgSrc(ctx mycocontext.Context) string {
 	if l.anchor != "" {
-		return mycocontext.Options(ctx).LocalImgSrc(l.target + "#" + l.anchor)
+		return mycocontext.Options(ctx).LocalImgSrc(l.target) + "#" + l.anchor
 	}
 	return mycocontext.Options(ctx).LocalImgSrc(l.target)
 }
