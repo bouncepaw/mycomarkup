@@ -1,11 +1,11 @@
 package tools
 
 import (
-	"github.com/bouncepaw/mycomarkup/v5"
-	"github.com/bouncepaw/mycomarkup/v5/blocks"
-	"github.com/bouncepaw/mycomarkup/v5/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v5/options"
-	"github.com/bouncepaw/mycomarkup/v5/parser"
+	"lesarbr.es/mycomarkup/v5"
+	"lesarbr.es/mycomarkup/v5/blocks"
+	"lesarbr.es/mycomarkup/v5/mycocontext"
+	"lesarbr.es/mycomarkup/v5/options"
+	"lesarbr.es/mycomarkup/v5/parser"
 	"reflect"
 	"testing"
 )

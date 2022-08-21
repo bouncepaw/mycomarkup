@@ -3,8 +3,8 @@ package parser
 
 import (
 	"bytes"
-	"github.com/bouncepaw/mycomarkup/v5/blocks"
-	"github.com/bouncepaw/mycomarkup/v5/mycocontext"
+	"lesarbr.es/mycomarkup/v5/blocks"
+	"lesarbr.es/mycomarkup/v5/mycocontext"
 )
 
 // parseSubdocumentForEachBlock replaces the buffer in the given context and parses the document contained in the buffer. The function is called on every block.

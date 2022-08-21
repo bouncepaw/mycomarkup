@@ -2,8 +2,8 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v5/util"
 	"html"
+	"lesarbr.es/mycomarkup/v5/util"
 )
 
 // CodeBlock represents a block of preformatted text.

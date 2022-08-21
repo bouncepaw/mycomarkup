@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v5"
-	"github.com/bouncepaw/mycomarkup/v5/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v5/options"
 	"io/ioutil"
+	"lesarbr.es/mycomarkup/v5"
+	"lesarbr.es/mycomarkup/v5/mycocontext"
+	"lesarbr.es/mycomarkup/v5/options"
 )
 
 func main() {

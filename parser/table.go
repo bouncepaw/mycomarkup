@@ -2,8 +2,8 @@ package parser
 
 import (
 	"bytes"
-	"github.com/bouncepaw/mycomarkup/v5/blocks"
-	"github.com/bouncepaw/mycomarkup/v5/mycocontext"
+	"lesarbr.es/mycomarkup/v5/blocks"
+	"lesarbr.es/mycomarkup/v5/mycocontext"
 	"regexp"
 	"strings"
 	"unicode"

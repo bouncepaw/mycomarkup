@@ -2,7 +2,7 @@ package blocks
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v5/util"
+	"lesarbr.es/mycomarkup/v5/util"
 )
 
 // ThematicBreak represents the thematic line block, represented by a horizontal line.

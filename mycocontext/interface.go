@@ -4,7 +4,7 @@ package mycocontext
 import (
 	"bytes"
 	"context"
-	"github.com/bouncepaw/mycomarkup/v5/options"
+	"lesarbr.es/mycomarkup/v5/options"
 )
 
 // Context is the wrapper around context.Context providing type-level safety on presence of several values.

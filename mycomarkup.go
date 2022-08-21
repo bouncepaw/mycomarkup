@@ -3,12 +3,12 @@ package mycomarkup
 
 import (
 	"errors"
-	"github.com/bouncepaw/mycomarkup/v5/blocks"
-	"github.com/bouncepaw/mycomarkup/v5/genhtml"
-	"github.com/bouncepaw/mycomarkup/v5/genhtml/tag"
-	"github.com/bouncepaw/mycomarkup/v5/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v5/parser"
-	"github.com/bouncepaw/mycomarkup/v5/temporary_workaround"
+	"lesarbr.es/mycomarkup/v5/blocks"
+	"lesarbr.es/mycomarkup/v5/genhtml"
+	"lesarbr.es/mycomarkup/v5/genhtml/tag"
+	"lesarbr.es/mycomarkup/v5/mycocontext"
+	"lesarbr.es/mycomarkup/v5/parser"
+	"lesarbr.es/mycomarkup/v5/temporary_workaround"
 )
 
 // BlockTree returns a slice of blocks parsed from the Mycomarkup document contained in ctx.

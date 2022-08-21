@@ -3,7 +3,7 @@ package mycocontext
 import (
 	"bytes"
 	"context"
-	"github.com/bouncepaw/mycomarkup/v5/options"
+	"lesarbr.es/mycomarkup/v5/options"
 )
 
 // I'm very well aware that storing context.Context inside structs is discouraged in most cases. But it should be ok this time.

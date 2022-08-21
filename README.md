@@ -1,5 +1,5 @@
 # Mycomarkup
-[![godocs.io](http://godocs.io/github.com/bouncepaw/mycomarkup/v5?status.svg)](http://godocs.io/github.com/bouncepaw/mycomarkup/v5)
+[![godocs.io](http://godocs.io/lesarbr.es/mycomarkup/v5?status.svg)](http://godocs.io/lesarbr.es/mycomarkup/v5)
 
 **Mycomarkup** is a markup language designed to be used in [Mycorrhiza Wiki](https://mycorrhiza.wiki). This project is
 both a library for the wiki engine and a command-line tool for processing Mycomarkup files in other projects.

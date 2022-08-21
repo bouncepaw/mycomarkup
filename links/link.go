@@ -2,8 +2,8 @@ package links
 
 import (
 	"fmt"
-	"github.com/bouncepaw/mycomarkup/v5/mycocontext"
-	"github.com/bouncepaw/mycomarkup/v5/options"
+	"lesarbr.es/mycomarkup/v5/mycocontext"
+	"lesarbr.es/mycomarkup/v5/options"
 	"path"
 	"strings"
 )
