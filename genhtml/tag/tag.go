@@ -3,7 +3,7 @@ package tag
 
 import (
 	"fmt"
-	"lesarbr.es/mycomarkup/v5/util/lines"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/util/lines"
 	"sort"
 	"strings"
 )

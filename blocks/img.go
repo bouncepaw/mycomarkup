@@ -2,7 +2,7 @@ package blocks
 
 import (
 	"fmt"
-	"lesarbr.es/mycomarkup/v5/mycocontext"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
 )
 
 // Img is an image gallery, consisting of zero or more images.

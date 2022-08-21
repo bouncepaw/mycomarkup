@@ -1,8 +1,8 @@
 package tools
 
 import (
-	"lesarbr.es/mycomarkup/v5/blocks"
-	"lesarbr.es/mycomarkup/v5/mycocontext"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/blocks"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
 )
 
 // HeadingVisitor creates a visitor that visits all headings.

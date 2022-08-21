@@ -2,8 +2,8 @@ package blocks
 
 import (
 	"fmt"
-	"lesarbr.es/mycomarkup/v5/links"
-	"lesarbr.es/mycomarkup/v5/util"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/links"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
 )
 
 // Formatted is a piece of formatted text. It is always part of a bigger block, such as Paragraph.

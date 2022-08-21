@@ -2,10 +2,10 @@ package parser
 
 import (
 	"bytes"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/blocks"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/links"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
 	"html"
-	"lesarbr.es/mycomarkup/v5/blocks"
-	"lesarbr.es/mycomarkup/v5/links"
-	"lesarbr.es/mycomarkup/v5/mycocontext"
 	"strings"
 )
 

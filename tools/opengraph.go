@@ -2,13 +2,13 @@ package tools
 
 import (
 	"fmt"
-	"lesarbr.es/mycomarkup/v5/genhtml"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/genhtml"
 	"regexp"
 	"strings"
 
-	"lesarbr.es/mycomarkup/v5/blocks"
-	"lesarbr.es/mycomarkup/v5/mycocontext"
-	"lesarbr.es/mycomarkup/v5/util"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/blocks"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/util"
 )
 
 // OpenGraphVisitors returns visitors you should pass to BlockTree. They will figure out what should go to the final opengraph. Call resultHTML to get that result.

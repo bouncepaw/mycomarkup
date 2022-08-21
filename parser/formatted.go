@@ -5,9 +5,9 @@ import (
 	"strings"
 	"unicode"
 
-	"lesarbr.es/mycomarkup/v5/blocks"
-	"lesarbr.es/mycomarkup/v5/links"
-	"lesarbr.es/mycomarkup/v5/mycocontext"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/blocks"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/links"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
 )
 
 func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {

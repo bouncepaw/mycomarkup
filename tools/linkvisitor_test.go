@@ -1,13 +1,13 @@
 package tools
 
 import (
-	"lesarbr.es/mycomarkup/v5/options"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/options"
 	"reflect"
 	"testing"
 
-	"lesarbr.es/mycomarkup/v5"
-	"lesarbr.es/mycomarkup/v5/links"
-	"lesarbr.es/mycomarkup/v5/mycocontext"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/links"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
 )
 
 const inputLinks = `[[ TODO ]]
