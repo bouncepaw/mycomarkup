@@ -4,6 +4,7 @@ import (
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/blocks"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/links"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/parser/ctxio"
 	"regexp"
 	"strings"
 )
@@ -26,7 +27,7 @@ func nextImg(ctx mycocontext.Context) (img blocks.Img, eof bool) {
 		}
 	}
 
-	return img, mycocontext.IsEof(ctx)
+	return img, ctxio.IsEof(ctx)
 }
 
 type imgEntryParsingState int
@@ -46,7 +47,7 @@ func nextImgEntryDescription(ctx mycocontext.Context) string {
 		res             strings.Builder
 	)
 	for {
-		r, eof = mycocontext.NextRune(ctx)
+		r, eof = ctxio.NextRune(ctx)
 		if eof {
 			return res.String()
 		}
@@ -86,7 +87,7 @@ func nextImgEntry(ctx mycocontext.Context) (
 
 runewalker:
 	for {
-		r, eof = mycocontext.NextRune(ctx)
+		r, eof = ctxio.NextRune(ctx)
 		if eof {
 			imgDone = true // Just to be sure
 			break
@@ -98,7 +99,7 @@ runewalker:
 			switch r {
 			case '}':
 				entryFound, imgDone = false, true
-				_, _ = mycocontext.NextLine(ctx) // After closing }
+				_, _ = ctxio.NextLine(ctx) // After closing }
 				break runewalker
 			case '\n':
 				entryFound, imgDone = false, false
@@ -181,14 +182,14 @@ func parseImgUntilCurlyBrace(ctx mycocontext.Context) (img blocks.Img) {
 	// img<attr>{<rest...>
 
 	// Read img first. Sorry for party rocking 😎
-	_, _ = mycocontext.NextRune(ctx)
-	_, _ = mycocontext.NextRune(ctx)
-	_, _ = mycocontext.NextRune(ctx)
+	_, _ = ctxio.NextRune(ctx)
+	_, _ = ctxio.NextRune(ctx)
+	_, _ = ctxio.NextRune(ctx)
 
 	var attr strings.Builder
 	for {
 		// It must be safe to ignore the error as long as parseImgUntilCurlyBrace is called correctly.
-		r, _ := mycocontext.NextRune(ctx)
+		r, _ := ctxio.NextRune(ctx)
 		if r == '{' {
 			break
 		}

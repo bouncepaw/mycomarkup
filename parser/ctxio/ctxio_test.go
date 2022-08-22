@@ -1,6 +1,7 @@
-package mycocontext
+package ctxio
 
 import (
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/options"
 	"testing"
 )
@@ -10,7 +11,7 @@ const input = "a\r\nsamantha\n\r\n"
 var opts = options.Options{HyphaName: "🐙"}.FillTheRest()
 
 func TestNextByte(t *testing.T) {
-	var ctx, _ = ContextFromStringInput(input, opts)
+	var ctx, _ = mycocontext.ContextFromStringInput(input, opts)
 
 	b1, _ := NextByte(ctx)
 	if b1 != 'a' {
@@ -24,7 +25,7 @@ func TestNextByte(t *testing.T) {
 }
 
 func TestNextLine(t *testing.T) {
-	var ctx, _ = ContextFromStringInput(input, opts)
+	var ctx, _ = mycocontext.ContextFromStringInput(input, opts)
 
 	line1, _ := NextLine(ctx)
 	if line1 != "a" {

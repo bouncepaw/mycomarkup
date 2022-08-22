@@ -3,6 +3,7 @@ package parser
 import (
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/options"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/parser/ctxio"
 	"testing"
 )
 
@@ -46,7 +47,7 @@ func TestLooksLikeList3(t *testing.T) {
 
 func TestList1(t *testing.T) {
 	ctx, _ := mycocontext.ContextFromStringInput("* li", opts)
-	mycocontext.EatUntilSpace(ctx)
+	ctxio.EatUntilSpace(ctx)
 	text, _ := readNextListItemsContents(ctx)
 	if text.String() != "li" {
 		t.Errorf("wrong")
@@ -55,7 +56,7 @@ func TestList1(t *testing.T) {
 
 func TestList2(t *testing.T) {
 	ctx, _ := mycocontext.ContextFromStringInput("* {dreamy\n   sky} ", opts)
-	mycocontext.EatUntilSpace(ctx)
+	ctxio.EatUntilSpace(ctx)
 	text, _ := readNextListItemsContents(ctx)
 	if text.String() != "dreamy\nsky " {
 		t.Errorf("wrong %q", text.String())

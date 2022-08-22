@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/blocks"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/parser/ctxio"
 )
 
 // Call only if there is a list item on the line.
@@ -20,7 +21,7 @@ func nextList(ctx mycocontext.Context) (list blocks.List, eof bool) {
 			break
 		}
 
-		_ = mycocontext.EatUntilSpace(ctx)
+		_ = ctxio.EatUntilSpace(ctx)
 		contents, eof = nextListItem(ctx, rootLevel)
 		item := blocks.ListItem{
 			Marker:   marker,
@@ -42,7 +43,7 @@ func readNextListItemsContents(ctx mycocontext.Context) (text bytes.Buffer, eof 
 	)
 walker: // Read all item's contents
 	for !eof {
-		b, eof = mycocontext.NextByte(ctx)
+		b, eof = ctxio.NextByte(ctx)
 	stateMachine: // I'm extremely sorry
 		switch {
 		case onNewLine && b != ' ':
@@ -106,7 +107,7 @@ func nextListItem(
 		// I am so sure there is an asterisk we can simply drop.
 		// Add a newline for proper parsing later on.
 		// The space is left by EatUntilSpace at the end of the string.
-		disnestedBullet := "\n" + mycocontext.EatUntilSpace(ctx)[1:]
+		disnestedBullet := "\n" + ctxio.EatUntilSpace(ctx)[1:]
 		text.WriteString(disnestedBullet)
 
 		subText, eof = readNextListItemsContents(ctx)

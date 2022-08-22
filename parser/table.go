@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/blocks"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/parser/ctxio"
 	"regexp"
 	"strings"
 	"unicode"
 )
 
 func nextTable(ctx mycocontext.Context) (t blocks.Table, eof bool) {
-	line, eof := mycocontext.NextLine(ctx)
+	line, eof := ctxio.NextLine(ctx)
 	t, tableDone := tableFromFirstLine(line)
 	if tableDone || eof {
 		return t, eof
@@ -24,7 +25,7 @@ func nextTable(ctx mycocontext.Context) (t blocks.Table, eof bool) {
 			break
 		}
 	}
-	_, eof = mycocontext.NextLine(ctx) // Ignore text after }
+	_, eof = ctxio.NextLine(ctx) // Ignore text after }
 	return t, eof
 }
 
@@ -44,7 +45,7 @@ func nextTableRow(ctx mycocontext.Context) (row blocks.TableRow, foundRow, table
 	)
 runeWalker:
 	for {
-		r, eof = mycocontext.NextRune(ctx)
+		r, eof = ctxio.NextRune(ctx)
 		if eof {
 			tableDone = true
 			break
@@ -71,7 +72,7 @@ runeWalker:
 			currColspan++
 
 		case !cleaningLeadingWhitespace && !countingColspan, countingColspan:
-			mycocontext.UnreadRune(ctx)
+			ctxio.UnreadRune(ctx)
 			var contents []blocks.Block
 			cellText, tableDone = nextTableCellContents(ctx)
 			parseSubdocumentForEachBlock(ctx, cellText, func(block blocks.Block) {
@@ -113,14 +114,14 @@ func nextTableCellContents(
 	)
 runeWalker:
 	for {
-		r, eof := mycocontext.NextRune(ctx)
+		r, eof := ctxio.NextRune(ctx)
 		if eof {
 			tableDone = true
 			break
 		}
 		switch {
 		case r == '\n':
-			mycocontext.UnreadRune(ctx)
+			ctxio.UnreadRune(ctx)
 			break runeWalker
 		case escaping:
 			contentsBuilder.WriteRune(r)
@@ -130,20 +131,20 @@ runeWalker:
 			escaping = true
 		case r == '[':
 			contentsBuilder.WriteRune('[')
-			r, eof = mycocontext.NextRune(ctx)
+			r, eof = ctxio.NextRune(ctx)
 			if r == '[' {
 				inLink = true
 			}
 			contentsBuilder.WriteRune(r)
 		case inLink && r == ']':
 			contentsBuilder.WriteRune(']')
-			r, eof = mycocontext.NextRune(ctx)
+			r, eof = ctxio.NextRune(ctx)
 			if r == ']' {
 				inLink = false
 			}
 			contentsBuilder.WriteRune(r)
 		case !inLink && r == '|', r == '!': // looks like a new cell
-			mycocontext.UnreadRune(ctx)
+			ctxio.UnreadRune(ctx)
 			break runeWalker
 		case !inLink && r == '{':
 			contentsBuilder.WriteString(nextTableMultiline(ctx))
@@ -168,7 +169,7 @@ func nextTableMultiline(ctx mycocontext.Context) string {
 		ret        strings.Builder
 	)
 	for {
-		r, eof = mycocontext.NextRune(ctx)
+		r, eof = ctxio.NextRune(ctx)
 		if eof {
 			break
 		}

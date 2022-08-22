@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bytes"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/parser/ctxio"
 	"strings"
 	"unicode"
 
@@ -11,13 +12,13 @@ import (
 )
 
 func nextParagraph(ctx mycocontext.Context) (p blocks.Paragraph, done bool) {
-	line, done := mycocontext.NextLine(ctx)
+	line, done := ctxio.NextLine(ctx)
 	p = blocks.Paragraph{MakeFormatted(ctx, line)}
 	if nextLineIsSomething(ctx) {
 		return
 	}
 	for {
-		line, done = mycocontext.NextLine(ctx)
+		line, done = ctxio.NextLine(ctx)
 		if done && line == "" {
 			break
 		}

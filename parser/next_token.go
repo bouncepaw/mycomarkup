@@ -5,6 +5,7 @@ import (
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/blocks"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/links"
 	"git.sr.ht/~bouncepaw/mycomarkup/v5/mycocontext"
+	"git.sr.ht/~bouncepaw/mycomarkup/v5/parser/ctxio"
 	"html"
 	"strings"
 )
@@ -20,7 +21,7 @@ func nextLaunchPad(ctx mycocontext.Context) (blocks.LaunchPad, bool) {
 		rocketLinks = make([]blocks.RocketLink, 0)
 	)
 	for isPrefixedBy(ctx, "=>") {
-		line, done = mycocontext.NextLine(ctx)
+		line, done = ctxio.NextLine(ctx)
 		rocketLinks = append(rocketLinks, lineToRocketLink(ctx, line))
 	}
 	return blocks.NewLaunchPad(rocketLinks), done
@@ -50,11 +51,11 @@ func lineToRocketLink(ctx mycocontext.Context, line string) blocks.RocketLink {
 
 func nextCodeBlock(ctx mycocontext.Context) (code blocks.CodeBlock, eof bool) {
 	contents := ""
-	line, eof := mycocontext.NextLine(ctx)
+	line, eof := ctxio.NextLine(ctx)
 	language := strings.TrimPrefix(line, "```")
 
 	for !eof {
-		line, eof = mycocontext.NextLine(ctx)
+		line, eof = ctxio.NextLine(ctx)
 		if strings.HasPrefix(line, "```") {
 			break
 		}
@@ -73,7 +74,7 @@ func linesForQuote(ctx mycocontext.Context) ([]string, bool) {
 		done  bool
 	)
 	for {
-		line, done = mycocontext.NextLine(ctx)
+		line, done = ctxio.NextLine(ctx)
 		// Drop >, remove spaces, save this line
 		lines = append(lines, strings.TrimSpace(line[1:]))
 
@@ -135,7 +136,7 @@ func matchesEmptyLine(ctx mycocontext.Context) bool {
 func NextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 	switch {
 	case matchesEmptyLine(ctx):
-		_, done := mycocontext.NextLine(ctx)
+		_, done := ctxio.NextLine(ctx)
 		return nil, done
 	case looksLikeList(ctx):
 		return nextList(ctx)
@@ -146,23 +147,23 @@ func NextToken(ctx mycocontext.Context) (blocks.Block, bool) {
 	case isPrefixedBy(ctx, ">"):
 		return nextQuote(ctx)
 	case isPrefixedBy(ctx, "<="):
-		line, done := mycocontext.NextLine(ctx)
+		line, done := ctxio.NextLine(ctx)
 		return blocks.MakeTransclusion(ctx, line), done
 	case isPrefixedBy(ctx, "----"):
-		line, done := mycocontext.NextLine(ctx)
+		line, done := ctxio.NextLine(ctx)
 		return blocks.NewThematicBreak(line), done
 
 	case isPrefixedBy(ctx, "==== "):
-		line, done := mycocontext.NextLine(ctx)
+		line, done := ctxio.NextLine(ctx)
 		return parseHeading(ctx, line, 4), done
 	case isPrefixedBy(ctx, "=== "):
-		line, done := mycocontext.NextLine(ctx)
+		line, done := ctxio.NextLine(ctx)
 		return parseHeading(ctx, line, 3), done
 	case isPrefixedBy(ctx, "== "):
-		line, done := mycocontext.NextLine(ctx)
+		line, done := ctxio.NextLine(ctx)
 		return parseHeading(ctx, line, 2), done
 	case isPrefixedBy(ctx, "= "):
-		line, done := mycocontext.NextLine(ctx)
+		line, done := ctxio.NextLine(ctx)
 		return parseHeading(ctx, line, 1), done
 
 	case matchesImg(ctx):
