@@ -1,12 +1,12 @@
 # Mycomarkup
 [![godocs.io](http://godocs.io/git.sr.ht/~bouncepaw/mycomarkup/v5?status.svg)](http://godocs.io/git.sr.ht/~bouncepaw/mycomarkup/v5)
 
+⚠️ **The development takes place on [SourceHut](https://sr.ht/~bouncepaw/mycomarkup/)!**
+
 **Mycomarkup** is a markup language designed to be used in [Mycorrhiza Wiki](https://mycorrhiza.wiki). This project is
 both a library for the wiki engine and a command-line tool for processing Mycomarkup files in other projects.
 
 See [the Mycorrhiza docs](https://mycorrhiza.wiki/help/en/mycomarkup) on the markup language itself. The rest of the document provides documentation on the library and the command only.
-
-Also see [our kanban board](https://github.com/bouncepaw/mycomarkup/projects/1) and [this hypha](https://mycorrhiza.wiki/hypha/release/roadmap).
 
 ## Running
 ```
@@ -25,4 +25,4 @@ Please note that transclusion is not supported in CLI.
 Mycomarkup provides an API for Go projects. Consult the docs and Mycorrhiza Wiki source code for inspiration.
 
 ## Contributing
-All pull requests are welcome. Feel free to open issues. Also, pay a visit to the [Mycorrhiza Wiki Telegram chat](https://t.me/mycorrhizadev). Also consider donating on [Boosty](https://boosty.to/bouncepaw).
+...is on SourceHut.
