@@ -303,20 +303,21 @@ func BlockToTag(ctx mycocontext.Context, block blocks.Block, counter *blocks.IDC
 
 		// V4 This part is awful, bloody hell. Move to the parser module
 		// Now, to real transclusion:
-		rawText, binaryHtml, err := mycocontext.HyphaHTMLData(ctx, xcl.Target)
+		rawText, binaryHtml, err := ctx.Options().HyphaHTMLData(xcl.Target)
 		if err != nil {
 			xcl.TransclusionError.Reason = blocks.TransclusionErrorNotExists
 			return MapTransclusionErrorToTag(xcl)
 		}
 		xclVisitor, result := temporary_workaround.TransclusionVisitor(xcl)
-		xclctx := mycocontext.WithOptions(
-			mycocontext.WithBuffer(ctx, bytes.NewBufferString(rawText)),
-			func() options.Options {
-				opts := mycocontext.Options(ctx)
-				opts.HyphaName = xcl.Target
-				return opts
-			}(),
-		)
+		xclctx := ctx.
+			WithBuffer(bytes.NewBufferString(rawText)).
+			WithOptions(
+				func() options.Options {
+					opts := ctx.Options()
+					opts.HyphaName = xcl.Target
+					return opts
+				}(),
+			)
 		_ = temporary_workaround.BlockTree(xclctx, xclVisitor) // Call for side-effects
 
 		var children []tag.Tag

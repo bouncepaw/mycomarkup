@@ -33,7 +33,7 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 				ogTag("title", util.BeautifulName(ctx.HyphaName())),
 				ogTag("type", "article"), // TODO: change depending on content?
 				ogTag("image", imageUrl),
-				ogTag("url", ctx.WebSiteURL()+"/hypha/"+util.CanonicalName(ctx.HyphaName())),
+				ogTag("url", ctx.Options().WebSiteURL+"/hypha/"+util.CanonicalName(ctx.HyphaName())),
 				ogTag("determiner", ""),
 				ogTag("description", prepareDescription(description)),
 			}, "\n")
@@ -58,7 +58,7 @@ func OpenGraphVisitors(ctx mycocontext.Context) (
 			switch block := block.(type) {
 			case blocks.Img:
 				if len(block.Entries) > 0 {
-					imageUrl = ctx.WebSiteURL() + block.Entries[0].Target.ImgSrc(ctx)
+					imageUrl = ctx.Options().WebSiteURL + block.Entries[0].Target.ImgSrc(ctx)
 				}
 			}
 		}

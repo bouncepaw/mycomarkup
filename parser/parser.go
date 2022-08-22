@@ -9,7 +9,7 @@ import (
 
 // parseSubdocumentForEachBlock replaces the buffer in the given context and parses the document contained in the buffer. The function is called on every block.
 func parseSubdocumentForEachBlock(ctx mycocontext.Context, buf *bytes.Buffer, f func(block blocks.Block)) {
-	ctx = mycocontext.WithBuffer(ctx, buf)
+	ctx = ctx.WithBuffer(buf)
 	var (
 		done  bool
 		token blocks.Block

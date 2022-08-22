@@ -62,7 +62,7 @@ func nextInlineLink(ctx mycocontext.Context, input *bytes.Buffer, hyphaName stri
 	link := links.LinkFrom(ctx, addrBuf.String(), displayBuf.String())
 	// Color if needed. One hypha storage iteration.
 	if probe := link.HyphaProbe(ctx); probe != nil {
-		mycocontext.Options(ctx).IterateHyphaNamesWith(probe)
+		ctx.Options().IterateHyphaNamesWith(probe)
 
 	}
 	return blocks.InlineLink{Link: link}

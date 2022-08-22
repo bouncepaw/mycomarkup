@@ -33,7 +33,7 @@ func (lp LaunchPad) LinksColored(ctx mycocontext.Context) LaunchPad {
 			probes = append(probes, probe)
 		}
 	}
-	mycocontext.IterateHyphaNamesWith(ctx, func(hyphaName string) {
+	ctx.Options().IterateHyphaNamesWith(func(hyphaName string) {
 		for _, probe := range probes {
 			probe(hyphaName)
 		}

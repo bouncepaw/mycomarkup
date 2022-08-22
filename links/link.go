@@ -111,12 +111,12 @@ type LocalLink struct {
 
 func (l *LocalLink) Existing() bool { return l.existing }
 func (l *LocalLink) Target(ctx mycocontext.Context) string {
-	return mycocontext.Options(ctx).LocalTargetCanonicalName(l.target)
+	return ctx.Options().LocalTargetCanonicalName(l.target)
 }
 
 func (l *LocalLink) Classes(ctx mycocontext.Context) string {
 	res := "wikilink wikilink_internal"
-	if !l.existing && mycocontext.Options(ctx).RedLinksSupported {
+	if !l.existing && ctx.Options().RedLinksSupported {
 		res += " wikilink_new"
 	}
 	return res
@@ -124,16 +124,16 @@ func (l *LocalLink) Classes(ctx mycocontext.Context) string {
 
 func (l *LocalLink) LinkHref(ctx mycocontext.Context) string {
 	if l.anchor != "" {
-		return mycocontext.Options(ctx).LocalLinkHref(l.target) + "#" + l.anchor
+		return ctx.Options().LocalLinkHref(l.target) + "#" + l.anchor
 	}
-	return mycocontext.Options(ctx).LocalLinkHref(l.target)
+	return ctx.Options().LocalLinkHref(l.target)
 }
 
 func (l *LocalLink) ImgSrc(ctx mycocontext.Context) string {
 	if l.anchor != "" {
-		return mycocontext.Options(ctx).LocalImgSrc(l.target) + "#" + l.anchor
+		return ctx.Options().LocalImgSrc(l.target) + "#" + l.anchor
 	}
-	return mycocontext.Options(ctx).LocalImgSrc(l.target)
+	return ctx.Options().LocalImgSrc(l.target)
 }
 
 func (l *LocalLink) DisplayedText() string {
@@ -150,7 +150,7 @@ func (l *LocalLink) HyphaProbe(ctx mycocontext.Context) func(string) {
 	if l.target == "" {
 		return nil
 	}
-	target := mycocontext.Options(ctx).LocalTargetCanonicalName(l.Target(ctx))
+	target := ctx.Options().LocalTargetCanonicalName(l.Target(ctx))
 	done := false
 	return func(docName string) {
 		if done {
@@ -246,10 +246,10 @@ type InterwikiLink struct {
 
 func (l *InterwikiLink) TryToGetError(ctx mycocontext.Context) bool {
 	switch {
-	case !mycocontext.Options(ctx).InterwikiSupported:
+	case !ctx.Options().InterwikiSupported:
 		l.err = options.NotSetUp
 	default:
-		_, l.err = mycocontext.Options(ctx).LinkHrefFormatForInterwikiPrefix(l.prefix)
+		_, l.err = ctx.Options().LinkHrefFormatForInterwikiPrefix(l.prefix)
 	}
 	return l.err != options.Ok
 }
@@ -263,12 +263,12 @@ func (l *InterwikiLink) Classes(_ mycocontext.Context) string {
 }
 
 func (l *InterwikiLink) LinkHref(ctx mycocontext.Context) string {
-	format, _ := mycocontext.Options(ctx).LinkHrefFormatForInterwikiPrefix(l.prefix)
+	format, _ := ctx.Options().LinkHrefFormatForInterwikiPrefix(l.prefix)
 	return strings.ReplaceAll(format, "{NAME}", l.target)
 }
 
 func (l *InterwikiLink) ImgSrc(ctx mycocontext.Context) string {
-	format, _ := mycocontext.Options(ctx).ImgSrcFormatForInterwikiPrefix(l.prefix)
+	format, _ := ctx.Options().ImgSrcFormatForInterwikiPrefix(l.prefix)
 	return strings.ReplaceAll(format, "{NAME}", l.target)
 }
 

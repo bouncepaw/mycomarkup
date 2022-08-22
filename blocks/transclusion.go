@@ -26,7 +26,7 @@ func (t Transclusion) ID(counter *IDCounter) string {
 func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
 	line = strings.TrimSpace(line[2:])
 	switch {
-	case !ctx.TransclusionSupported():
+	case !ctx.Options().TransclusionSupported:
 		return Transclusion{
 			"",
 			false,
@@ -68,7 +68,7 @@ func MakeTransclusion(ctx mycocontext.Context, line string) Transclusion {
 		}
 	case *links.LocalLink:
 		target = link.Target(ctx)
-		if !mycocontext.HyphaExists(ctx, target) {
+		if !ctx.Options().HyphaExists(target) {
 			return Transclusion{
 				Target:            target,
 				Blend:             false,

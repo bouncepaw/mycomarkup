@@ -45,7 +45,7 @@ func (img Img) WithExistingTargetsMarked(ctx mycocontext.Context) Img {
 			probes = append(probes, probe)
 		}
 	}
-	mycocontext.IterateHyphaNamesWith(ctx, func(hyphaName string) {
+	ctx.Options().IterateHyphaNamesWith(func(hyphaName string) {
 		for _, probe := range probes {
 			probe(hyphaName)
 		}

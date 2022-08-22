@@ -2,6 +2,12 @@ package mycocontext
 
 import "strings"
 
+/*
+Operations on the data stored in the context. They are used extensively in parsing.
+
+TODO: Move to package parser maybe?
+*/
+
 // EatUntilSpace reads characters until it encounters a non-space character. The read characters are returned. No errors are reported even if there are any, be bold.
 func EatUntilSpace(ctx Context) (line string) {
 	// We do not care what is read, therefore we drop the read line.
