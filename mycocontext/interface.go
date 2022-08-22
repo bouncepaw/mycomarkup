@@ -8,6 +8,8 @@ import (
 )
 
 // Context is the wrapper around context.Context providing type-level safety on presence of several values.
+//
+// TODO: Get rid of the interface.
 type Context interface {
 	context.Context
 
@@ -38,11 +40,11 @@ func Options(ctx Context) options.Options {
 	return ctx.Value(keyOptions).(options.Options)
 }
 
-// CancelFunc is a function you call to cancel the context. Why would you, though?
+// CancelFunc is a function you call to cancel the context. Why would you, though? It is currently unused.
 type CancelFunc context.CancelFunc
 
-// ContextFromStringInput returns the context for the given input.
-func ContextFromStringInput(input string, opts options.Options) (Context, CancelFunc) {
+// ContextFromBuffer returns the context for the given input.
+func ContextFromBuffer(input *bytes.Buffer, opts options.Options) (Context, CancelFunc) {
 	opts.TransclusionSupported = true
 	ctx, cancel := context.WithCancel(
 		context.WithValue(
@@ -52,12 +54,22 @@ func ContextFromStringInput(input string, opts options.Options) (Context, Cancel
 					keyOptions,
 					opts),
 				keyInputBuffer,
-				bytes.NewBufferString(input),
+				input,
 			),
 			keyRecursionLevel,
 			uint(0),
 		))
 	return &mycoContext{ctx}, CancelFunc(cancel)
+}
+
+// ContextFromBytes returns the context for the given input.
+func ContextFromBytes(input []byte, opts options.Options) (Context, CancelFunc) {
+	return ContextFromBuffer(bytes.NewBuffer(input), opts)
+}
+
+// ContextFromStringInput returns the context for the given input.
+func ContextFromStringInput(input string, opts options.Options) (Context, CancelFunc) {
+	return ContextFromBuffer(bytes.NewBufferString(input), opts)
 }
 
 // WithBuffer returns a copy of the given context but with a different input buffer.

@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// TODO: provide a similar function but for []byte and use it here.
-	ctx, _ := mycocontext.ContextFromStringInput(string(contents), options.Options{
+	ctx, _ := mycocontext.ContextFromBytes(contents, options.Options{
 		HyphaName:             hyphaName,
 		WebSiteURL:            "",
 		TransclusionSupported: false,
@@ -28,7 +28,7 @@ func main() {
 
 func parseFlags() (hyphaName, fileName string) {
 	flag.StringVar(&hyphaName, "hypha-name", "", "Set hypha name. Relative links depend on it.")
-	flag.StringVar(&fileName, "file-name", "/dev/stdin", "File with mycomarkup.")
+	flag.StringVar(&fileName, "file-name", "/dev/stdin", "File with a Mycomarkup document.")
 	flag.Parse()
 
 	return
