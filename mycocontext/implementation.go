@@ -11,8 +11,6 @@ type mycoContext struct {
 	context.Context
 }
 
-// See interface.go for description of the methods.
-
 func (ctx *mycoContext) HyphaName() string {
 	return ctx.Value(keyOptions).(options.Options).HyphaName
 }
@@ -26,7 +24,7 @@ func (ctx *mycoContext) RecursionLevel() uint {
 }
 
 func (ctx *mycoContext) WithIncrementedRecursionLevel() Context {
-	return &mycoContext{context.WithValue(ctx, keyRecursionLevel, ctx.RecursionLevel()+1)}
+	return Context{&mycoContext{context.WithValue(ctx, keyRecursionLevel, ctx.RecursionLevel()+1)}}
 }
 
 func (ctx *mycoContext) WebSiteURL() string {
